@@ -590,6 +590,16 @@
     "@orpc/standard-server-fetch" "1.12.1"
     "@orpc/standard-server-peer" "1.12.1"
 
+"@orpc/client@1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@orpc/client/-/client-1.12.3.tgz#56e8edf76997c1e80699b2929e4e129038e27dd2"
+  integrity sha512-Bk0Z1k6Yiny/sRRtvPRIzPi9w2lIGXadtaTdBI6G0qkhTicKYYABi6bnkchKLN+Ud6zOqD8XwZAe/NuZPz32XQ==
+  dependencies:
+    "@orpc/shared" "1.12.3"
+    "@orpc/standard-server" "1.12.3"
+    "@orpc/standard-server-fetch" "1.12.3"
+    "@orpc/standard-server-peer" "1.12.3"
+
 "@orpc/contract@1.12.1":
   version "1.12.1"
   resolved "https://registry.yarnpkg.com/@orpc/contract/-/contract-1.12.1.tgz#0652e91af66bf057698a8bde5c115b6a7075e091"
@@ -597,6 +607,16 @@
   dependencies:
     "@orpc/client" "1.12.1"
     "@orpc/shared" "1.12.1"
+    "@standard-schema/spec" "^1.0.0"
+    openapi-types "^12.1.3"
+
+"@orpc/contract@1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@orpc/contract/-/contract-1.12.3.tgz#2d2430e20f11c2f12252978f377d9d72dc325734"
+  integrity sha512-WQJ9ljzZ8HRnRiRuDAYyez93nFbOYlTnt4RDDkZxy911mPIC+9e7JYOsgB2TThQCC8ue/crg5LRk46cEqWJYTw==
+  dependencies:
+    "@orpc/client" "1.12.3"
+    "@orpc/shared" "1.12.3"
     "@standard-schema/spec" "^1.0.0"
     openapi-types "^12.1.3"
 
@@ -624,6 +644,48 @@
   resolved "https://registry.yarnpkg.com/@orpc/interop/-/interop-1.12.1.tgz#b9d9bf413010171715f5f7abbad783de6281c16a"
   integrity sha512-88vvvTedjD9Chj39HJvE7cZthO0w87mvppsjKZXZKMNdA/ALXFf4c9AZsrnxTdM7ubS2Gzci3gxJBql895ZHnw==
 
+"@orpc/interop@1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@orpc/interop/-/interop-1.12.3.tgz#e08076ee999e9390c15bcae85f8e41ef27082c70"
+  integrity sha512-Qj0EdguHfNtEKO2mbuxLwTh+g+F58NOQz24IJrxLD7oWcBI5tArGeh1Jj2/obG/3VHKlKLtmWfBoQ/8j9kZINQ==
+
+"@orpc/json-schema@1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@orpc/json-schema/-/json-schema-1.12.3.tgz#354655476d68ab3b4c64a54b7d555b8c4814ac41"
+  integrity sha512-/OV0Hb1rUuCo/Ek+caPre9dhgPQMfw5MHqt+56/KIIULiaUCInTDgufblL/4ZLNY+vRFV6JJv++6qGZ+ny8DCg==
+  dependencies:
+    "@orpc/contract" "1.12.3"
+    "@orpc/interop" "1.12.3"
+    "@orpc/openapi" "1.12.3"
+    "@orpc/server" "1.12.3"
+    "@orpc/shared" "1.12.3"
+    json-schema-typed "^8.0.2"
+
+"@orpc/openapi-client@1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@orpc/openapi-client/-/openapi-client-1.12.3.tgz#bf2e8a68e37fc21fea827ed14bed62cf2e216feb"
+  integrity sha512-dscNVjyp0uuwzhHJCcWfIrMk2DWy1qWIWtV7Q2rc2eiMnuK7KKQSk81mR5/jSW4avrQZID06TuZF5/2yp/SUag==
+  dependencies:
+    "@orpc/client" "1.12.3"
+    "@orpc/contract" "1.12.3"
+    "@orpc/shared" "1.12.3"
+    "@orpc/standard-server" "1.12.3"
+
+"@orpc/openapi@1.12.3", "@orpc/openapi@^1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@orpc/openapi/-/openapi-1.12.3.tgz#bfe1e31ddcb99e40800fe277e0cca0a2ea310703"
+  integrity sha512-KKr5Bfvx6VNYioRkbiJp5RKRDuS/lfzlVcq8/7bYlddY66rrx3DA1UAJgUqKBVwyZFe6aX/RhxXHFC1g/Eabxw==
+  dependencies:
+    "@orpc/client" "1.12.3"
+    "@orpc/contract" "1.12.3"
+    "@orpc/interop" "1.12.3"
+    "@orpc/openapi-client" "1.12.3"
+    "@orpc/server" "1.12.3"
+    "@orpc/shared" "1.12.3"
+    "@orpc/standard-server" "1.12.3"
+    json-schema-typed "^8.0.2"
+    rou3 "^0.7.10"
+
 "@orpc/server@1.12.1", "@orpc/server@^1.12.1":
   version "1.12.1"
   resolved "https://registry.yarnpkg.com/@orpc/server/-/server-1.12.1.tgz#64eec0602d16e238d896a27768a74160630570ba"
@@ -641,10 +703,35 @@
     "@orpc/standard-server-peer" "1.12.1"
     cookie "^1.0.2"
 
+"@orpc/server@1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@orpc/server/-/server-1.12.3.tgz#24b7c1ef02955075c39e2240563cd905e771f984"
+  integrity sha512-At4cww2KTMUM8aTsaQiy49qKjQuchnFzgaxW2qCgnAUDDN36YqJ+X3o2SebOFCrUGZADdW+882byVUubg+XFKg==
+  dependencies:
+    "@orpc/client" "1.12.3"
+    "@orpc/contract" "1.12.3"
+    "@orpc/interop" "1.12.3"
+    "@orpc/shared" "1.12.3"
+    "@orpc/standard-server" "1.12.3"
+    "@orpc/standard-server-aws-lambda" "1.12.3"
+    "@orpc/standard-server-fastify" "1.12.3"
+    "@orpc/standard-server-fetch" "1.12.3"
+    "@orpc/standard-server-node" "1.12.3"
+    "@orpc/standard-server-peer" "1.12.3"
+    cookie "^1.0.2"
+
 "@orpc/shared@1.12.1":
   version "1.12.1"
   resolved "https://registry.yarnpkg.com/@orpc/shared/-/shared-1.12.1.tgz#cd43ab222ebe52bb810cac71657e746890c2454c"
   integrity sha512-ZbnO5FxO8byAL4x49YHlRVMSgjh8xreGQQgV3UcpEsmu6FvNrNJOIYMHO3Dg8/6mTa88waMlZwK0apUKROvNqA==
+  dependencies:
+    radash "^12.1.1"
+    type-fest "^5.2.0"
+
+"@orpc/shared@1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@orpc/shared/-/shared-1.12.3.tgz#0ee1cdd03cfd768315ca0da5a3d0af7f6bdb6843"
+  integrity sha512-WByNSCqYri4fUCMs0WpBA2CClb7u1WsW/8cwLH2pQNAdY/k6GA2p7FsvTn2eTjZoB8KCmqVSz3i6yo43iDyuBg==
   dependencies:
     radash "^12.1.1"
     type-fest "^5.2.0"
@@ -659,6 +746,16 @@
     "@orpc/standard-server-fetch" "1.12.1"
     "@orpc/standard-server-node" "1.12.1"
 
+"@orpc/standard-server-aws-lambda@1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@orpc/standard-server-aws-lambda/-/standard-server-aws-lambda-1.12.3.tgz#2fdf93c305eba823002fccd5acf49cb2996d811f"
+  integrity sha512-kh8HnwryMIWJJ4601kMJ4dlTBOnqLL7+Xk7zz0XSX24geHgutMb1cRMz4UcHg2ttoLTFWjCCJv7Xc6+AOMWONg==
+  dependencies:
+    "@orpc/shared" "1.12.3"
+    "@orpc/standard-server" "1.12.3"
+    "@orpc/standard-server-fetch" "1.12.3"
+    "@orpc/standard-server-node" "1.12.3"
+
 "@orpc/standard-server-fastify@1.12.1":
   version "1.12.1"
   resolved "https://registry.yarnpkg.com/@orpc/standard-server-fastify/-/standard-server-fastify-1.12.1.tgz#4fba10851ee70d55a08e2c918444b9bc6e848239"
@@ -668,6 +765,15 @@
     "@orpc/standard-server" "1.12.1"
     "@orpc/standard-server-node" "1.12.1"
 
+"@orpc/standard-server-fastify@1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@orpc/standard-server-fastify/-/standard-server-fastify-1.12.3.tgz#0030c07e945c3e5d0eb9270b57f55b6a358c2a67"
+  integrity sha512-LxZR2MavpR/TPd+jtZkTgoKULmk1skevdnG9/frzod27B3VOr/QFtYJGaIQiBsL6M5TtR1+ArGJG73mrErZgpA==
+  dependencies:
+    "@orpc/shared" "1.12.3"
+    "@orpc/standard-server" "1.12.3"
+    "@orpc/standard-server-node" "1.12.3"
+
 "@orpc/standard-server-fetch@1.12.1":
   version "1.12.1"
   resolved "https://registry.yarnpkg.com/@orpc/standard-server-fetch/-/standard-server-fetch-1.12.1.tgz#db4c76e21aaa9688872576aafc80c8ab908938cd"
@@ -675,6 +781,14 @@
   dependencies:
     "@orpc/shared" "1.12.1"
     "@orpc/standard-server" "1.12.1"
+
+"@orpc/standard-server-fetch@1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@orpc/standard-server-fetch/-/standard-server-fetch-1.12.3.tgz#bfc872e0bd6c1291ed6223cda58680cc045bf9ed"
+  integrity sha512-RygTJ5eD5Xx4x9wb5J9YS2qZ6QfIvr7lUqniQjw5+Inrvw8BjRdDwZffOrXRAldO5hu8AydJQceqE2rUEj+mRw==
+  dependencies:
+    "@orpc/shared" "1.12.3"
+    "@orpc/standard-server" "1.12.3"
 
 "@orpc/standard-server-node@1.12.1":
   version "1.12.1"
@@ -685,6 +799,15 @@
     "@orpc/standard-server" "1.12.1"
     "@orpc/standard-server-fetch" "1.12.1"
 
+"@orpc/standard-server-node@1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@orpc/standard-server-node/-/standard-server-node-1.12.3.tgz#5fda94b4858ae38fe1604a0929d97fa5f88230af"
+  integrity sha512-wGxunFbum4sed0cdN2n2b2+D9u2fQL9aJjzYaVYT+rvobxA9huYglFXe1R9fCJoYrycyO2bhoACgDdRZesBCIA==
+  dependencies:
+    "@orpc/shared" "1.12.3"
+    "@orpc/standard-server" "1.12.3"
+    "@orpc/standard-server-fetch" "1.12.3"
+
 "@orpc/standard-server-peer@1.12.1":
   version "1.12.1"
   resolved "https://registry.yarnpkg.com/@orpc/standard-server-peer/-/standard-server-peer-1.12.1.tgz#b21d2a05c8a8dc7751e0e046d94b8fa21bc1cfcd"
@@ -693,6 +816,14 @@
     "@orpc/shared" "1.12.1"
     "@orpc/standard-server" "1.12.1"
 
+"@orpc/standard-server-peer@1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@orpc/standard-server-peer/-/standard-server-peer-1.12.3.tgz#337df7d53d1399e3844748ce8403299b948e20db"
+  integrity sha512-woX6hBIM20E2n0RAHZpx06Vxq4zPt7Gtxj2EPeQSvCFS/Wh9MtOgSzGaGcmbuPRssb72xOUcP1bbqoIbAVUZZg==
+  dependencies:
+    "@orpc/shared" "1.12.3"
+    "@orpc/standard-server" "1.12.3"
+
 "@orpc/standard-server@1.12.1":
   version "1.12.1"
   resolved "https://registry.yarnpkg.com/@orpc/standard-server/-/standard-server-1.12.1.tgz#38e47fbf6156e158eda91d1a716458976c701cee"
@@ -700,12 +831,30 @@
   dependencies:
     "@orpc/shared" "1.12.1"
 
+"@orpc/standard-server@1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@orpc/standard-server/-/standard-server-1.12.3.tgz#b2b534231fde62e72b8ba11f44006f894e553aa5"
+  integrity sha512-m69mZ0D3u/zCKW0RXWYlPOW+0xqMA8mfHjpdP+B2SwLM2MUPr3P0R0J/RjAyffbja3Dj5QPKpL0xkIyDxELodA==
+  dependencies:
+    "@orpc/shared" "1.12.3"
+
 "@orpc/tanstack-query@^1.12.1":
   version "1.12.1"
   resolved "https://registry.yarnpkg.com/@orpc/tanstack-query/-/tanstack-query-1.12.1.tgz#61c59092493aab9f7c64e59cf8a9d397a49a63ae"
   integrity sha512-JieRIVkvzNi+IhZI98Ew48zjKEos3EA7Odjmw4cKMhlrmYObPAZ2ZYJQJHBvjCHZnDbWaq4JOlA0Rq0qe0GcdQ==
   dependencies:
     "@orpc/shared" "1.12.1"
+
+"@orpc/zod@^1.12.3":
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@orpc/zod/-/zod-1.12.3.tgz#0f8a925b4894b3d64eb55208c096dc1366e98771"
+  integrity sha512-u/toZgIXDbTUHjb7xuEM3ktUaD/2AxTo8x7BndGlZM7uP+XpzsUzYHW128i9fsyYF55QQc0nXcGir99NmOSFzw==
+  dependencies:
+    "@orpc/json-schema" "1.12.3"
+    "@orpc/openapi" "1.12.3"
+    "@orpc/shared" "1.12.3"
+    escape-string-regexp "^5.0.0"
+    wildcard-match "^5.1.3"
 
 "@pinojs/redact@^0.4.0":
   version "0.4.0"
@@ -1389,6 +1538,11 @@ escape-string-regexp@^4.0.0:
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-4.0.0.tgz#14ba83a5d373e3d311e5afca29cf5bfad965bf34"
   integrity sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==
 
+escape-string-regexp@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-5.0.0.tgz#4683126b500b61762f2dbebace1806e8be31b1c8"
+  integrity sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw==
+
 fast-copy@^4.0.0:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/fast-copy/-/fast-copy-4.0.1.tgz#be5c74baede1a72adf8168df2dc56e842c77a00e"
@@ -1649,6 +1803,11 @@ json-parse-even-better-errors@^2.3.0:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/json-parse-even-better-errors/-/json-parse-even-better-errors-2.3.1.tgz#7c47805a94319928e05777405dc12e1f7a4ee02d"
   integrity sha512-xyFwyhro/JEof6Ghe2iz2NcXoj2sloNsWr/XsERDK/oiPCfaNhl5ONfp+jQdAZRQQ0IJWNzH9zIZF7li91kh2w==
+
+json-schema-typed@^8.0.2:
+  version "8.0.2"
+  resolved "https://registry.yarnpkg.com/json-schema-typed/-/json-schema-typed-8.0.2.tgz#e98ee7b1899ff4a184534d1f167c288c66bbeff4"
+  integrity sha512-fQhoXdcvc3V28x7C7BMs4P5+kNlgUURe2jmUT1T//oBRMDrqy1QPelJimwZGo7Hg9VPV3EQV5Bnq4hbFy2vetA==
 
 kleur@^3.0.3:
   version "3.0.3"
@@ -2489,6 +2648,11 @@ vite@^7.1.12:
     tinyglobby "^0.2.15"
   optionalDependencies:
     fsevents "~2.3.3"
+
+wildcard-match@^5.1.3:
+  version "5.1.4"
+  resolved "https://registry.yarnpkg.com/wildcard-match/-/wildcard-match-5.1.4.tgz#26428c802f20743ebae255e4e9526ae81ddf1816"
+  integrity sha512-wldeCaczs8XXq7hj+5d/F38JE2r7EXgb6WQDM84RVwxy81T/sxB5e9+uZLK9Q9oNz1mlvjut+QtvgaOQFPVq/g==
 
 wrap-ansi@^7.0.0:
   version "7.0.0"
