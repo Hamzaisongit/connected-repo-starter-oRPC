@@ -5,8 +5,8 @@
  * Only syncs variables that are already defined in the workspace .env files
  */
 
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 // Paths
 const ROOT_ENV = path.join(__dirname, "../.env");
@@ -49,7 +49,7 @@ function parseEnvFile(filePath) {
  */
 function syncEnvFile(workspacePath, rootEnv) {
 	if (!fs.existsSync(workspacePath)) {
-		console.log(`⏭️  Skipping ${path.relative(process.cwd(), workspacePath)} (file doesn't exist)`);
+		console.info(`⏭️  Skipping ${path.relative(process.cwd(), workspacePath)} (file doesn't exist)`);
 		return;
 	}
 
@@ -76,11 +76,11 @@ function syncEnvFile(workspacePath, rootEnv) {
 
 			// Special case: sync VITE_NODE_ENV to NODE_ENV for server workspace
 			if (isBackendWorkspace && key === "NODE_ENV" && "VITE_NODE_ENV" in rootEnv) {
-				const rootValue = rootEnv["VITE_NODE_ENV"];
+				const rootValue = rootEnv.VITE_NODE_ENV;
 				if (currentValue !== rootValue) {
 					updatedLines.push(`${key}=${rootValue}`);
 					updatedCount++;
-					console.log(`  ✓ Updated ${key} (from VITE_NODE_ENV)`);
+					console.info(`  ✓ Updated ${key} (from VITE_NODE_ENV)`);
 				} else {
 					updatedLines.push(line);
 				}
@@ -91,7 +91,7 @@ function syncEnvFile(workspacePath, rootEnv) {
 				if (currentValue !== rootValue) {
 					updatedLines.push(`${key}=${rootValue}`);
 					updatedCount++;
-					console.log(`  ✓ Updated ${key}`);
+					console.info(`  ✓ Updated ${key}`);
 				} else {
 					updatedLines.push(line);
 				}
@@ -107,9 +107,9 @@ function syncEnvFile(workspacePath, rootEnv) {
 	// Write updated content
 	if (updatedCount > 0) {
 		fs.writeFileSync(workspacePath, updatedLines.join("\n"));
-		console.log(`✅ Synced ${updatedCount} variable(s) to ${path.relative(process.cwd(), workspacePath)}\n`);
+		console.info(`✅ Synced ${updatedCount} variable(s) to ${path.relative(process.cwd(), workspacePath)}\n`);
 	} else {
-		console.log(`✓ ${path.relative(process.cwd(), workspacePath)} is up to date\n`);
+		console.info(`✓ ${path.relative(process.cwd(), workspacePath)} is up to date\n`);
 	}
 }
 
@@ -117,7 +117,7 @@ function syncEnvFile(workspacePath, rootEnv) {
  * Main function
  */
 function main() {
-	console.log("🔄 Syncing environment variables from root .env...\n");
+	console.info("🔄 Syncing environment variables from root .env...\n");
 
 	// Check if root .env exists
 	if (!fs.existsSync(ROOT_ENV)) {
@@ -127,14 +127,14 @@ function main() {
 
 	// Parse root .env
 	const rootEnv = parseEnvFile(ROOT_ENV);
-	console.log(`📄 Loaded ${Object.keys(rootEnv).length} variables from root .env\n`);
+	console.info(`📄 Loaded ${Object.keys(rootEnv).length} variables from root .env\n`);
 
 	// Sync each workspace
 	WORKSPACES.forEach((workspacePath) => {
 		syncEnvFile(workspacePath, rootEnv);
 	});
 
-	console.log("✨ Environment sync complete!");
+	console.info("✨ Environment sync complete!");
 }
 
 main();

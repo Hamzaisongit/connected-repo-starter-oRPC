@@ -14,7 +14,7 @@ export const createCustomAdapterOrchid = (db: Db): AdapterFactoryCustomizeAdapte
       const result = await db[modelName]
         .create(data)
         // @ts-expect-error
-        .select(validatedSelect.join(", "));
+        .select(...validatedSelect);
 
       return result;
     },
@@ -39,18 +39,9 @@ export const createCustomAdapterOrchid = (db: Db): AdapterFactoryCustomizeAdapte
       const query = applyBetterAuthWhere(db[modelName], where);
       
       // Apply joins and get the select fields
-      const { query: joinedQuery, selectFields } = applyJoins(query, join, db);
+      const joinedQuery = applyJoins(query, join, db);
       
-      // Combine main table select with joined table fields
-      // If we have joins, use object syntax for selecting joined tables
-      if (selectFields.length > 0) {
-        const selectArgs = [validatedSelect.join(", "), ...selectFields];
-        const finalQuery = joinedQuery.select(...selectArgs);
-        return await finalQuery.takeOptional();
-      }
-      
-      const finalQuery = joinedQuery.select(validatedSelect.join(", "));
-      return await finalQuery.takeOptional();
+      return await joinedQuery.select(...validatedSelect).takeOptional();
     },
     findMany: async ({ model, where, sortBy, limit, offset, join }) => {
       const modelName = validateModel(model);
@@ -71,13 +62,7 @@ export const createCustomAdapterOrchid = (db: Db): AdapterFactoryCustomizeAdapte
       }
       
       // Apply joins and get the select fields
-      const { query: joinedQuery, selectFields } = applyJoins(query, join, db);
-      
-      // If we have joined tables, select main table + joined fields
-      // Otherwise just select all from main table
-      if (selectFields.length > 0) {
-        return await joinedQuery.select("*", ...selectFields);
-      }
+      const joinedQuery = applyJoins(query, join, db);
       
       return await joinedQuery.selectAll();
     },

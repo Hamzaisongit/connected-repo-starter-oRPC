@@ -27,7 +27,6 @@ export const LoginPage = () => {
       }, {
 				throw: true,
 			});
-      console.log('OAuth initiation response:', data);
 
       if (data?.url) {
         window.location.href = data.url;

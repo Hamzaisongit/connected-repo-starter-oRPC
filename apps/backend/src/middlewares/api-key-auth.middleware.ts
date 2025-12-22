@@ -1,5 +1,5 @@
 import { db } from "@backend/db/db";
-import { OpenApiContextWithHeaders } from "@backend/procedures/open_api_public.procedure";
+import type { OpenApiContextWithHeaders } from "@backend/procedures/open_api_public.procedure";
 import { verifyApiKey } from "@backend/utils/apiKeyGenerator.utils";
 import { omitKeys } from "@backend/utils/omit.utils";
 import type { MiddlewareNextFn } from "@orpc/server";
@@ -22,7 +22,6 @@ export const apiKeyAuthMiddleware = async ({
 	// Extract headers
 	const apiKey = reqHeaders.get("x-api-key");
 	const teamId = reqHeaders.get("x-team-id");
-	console.log({ apiKey })
 
 	if (!apiKey || typeof apiKey !== "string") {
 		throw new ORPCError("UNAUTHORIZED", {
@@ -41,7 +40,7 @@ export const apiKeyAuthMiddleware = async ({
 	try {
 		// We need to fetch all teams and verify API key against each hash
 		// since we can't query by the hash directly
-		let team = await db.teams.find(teamId).select("*", "apiSecretHash");
+		const team = await db.teams.find(teamId).select("*", "apiSecretHash");
 		
 		const isValid = await verifyApiKey(apiKey, team.apiSecretHash);
 

@@ -125,7 +125,7 @@ Building a **Scheduled Prompt & Journal** app with:
 
 **Issues:**
 
-**2.1.1: Set up Vitest for Backend with OrchidORM**
+**2.1.1: Set up Vitest for Backend with OrchidORM** ✅ COMPLETED
 - Install vitest, @vitest/ui, and testing utilities
 - Create vitest.config.ts for apps/backend
 - Configure test environment (node)
@@ -144,7 +144,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Can run `yarn test` in apps/backend
   - Coverage reports generated
 
-**2.1.2: Write oRPC Endpoint Tests with Database Integration**
+**2.1.2: Write oRPC Endpoint Tests with Database Integration** ✅ COMPLETED
 - Test journal entry endpoints (create, getAll, getById, delete) - includes database constraints
 - Test prompt endpoints (getAllActive, getRandomActive, getById) - includes database queries
 - Test auth context (protected procedures require user)
@@ -161,7 +161,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Tests use testTransaction for isolation
   - Coverage >80% on router files
 
-**2.1.3: Test Factory Setup**
+**2.1.3: Test Factory Setup** ✅ COMPLETED
 - Create factories for User, JournalEntry, Prompt
 - Implement factory methods for creating test data with relationships
 - Add helper methods for common test scenarios

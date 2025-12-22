@@ -1,5 +1,5 @@
-import { RpcContextWithHeaders } from '@backend/procedures/public.procedure';
-import { MiddlewareNextFn, ORPCError } from '@orpc/server';
+import type { RpcContextWithHeaders } from '@backend/procedures/public.procedure';
+import { type MiddlewareNextFn, ORPCError } from '@orpc/server';
 import { auth } from './auth.config';
 
 export const rpcAuthMiddleware = async ({ 
@@ -15,7 +15,7 @@ export const rpcAuthMiddleware = async ({
 		headers: reqHeaders,
 	});
 
-	if (!sessionData?.session || !sessionData?.user) {
+	if (!sessionData?.session.id || !sessionData?.user.id) {
 		throw new ORPCError('UNAUTHORIZED', {
 			status: 401,
 			message: 'User is not authenticated'

@@ -1,7 +1,7 @@
 import { db } from "@backend/db/db";
 
 export async function seedPrompts() {
-	console.log("Seeding prompts...");
+	console.info("Seeding prompts...");
 
 	// Clear existing prompts
 	await db.prompts.where({}).delete();
@@ -197,5 +197,5 @@ export async function seedPrompts() {
 	const promptsWithActive = prompts.map(prompt => ({ ...prompt, isActive: true }));
 	await db.prompts.createMany(promptsWithActive);
 
-	console.log(`✓ Seeded ${prompts.length} journal prompts`);
+	console.info(`✓ Seeded ${prompts.length} journal prompts`);
 }

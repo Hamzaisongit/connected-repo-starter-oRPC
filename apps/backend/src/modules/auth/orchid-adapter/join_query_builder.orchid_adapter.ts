@@ -42,58 +42,41 @@ type JoinConfig = {
  * @param db The Orchid ORM database instance (or a map of model names to Table objects).
  * @returns An object with the modified query and select objects for joined tables
  */
-export function applyJoins(
+export const applyJoins = (
   query: any, 
   joinConfig: JoinConfig | undefined,
   db: Record<string, any>
-): { query: any; selectFields: Record<string, string>[] } {
-  if(!joinConfig) {
-    return { query, selectFields: [] };
-  }
+) => {
+  if (!joinConfig) return query;
+
   let joinQuery = query;
-  const selectFields: Record<string, string>[] = [];
-  
+  const mainTableName = query.table; // Get parent table name (e.g., 'users')
+  const mainTable = db[mainTableName]
+
   for (const [modelName, config] of Object.entries(joinConfig)) {
     const targetTable = db[modelName];
-    
-    if (!targetTable) {
-      console.warn(`[better-auth-orchid] Model '${modelName}' not found in db instance. Skipping join.`);
-      continue;
-    }
+    if (!targetTable) continue;
 
     const { on, limit, relation } = config;
-    
-    // 'on.from' is the column in the main table
-    // 'on.to' is the column in the joined table
-    // Orchid syntax: .join(TargetTable, 'targetColumn', 'sourceColumn')
-    
-    // CASE 1: One-to-One relation - use standard left join
+
     if (relation === 'one-to-one') {
-      // Use leftJoin to preserve main records even if relation is empty
-      // Syntax: .leftJoin(Table, 'table.col', 'main.col')
-      joinQuery = joinQuery.leftJoin(
-        targetTable,
-        on.to,
-        on.from
-      );
-      
-      // Add joined table fields to select list as an object
-      // According to Orchid ORM docs, use { modelName: 'tableName.*' } syntax
-      selectFields.push({ [modelName]: `${modelName}.*` });
-    }
-    
-    // CASE 2: One-to-Many or Many-to-Many - use lateral join with limit
-    else {
-      // Apply LEFT JOIN LATERAL with limit
-      joinQuery = joinQuery.leftJoinLateral(
-        targetTable,
-        (q: any) => q.on(on.to, on.from).limit(limit || 100)
-      );
-      
-      // Add joined table fields to select list as an object
-      selectFields.push({ [modelName]: `${modelName}.*` });
+      joinQuery = joinQuery.select({
+        [modelName]: () => 
+          targetTable
+            .selectAll()
+            .where({ [on.to]: mainTable[on.from] })
+            .takeOptional()
+      })
+    } else {
+      joinQuery = joinQuery.select({
+        [modelName]: () => 
+          targetTable
+            .selectAll()
+            .where({ [on.to]: mainTable[on.from] }) // Link to parent
+            .limit(limit || 100)
+      });
     }
   }
 
-  return { query: joinQuery, selectFields };
+  return joinQuery;
 }
