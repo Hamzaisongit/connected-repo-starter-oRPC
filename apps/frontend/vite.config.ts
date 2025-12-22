@@ -1,10 +1,8 @@
+import path from "node:path";
 import react from "@vitejs/plugin-react-swc";
-import path from "path";
 import { defineConfig } from "vite";
 import { analyzer } from 'vite-bundle-analyzer';
 import { envValidationVitePlugin } from "./src/utils/env_validation_vite_plugin.utils";
-
-const statsPath = path.resolve(__dirname, ".dev", "stats.json");
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -14,7 +12,7 @@ export default defineConfig({
 		react(),
 		analyzer({
 			// analyzerMode: "json",
-			// fileName: statsPath,
+			// fileName: path.resolve(__dirname, ".dev", "stats.json");,
 			// Use the below when output needed is html
 			enabled: true,
 			analyzerMode: "static",

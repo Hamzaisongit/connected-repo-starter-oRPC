@@ -1,4 +1,5 @@
 import type { RpcContextWithHeaders } from '@backend/procedures/public.procedure';
+import { transformSessionAndUserData } from '@backend/utils/session.utils';
 import { type MiddlewareNextFn, ORPCError } from '@orpc/server';
 import { auth } from './auth.config';
 
@@ -22,26 +23,7 @@ export const rpcAuthMiddleware = async ({
 		});
 	}
 
-	const session = {
-		...sessionData.session,
-		userAgent: sessionData.session.userAgent ?? null,
-		ipAddress: sessionData.session.ipAddress ?? null,
-		browser: sessionData.session.browser ?? null,
-		deviceFingerprint: sessionData.session.deviceFingerprint ?? null,
-		os: sessionData.session.os ?? null,
-		device: sessionData.session.device ?? null,
-		createdAt: new Date(sessionData.session.createdAt).getTime(),
-		updatedAt: new Date(sessionData.session.expiresAt).getTime(),
-		markedInvalidAt: sessionData.session.markedInvalidAt ? new Date(sessionData.session.markedInvalidAt).getTime() : null,
-		expiresAt: new Date(sessionData.session.expiresAt).getTime(),
-	};
-
-	const user = {
-		...sessionData.user,
-		image: sessionData.user.image ?? null,
-		createdAt: new Date(sessionData.user.createdAt).getTime(),
-		updatedAt: new Date(sessionData.user.updatedAt).getTime(),
-	}
+	const { session, user } = transformSessionAndUserData(sessionData);
 
 	return next({
 		context: {

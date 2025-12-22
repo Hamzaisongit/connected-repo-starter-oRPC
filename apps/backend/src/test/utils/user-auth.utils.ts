@@ -1,6 +1,5 @@
-
-
 import { auth } from "@backend/modules/auth/auth.config";
+import { transformSessionAndUserData } from "@backend/utils/session.utils";
 import { userCreateFixture } from "@connected-repo/zod-schemas/user.fixture";
 import type { UserCreateInput } from "@connected-repo/zod-schemas/user.zod";
 
@@ -27,28 +26,13 @@ const userLogin = async (loginCredentials: UserLoginCredentials ) => {
     throw new Error("Login Failed");
   };
 
+  const { session, user } = transformSessionAndUserData(sessionData);
+
   return {
     reqHeaders,
-    session: {
-      ...sessionData.session,
-		userAgent: sessionData.session.userAgent ?? null,
-		ipAddress: sessionData.session.ipAddress ?? null,
-		browser: sessionData.session.browser ?? null,
-		deviceFingerprint: sessionData.session.deviceFingerprint ?? null,
-		os: sessionData.session.os ?? null,
-		device: sessionData.session.device ?? null,
-		createdAt: new Date(sessionData.session.createdAt).getTime(),
-		updatedAt: new Date(sessionData.session.expiresAt).getTime(),
-		markedInvalidAt: sessionData.session.markedInvalidAt ? new Date(sessionData.session.markedInvalidAt).getTime() : null,
-		expiresAt: new Date(sessionData.session.expiresAt).getTime(),
-    },
-    user: {
-      ...sessionData.user,
-      image: sessionData.user.image ?? null,
-      createdAt: new Date(sessionData.user.createdAt).getTime(),
-      updatedAt: new Date(sessionData.user.updatedAt).getTime(),
-    }
-  }
+    session,
+    user,
+  };
 }
 export const createUserAndLogin = async (userInput: Partial<UserCreateInput> = {}) => {
   const password = "password123"

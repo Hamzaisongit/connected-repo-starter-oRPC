@@ -25,9 +25,9 @@ A production-ready Turborepo monorepo for building full-stack TypeScript applica
 ### Tooling
 - **Package Manager**: Yarn (v1.22.22)
 - **Monorepo**: [Turborepo](https://turbo.build/repo)
-- **Linting**: Biome
-- **Formatting**: Biome
+- **Linting/Formatting**: Biome (tabs, 100 chars, double quotes)
 - **TypeScript**: v5.8.x with strict mode
+- **Testing**: Vitest (backend), Playwright (frontend E2E)
 
 ## Project Structure
 
@@ -37,33 +37,34 @@ A production-ready Turborepo monorepo for building full-stack TypeScript applica
 │   ├── backend/                      # Fastify server
 │   │   ├── src/
 │   │   │   ├── modules/              # Feature modules
-│   │   │   │   ├── api-gateway/      # External REST API with OpenAPI
 │   │   │   │   ├── auth/             # OAuth2 + session management
-│   │   │   │   ├── journal-entries/  # Journal entry feature (tRPC)
-│   │   │   │   ├── users/            # User management (tRPC)
-│   │   │   │   ├── teams/            # Teams & members
+│   │   │   │   ├── journal-entries/  # Journal entries (oRPC + tests)
+│   │   │   │   ├── prompts/          # Prompt management
+│   │   │   │   ├── logs/             # API request logs
 │   │   │   │   ├── subscriptions/    # API subscriptions
-│   │   │   │   └── logs/             # API request logs
-│   │   │   ├── routers/              # Route aggregation
-│   │   │   │   ├── app.router.ts     # Main router
-│   │   │   │   ├── openapi.plugin.ts # OpenAPI/Swagger setup
-│   │   │   │   └── trpc.router.ts    # tRPC routes
+│   │   │   │   ├── teams/            # Teams & members
+│   │   │   │   └── users/            # User management
+│   │   │   ├── routers/              # Route organization
+│   │   │   │   └── user_app/         # User-facing routes
+│   │   │   ├── request_handlers/     # Request handling
+│   │   │   ├── procedures/           # oRPC procedures
 │   │   │   ├── db/                   # Database layer
-│   │   │   ├── configs/              # App configuration
-│   │   │   ├── middlewares/          # Global middleware
-│   │   │   ├── server.ts             # Entry point
-│   │   │   ├── app.ts                # Fastify setup
-│   │   │   └── trpc.ts               # tRPC initialization
-│   │   ├── Dockerfile                # Docker configuration
-│   │   ├── DEPLOYMENT.md             # Deployment guide
+│   │   │   ├── test/                 # Test utilities
+│   │   │   ├── middlewares/          # Middleware
+│   │   │   ├── configs/              # Configuration
+│   │   │   └── server.ts             # Entry point
+│   │   ├── vitest.config.ts          # Vitest configuration
 │   │   └── package.json
 │   └── frontend/                     # React + Vite
 │       ├── src/
-│       │   ├── components/           # Reusable components
-│       │   ├── pages/                # Page components
 │       │   ├── modules/              # Feature modules
+│       │   ├── components/           # Shared components
+│       │   ├── pages/                # Page components
+│       │   ├── utils/                # Utilities (oRPC client, auth)
 │       │   ├── App.tsx
 │       │   └── router.tsx
+│       ├── e2e/                      # Playwright tests
+│       ├── playwright.config.ts      # Playwright configuration
 │       └── package.json
 ├── packages/
 │   ├── typescript-config/            # Shared TypeScript configs
@@ -119,11 +120,12 @@ yarn install
 yarn build
 ```
 
-5. Create a PostgreSQL database, run migrations & seed data:
+5. Create PostgreSQL databases (main & test), run migrations & seed:
 ```bash
-yarn run db create;
-yarn run db up;
-yarn run db seed;
+yarn db create
+yarn db up
+yarn db seed
+yarn test:db:setup  # Setup test database
 ```
 
 ### Development
@@ -152,10 +154,26 @@ cd apps/frontend && yarn dev
 - `yarn check-types` - Type check all workspaces
 - `yarn clean` - Remove node_modules and build artifacts
 
+### Testing
+
+**Backend Testing (Vitest):**
+```bash
+yarn test              # Run unit tests
+yarn test:ui           # UI mode
+yarn test:coverage     # Coverage report
+yarn test:db:setup     # Setup test database
+```
+
+**Frontend E2E testing(Playwright):**
+```bash
+yarn test:e2e          # Run E2E tests
+yarn test:e2e -b       # Build for testing
+yarn test:e2e:ui       # UI mode
+yarn test:e2e -b       # Build before testing (UI mode)
+```
+
 ### Production
 ```bash
-# Build and start the backend
-cd apps/backend
 yarn build
 yarn start
 ```
@@ -223,16 +241,22 @@ const create = orpc.journalEntry.create.useMutation();
 // See interactive docs at /api/documentation
 ```
 
-### Database Layer & Shared Validation
+### Database & Testing
 
-- **ORM**: Orchid ORM with automatic snake_case conversion and transaction support
-- **Type Safety**: Zod schemas for input validation across backend and frontend
-- **Timestamps**: Epoch milliseconds (number) not Date objects
-- **Naming**: Descriptive IDs (`userId`, `teamId`) and FKs (`authorUserId`)
-- **Tables**: Organized by feature module in `modules/<feature>/tables/`
-- **Indexes**: Composite indexes on frequently queried columns for performance
+**Database Layer (Orchid ORM):**
+- Automatic snake_case conversion, transaction support
+- Zod schemas for validation across backend/frontend
+- Timestamps: epoch milliseconds (number)
+- Descriptive IDs (`userId`, `teamId`) and FKs (`authorUserId`)
+- Tables organized by feature module in `modules/<feature>/tables/`
+- Test database setup via `yarn test:db:setup`
 
-Key tables: users, sessions, teams, team_members, journal_entries, subscriptions, api_product_request_logs, webhook_call_queue
+**Testing Infrastructure:**
+- Backend: Vitest with test database isolation
+- Frontend: Playwright E2E with shared state across browsers
+- Test utilities for auth flows and common operations
+
+Key tables: users, sessions, teams, team_members, journal_entries, prompts, subscriptions
 
 ### Error Handling
 
@@ -275,36 +299,38 @@ Multi-layer error handling system:
 ### New Database Table
 
 1. Create table in `apps/backend/src/modules/<feature>/tables/<entity>.table.ts`
-   - Use descriptive IDs: `userId`, `teamId` (not generic `id`)
-   - Use descriptive FKs: `authorUserId` (not just `authorId`)
-   - Use `timestampNumber` for timestamps (epoch milliseconds)
+   - Descriptive IDs: `userId`, `teamId`
+   - Descriptive FKs: `authorUserId`
+   - Use `timestampNumber` for timestamps
 2. Create Zod schemas in `packages/zod-schemas/src/<entity>.zod.ts`
-3. Register table in `apps/backend/src/db/db.ts`
-4. Run `yarn run db g <migration_name>` then `yarn run db up`
+3. Register in `apps/backend/src/db/db.ts`
+4. Generate migration: Always use command `yarn db g <name>` to generate migrations, never write migrations manually.
+5. Run migrations: `yarn db up`
+6. Add fixtures in `packages/zod-schemas/src/<entity>.fixture.ts` for testing
 
 ### New oRPC Endpoint (Internal API)
 
 1. Import schema from `@connected-repo/zod-schemas/<entity>.zod`
-2. Create procedure in `apps/backend/src/modules/<feature>/<feature>.orpc.ts`
-3. Register in `apps/backend/src/router.ts`
-4. Use `protectedProcedure` for operations requiring auth
-5. Frontend auto-gets types via oRPC router type import
+2. Create procedure in `apps/backend/src/modules/<feature>/<feature>.router.ts`
+3. Register in `apps/backend/src/routers/user_app/user_app.router.ts`
+4. Use `rpcProtectedProcedure` for auth-required operations
+5. Add tests in `apps/backend/src/modules/<feature>/<feature>.test.ts`
+6. Frontend auto-gets types via oRPC router import
 
 ### New API Product Endpoint (External OpenAPI)
 
 1. Define Zod schemas in `packages/zod-schemas/src/<entity>.zod.ts`
-2. Add product to `API_PRODUCTS` array in `packages/zod-schemas/src/enums.zod.ts`
+2. Add product to `API_PRODUCTS` in `packages/zod-schemas/src/enums.zod.ts`
 3. Create handler in `apps/backend/src/modules/api-gateway/handlers/<product>.handler.ts`
-4. Add route in `apps/backend/src/modules/api-gateway/api-gateway.router.ts`:
-   - Use `.withTypeProvider<FastifyZodOpenApiTypeProvider>()`
-   - Apply middleware chain (apiKeyAuth, CORS, whitelist, rateLimit, subscriptionCheck)
+4. Add route in `apps/backend/src/modules/api-gateway/api-gateway.router.ts`
 5. Test via Swagger UI at `/api/documentation`
 
 ### New Frontend Page
 
-1. Create component in `apps/frontend/src/pages/` or `modules/<feature>/pages/`
+1. Create in `apps/frontend/src/modules/<feature>/pages/`
 2. Add route in `apps/frontend/src/router.tsx` with lazy loading
 3. Use oRPC hooks for data fetching
+4. Add E2E tests in `apps/frontend/e2e/` or `src/modules/<feature>/<feature>.spec.ts`
 
 ## Turborepo
 

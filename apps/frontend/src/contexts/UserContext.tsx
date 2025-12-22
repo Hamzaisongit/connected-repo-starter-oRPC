@@ -1,4 +1,4 @@
-import { UserSelectAll } from "@connected-repo/zod-schemas/user.zod";
+import type { UserSelectAll } from "@connected-repo/zod-schemas/user.zod";
 import { createContext, useOutletContext } from "react-router";
 
 export interface SessionInfo {

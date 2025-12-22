@@ -7,6 +7,8 @@ import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { Container } from "@connected-repo/ui-mui/layout/Container";
 import { Paper } from "@connected-repo/ui-mui/layout/Paper";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
+import { userCreateFixture } from "@connected-repo/zod-schemas/user.fixture";
+import { env, isTest } from "@frontend/configs/env.config";
 import { authClient } from "@frontend/utils/auth.client";
 import { useState } from "react";
 import { useSearchParams } from "react-router";
@@ -17,17 +19,42 @@ export const LoginPage = () => {
 	const [searchParams] = useSearchParams();
 	const error = searchParams.get("error");
 
-  const handleGoogleLogin = async () => {
+   const handleGoogleLogin = async () => {
     setIsLoading(true);
-
+ 		let data: { url?: string } | undefined;
+		
     try {
-      const data = await authClient.signIn.social({
-        provider: 'google',
-        callbackURL: window.location.origin,
-      }, {
-				throw: true,
-			});
+			if(isTest){
+				const dummyUser = userCreateFixture();
+				const password = env.VITE_TEST_PASSWORD;
+				if(!password){
+					throw new Error("Test password is not set in environment variables");
+				}
 
+				await authClient.signUp.email({
+					...dummyUser,
+					image: dummyUser.image ?? undefined,
+					password,
+				}, {
+					throw: true
+				});
+
+				data = await authClient.signIn.email({
+					email: dummyUser.email,
+					password,
+					rememberMe: true,
+					callbackURL: `${env.VITE_USER_APP_URL}/dashboard`
+				}, {
+					throw: true
+				});
+			} else {    
+				data = await authClient.signIn.social({
+					provider: 'google',
+					callbackURL: window.location.origin,
+				}, {
+					throw: true,
+				});
+			}
       if (data?.url) {
         window.location.href = data.url;
       }

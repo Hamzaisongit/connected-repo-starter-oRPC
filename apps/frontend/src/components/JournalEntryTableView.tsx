@@ -1,8 +1,8 @@
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { MaterialReactTable } from "@connected-repo/ui-mui/mrt/MaterialReactTable";
 import type { journalEntrySelectAllZod } from "@connected-repo/zod-schemas/journal_entry.zod";
-import { MRT_ColumnDef } from "material-react-table";
-import { useMemo } from "react";
+import type { MRT_ColumnDef } from "material-react-table";
+import { useCallback, useMemo } from "react";
 import type { z } from "zod";
 
 type JournalEntry = z.infer<typeof journalEntrySelectAllZod>;
@@ -13,20 +13,24 @@ interface JournalEntryTableViewProps {
 }
 
 export function JournalEntryTableView({ entries, onEntryClick }: JournalEntryTableViewProps) {
-	const truncateContent = (content: string, maxLength = 100) => {
-		if (content.length <= maxLength) return content;
-		return `${content.substring(0, maxLength)}...`;
-	};
+	const truncateContent = useCallback(
+		(content: string, maxLength = 100) => {
+			if (content.length <= maxLength) return content;
+			return `${content.substring(0, maxLength)}...`;
+		}, []
+	);
 
-	const formatDate = (date: number | string | Date) => {
-		return new Date(date).toLocaleDateString("en-US", {
-			year: "numeric",
-			month: "short",
-			day: "numeric",
-			hour: "2-digit",
-			minute: "2-digit",
-		});
-	};
+	const formatDate = useCallback(
+		(date: number | string | Date) => {
+			return new Date(date).toLocaleDateString("en-US", {
+				year: "numeric",
+				month: "short",
+				day: "numeric",
+				hour: "2-digit",
+				minute: "2-digit",
+			});
+		}, []
+	);
 
 	const columns = useMemo<MRT_ColumnDef<JournalEntry>[]>(
 		() => [
@@ -66,7 +70,7 @@ export function JournalEntryTableView({ entries, onEntryClick }: JournalEntryTab
 				Cell: ({ cell }) => formatDate(cell.getValue<number>()),
 			},
 		],
-		[],
+		[formatDate, truncateContent],
 	);
 
 	return (

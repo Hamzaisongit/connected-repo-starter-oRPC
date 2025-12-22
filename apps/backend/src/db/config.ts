@@ -1,10 +1,10 @@
-import { env, isProd, isTest } from "@backend/configs/env.config";
+import { env, isProd } from "@backend/configs/env.config";
 
 export const dbConfig = {
 	host: env.DB_HOST,
 	port: Number(env.DB_PORT),
 	user: env.DB_USER,
 	password: env.DB_PASSWORD,
-	database: isTest ? `${env.DB_NAME}_test` : env.DB_NAME,
+	database: env.DB_NAME,
 	ssl: isProd,
 };

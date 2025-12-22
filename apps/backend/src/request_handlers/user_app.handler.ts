@@ -1,5 +1,5 @@
 import { allowedOrigins } from '@backend/configs/allowed_origins.config';
-import { isProd, isStaging } from '@backend/configs/env.config';
+import { isDev, isProd, isStaging } from '@backend/configs/env.config';
 import { userAppRouter } from '@backend/routers/user_app/user_app.router';
 import { orpcErrorParser } from '@backend/utils/errorParser';
 import { logger } from '@backend/utils/logger.utils';
@@ -24,7 +24,7 @@ export const userAppHandler = new RPCHandler(userAppRouter, {
     // Structured logging with Pino
     new LoggingHandlerPlugin({
       logger,
-      logRequestResponse: !isProd, // Only log in dev/staging
+      logRequestResponse: isDev, // Only log in dev
       logRequestAbort: true,
     }),
     // CSRF protection (disabled in development for easier testing)

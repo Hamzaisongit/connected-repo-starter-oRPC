@@ -11,60 +11,53 @@ logger.info({ isDev, isProd, isStaging, isTest }, "Environment:");
 logger.info(allowedOrigins, "Allowed Origins:");
 logger.info(env.ALLOWED_ORIGINS, "ALLOWED_ORIGINS env:");
 
-const start = async () => {
-  try {
+try {
 
-    const server = createServer(async (req, res) => {
+  const server = createServer(async (req, res) => {
 
-      // Handle better-auth routes first (/api/auth/*)
-      if (req.url?.startsWith("/api/auth")) {
-        return betterAuthHandler.handle(req, res);
-        // TODO: There is a better way of doing this. Needs research.
-        // return auth.handler(req);
-      }
+    // Handle better-auth routes first (/api/auth/*)
+    if (req.url?.startsWith("/api/auth")) {
+      return betterAuthHandler.handle(req, res);
+      // TODO: There is a better way of doing this. Needs research.
+      // return auth.handler(req);
+    }
 
-      // Handle OpenAPI routes (/api/*)
-      let result = await openApiHandler.handle(req, res, {
-        context: {},
-        prefix: '/api',
-      });
+    // Handle OpenAPI routes (/api/*)
+    let result = await openApiHandler.handle(req, res, {
+      context: {},
+      prefix: '/api',
+    });
 
-       // Handle oRPC routes
-      result = await userAppHandler.handle(req, res, {
-        context: {},
-        prefix: '/user-app',
-      })
-
-      if (!result.matched) {
-        res.statusCode = 404
-        res.end('No procedure matched')
-      }
+      // Handle oRPC routes
+    result = await userAppHandler.handle(req, res, {
+      context: {},
+      prefix: '/user-app',
     })
 
-    // Configure server to close idle connections
-    server.keepAliveTimeout = 5000; // 5 seconds
-    server.headersTimeout = 6000; // 6 seconds (must be higher than keepAliveTimeout)
+    if (!result.matched) {
+      res.statusCode = 404
+      res.end('No procedure matched')
+    }
+  })
+
+  // Configure server to close idle connections
+  server.keepAliveTimeout = 5000; // 5 seconds
+  server.headersTimeout = 6000; // 6 seconds (must be higher than keepAliveTimeout)
 
     server.listen(
-      3000,
+      env.PORT,
       '127.0.0.1',
       () => {
         if (process.send) {
           process.send("ready"); // ✅ Let PM2 know the app is ready
         }
-        logger.info({ url: env.VITE_API_URL }, "Server running");
+        logger.info({ url: env.VITE_API_URL, port: env.PORT }, "Server running");
       }
     );
 
-    handleServerClose(server)
-  } catch (err) {
-    logger.error("Server failed to start");
-    logger.error(err);
-    process.exit(1);
-  }
-};
-
-if(!isTest) {
-  start();
+  handleServerClose(server)
+} catch (err) {
+  logger.error("Server failed to start");
+  logger.error(err);
+  process.exit(1);
 }
-

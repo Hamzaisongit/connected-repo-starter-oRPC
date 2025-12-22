@@ -1,6 +1,4 @@
-# CLAUDE.md - Frontend
-
-This file provides guidance to Claude Code when working with the frontend application in this repository.
+# Frontend Agent Guidelines
 
 ## Overview
 
@@ -14,6 +12,16 @@ This is a React 19 frontend application built with:
 - **UI Library**: Material-UI via `@connected-repo/ui-mui` package
 - **Validation**: Zod schemas from `@connected-repo/zod-schemas`
 - **Authentication**: Better Auth integration
+
+## Testing
+- **E2E Tests**: Playwright: `yarn test:e2e`, `yarn test:e2e:ui`
+- **Test Results**: Check `apps/frontend/e2e/test-results/` before running tests
+- **Global State**: Tests share state across browser instances (`playwright.config.ts`, `e2e/globalSetup.ts`)
+  - Data created in one test may appear in another
+  - Use conditional logic to handle varying states
+  - Check application state before test actions
+  - Tests must be resilient to shared state
+  - Create common functions where needed to be re-used.
 
 ## React 19 Best Practices
 

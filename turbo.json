@@ -1,6 +1,5 @@
 {
 	"$schema": "https://turborepo.com/schema.json",
-	"ui": "tui",
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
@@ -18,15 +17,41 @@
 			"persistent": true
 		},
 		"dev": {
-			"dependsOn": ["^build"],
 			"cache": false,
+			"dependsOn": ["^build"],
 			"persistent": true
 		},
-		"lint": {},
 		"format": {},
+		"lint": {},
 		"test": {},
-		"test:ui": {},
+		"test:build": {
+			"cache": false,
+			"dependsOn": ["^build"]
+		},
+		"test:coverage": {},
+		"test:db:setup": {},
+		"test:e2e": {
+			"cache": false,
+			"dependsOn": ["test:db:setup"]
+		},
+		"test:e2e:no-build": {
+			"dependsOn": ["test:e2e"]
+		},
+		"test:e2e:ui": {
+			"cache": false,
+			"dependsOn": ["test:db:setup"]
+		},
+		"test:e2e:ui:no-build": {
+			"dependsOn": ["test:e2e:ui"]
+		},
+		"test:e2e:ui:with-build": {
+			"dependsOn": ["test:build", "test:e2e:ui"]
+		},
+		"test:e2e:with-build": {
+			"dependsOn": ["test:build", "test:e2e"]
+		},
 		"test:run": {},
-		"test:coverage": {}
-	}
+		"test:ui": {}
+	},
+	"ui": "tui"
 }

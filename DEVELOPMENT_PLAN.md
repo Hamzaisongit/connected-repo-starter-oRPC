@@ -176,7 +176,7 @@ Building a **Scheduled Prompt & Journal** app with:
 
 **Issues:**
 
-**2.2.1: Set up Playwright for E2E Testing**
+**2.2.1: Set up Playwright for E2E Testing** ✅ COMPLETED
 - Install Playwright
 - Configure playwright.config.ts
 - Set up test environment with backend test-server
@@ -188,7 +188,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Auth helpers for login/signup
   - Can run `yarn test:e2e`
 
-**2.2.2: Write Critical Flow E2E Tests**
+**2.2.2: Write Critical Flow E2E Tests** ✅ COMPLETED
 - Test user registration/login flow
 - Test journal entry creation and viewing
 - Test basic navigation and responsiveness

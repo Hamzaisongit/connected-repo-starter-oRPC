@@ -1,6 +1,6 @@
-import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Button } from "@connected-repo/ui-mui/form/Button";
+import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { useNavigate } from "react-router";
 
 export function JournalEntriesEmptyState() {

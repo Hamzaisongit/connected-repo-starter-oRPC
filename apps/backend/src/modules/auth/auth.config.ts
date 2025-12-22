@@ -98,3 +98,5 @@ export const auth = betterAuth({
 		joins: true,
 	}
 });
+
+export type BetterAuthSession = typeof auth.$Infer.Session;

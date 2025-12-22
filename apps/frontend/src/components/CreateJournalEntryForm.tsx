@@ -12,7 +12,7 @@ import { IconButton } from "@connected-repo/ui-mui/navigation/IconButton";
 import { RhfSubmitButton } from "@connected-repo/ui-mui/rhf-form/RhfSubmitButton";
 import { RhfTextField } from "@connected-repo/ui-mui/rhf-form/RhfTextField";
 import { useRhfForm } from "@connected-repo/ui-mui/rhf-form/useRhfForm";
-import { JournalEntryCreateInput, journalEntryCreateInputZod } from "@connected-repo/zod-schemas/journal_entry.zod";
+import { type JournalEntryCreateInput, journalEntryCreateInputZod } from "@connected-repo/zod-schemas/journal_entry.zod";
 import { orpc, orpcFetch } from "@frontend/utils/orpc.client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
