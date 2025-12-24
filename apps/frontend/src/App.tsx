@@ -10,8 +10,8 @@ import { LoadingSpinner } from "@connected-repo/ui-mui/components/LoadingSpinner
 import { ThemeContextProvider } from "@connected-repo/ui-mui/theme/ThemeContext";
 import { ErrorFallback } from "@frontend/components/error_fallback";
 import { router } from "@frontend/router";
+import { ErrorBoundary } from "@sentry/react";
 import { Suspense } from "react";
-import { ErrorBoundary } from "react-error-boundary";
 import { RouterProvider } from "react-router";
 
 // App focuses on rendering the router tree and error boundaries. Providers
@@ -21,7 +21,9 @@ function App() {
 	return (
 		<ThemeContextProvider>
 			<Suspense fallback={<LoadingSpinner text="Loading..." />}>
-				<ErrorBoundary fallback={<ErrorFallback />}>
+				<ErrorBoundary fallback={<ErrorFallback />} beforeCapture={(scope) => {
+          scope.setTag("level", "top-level");
+        }}>
 					<RouterProvider router={router} />
 				</ErrorBoundary>
 			</Suspense>

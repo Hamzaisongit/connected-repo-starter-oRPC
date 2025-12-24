@@ -1,8 +1,9 @@
 import { LoadingSpinner } from "@connected-repo/ui-mui/components/LoadingSpinner";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
-import { ErrorFallback } from "@frontend/components/error_fallback";
+import { CustomErrorBoundary } from "@frontend/components/error_fallback";
 import { AppLayout } from "@frontend/components/layout/AppLayout";
 import { authLoader } from "@frontend/utils/auth.loader";
+import * as Sentry from "@sentry/react";
 import { lazy } from "react";
 import { createBrowserRouter, type RouteObject, redirect } from "react-router";
 
@@ -33,7 +34,7 @@ const HydrateFallback = () => (
 const routerObjectWithNavbar: ReactRouterWithNavbar[] = [
 	{
 		path: "/",
-		errorElement: <ErrorFallback />,
+		errorElement: <CustomErrorBoundary />,
 		hydrateFallbackElement: <HydrateFallback />,
 		children: [
 			{
@@ -67,4 +68,9 @@ const routerObjectWithNavbar: ReactRouterWithNavbar[] = [
 	},
 ];
 
-export const router = createBrowserRouter(routerObjectWithNavbar);
+// Call this AFTER Sentry.init()
+const sentryCreateBrowserRouter = Sentry.wrapCreateBrowserRouterV7(
+  createBrowserRouter,
+);
+
+export const router = sentryCreateBrowserRouter(routerObjectWithNavbar);

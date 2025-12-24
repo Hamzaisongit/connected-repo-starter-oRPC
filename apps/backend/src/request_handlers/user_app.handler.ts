@@ -17,6 +17,7 @@ export const userAppHandler = new RPCHandler(userAppRouter, {
     new CORSPlugin({
       origin: [...allowedOrigins],
       allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowHeaders: ['content-type', 'authorization', 'x-csrf-token', 'sentry-trace', 'baggage'],
       credentials: true,
     }),
     // FIXME: Using rate-limit throws an error. Try later at the end.

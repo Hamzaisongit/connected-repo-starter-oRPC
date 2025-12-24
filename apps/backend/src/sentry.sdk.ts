@@ -1,5 +1,5 @@
 // Initialize OpenTelemetry and Sentry
-import { env, isProd } from "@backend/configs/env.config";
+import { env, isProd } from '@backend/configs/env.config';
 import { SpanStatusCode, trace } from '@opentelemetry/api';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
@@ -17,8 +17,8 @@ import {
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 const sentryClient = Sentry.init({
-  dsn: env.SENTRY_DSN,
-  environment: env.SENTRY_ENV || env.NODE_ENV,
+  dsn: env.VITE_SENTRY_DSN,
+  environment: env.VITE_SENTRY_ENV || env.NODE_ENV,
   sampleRate: isProd ? 0.1 : 1.0, // 100% for dev, 10% for prod
   skipOpenTelemetrySetup: true, // disables the Sentry SDK's automatic OpenTelemetry configuration
   integrations: [
@@ -37,7 +37,7 @@ export const otelNodeSdk = new NodeSDK({
     contextManager: new Sentry.SentryContextManager(),
     
     resource: resourceFromAttributes({
-      'service.name': env.OTEL_SERVICE_NAME,
+      'service.name': env.VITE_OTEL_SERVICE_NAME,
     }),
     sampler: sentryClient ? new SentrySampler(sentryClient) : undefined,
     textMapPropagator: new SentryPropagator(),
@@ -68,7 +68,6 @@ export const otelNodeSdk = new NodeSDK({
 
 // Start the SDK
 otelNodeSdk.start();
-console.log("Sentry DSN: ", env.SENTRY_DSN);
 Sentry.validateOpenTelemetrySetup();
 console.info("Sentry is initialized:", Sentry.isInitialized ? Sentry.isInitialized() : "unknown");
 

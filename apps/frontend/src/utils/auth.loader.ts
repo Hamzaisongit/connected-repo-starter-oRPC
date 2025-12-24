@@ -1,5 +1,6 @@
 import { userContext } from "@frontend/contexts/UserContext";
 import { authClient } from "@frontend/utils/auth.client";
+import * as Sentry from "@sentry/react";
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
 
@@ -25,6 +26,12 @@ export async function authLoader({ context }: LoaderFunctionArgs) {
 			},
 			isRegistered: true, // better-auth handles registration
 		};
+
+		Sentry.setUser({
+			email: session.user.email,
+			username: session.user.name,
+			id: session.user.id
+		})
 
 		// Set user context in React Router context
 		context.set(userContext, sessionInfo);

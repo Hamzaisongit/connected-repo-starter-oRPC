@@ -246,7 +246,7 @@ Building a **Scheduled Prompt & Journal** app with:
 
 **Issues:**
 
-**3.2.1: Integrate Sentry for Frontend**
+**3.2.1: Integrate Sentry for Frontend** ✅ COMPLETED
 - Install @sentry/react
 - Initialize Sentry in main.tsx
 - Integrate with React Router error boundaries
@@ -584,6 +584,19 @@ Building a **Scheduled Prompt & Journal** app with:
   - Health check verifies deployment
   - Rollback mechanism works
   - Deployment status visible
+
+**7.1.4: Set up Sentry Releases & Source Maps in CI/CD**
+- Install Sentry CLI in CI environment
+- Create Sentry release on deployment
+- Upload source maps for frontend and backend
+- Configure release tracking for error correlation
+- Associate commits to releases for better debugging
+- **Acceptance Criteria:**
+  - Sentry releases created automatically
+  - Source maps uploaded and working
+  - Errors linked to specific releases
+  - Release versions match git tags/commits
+  - Production errors traceable to exact code
 
 ---
 

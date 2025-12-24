@@ -2,6 +2,7 @@ import { isProd } from "@backend/configs/env.config";
 import { openApiRouter } from "@backend/routers/open_api/open_api.router";
 import { orpcErrorParser } from "@backend/utils/errorParser";
 import { logger } from "@backend/utils/logger.utils";
+import { trace } from '@opentelemetry/api';
 import { LoggingHandlerPlugin } from "@orpc/experimental-pino";
 import { OpenAPIHandler } from "@orpc/openapi/node";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
@@ -14,6 +15,7 @@ export const openApiHandler = new OpenAPIHandler(openApiRouter, {
 		new CORSPlugin({
 			origin: '*', // or env.API_ALLOWED_ORIGINS if you want restrictions
 			allowMethods: ['GET', 'POST', 'OPTIONS'],
+			allowHeaders: ["x-team-id", "x-api-key", "content-type"],
 			credentials: false, // No cookies/credentials needed for API key auth
 		}),
 		new LoggingHandlerPlugin({
@@ -60,6 +62,15 @@ export const openApiHandler = new OpenAPIHandler(openApiRouter, {
 		new RequestHeadersPlugin(),
 	],
 	interceptors: [
+		({ request, next }) => {
+			const span = trace.getActiveSpan()
+
+			request.signal?.addEventListener('abort', () => {
+				span?.addEvent('aborted', { reason: String(request.signal?.reason) })
+			})
+
+			return next()
+		},
 		// Server-side error logging
 		onError((error) => {
 			logger.error(error, "OpenAPI error");
