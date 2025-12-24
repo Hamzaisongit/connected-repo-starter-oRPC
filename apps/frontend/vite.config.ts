@@ -26,16 +26,17 @@ export default defineConfig(({ mode }) => {
 			openAnalyzer: true,
 		}),
 		VitePWA({
-			// registerType: "autoUpdate",
 			strategies: "injectManifest",
 			srcDir: "src",
 			filename: "sw.ts",
+			registerType: "prompt",
 			workbox: {
 				cleanupOutdatedCaches: true
 			},
 			includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
 			devOptions: {
-				enabled: true
+				enabled: true,
+				type: "module"
 				},
 			manifest: {
 				name: "OneQ",
