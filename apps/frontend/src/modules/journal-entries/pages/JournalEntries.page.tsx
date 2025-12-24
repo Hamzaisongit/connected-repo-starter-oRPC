@@ -11,6 +11,7 @@ import { Pagination } from "@connected-repo/ui-mui/navigation/Pagination";
 import { JournalEntriesEmptyState } from "@frontend/components/JournalEntriesEmptyState";
 import { JournalEntryCardView } from "@frontend/components/JournalEntryCardView";
 import { JournalEntryTableView } from "@frontend/components/JournalEntryTableView";
+import { PwaInstallPrompt } from "@frontend/components/PwaInstallPrompt.pwa";
 import { orpc } from "@frontend/utils/orpc.client";
 import { useMediaQuery, useTheme } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
@@ -186,6 +187,8 @@ export default function JournalEntriesPage() {
 					/>
 				</Box>
 			)}
+
+			<PwaInstallPrompt></PwaInstallPrompt>
 		</Container>
 	);
 }
