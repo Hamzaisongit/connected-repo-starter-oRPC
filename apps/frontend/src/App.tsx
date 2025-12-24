@@ -13,11 +13,15 @@ import { router } from "@frontend/router";
 import { ErrorBoundary } from "@sentry/react";
 import { Suspense } from "react";
 import { RouterProvider } from "react-router";
+import { usePWAInstall } from "./hooks/usePwaInstall";
 
 // App focuses on rendering the router tree and error boundaries. Providers
 // (QueryClient + oRPC client) are created and mounted at the root in
 // `main.tsx` following the oRPC + TanStack React Query recommended setup.
 function App() {
+	
+	usePWAInstall();
+
 	return (
 		<ThemeContextProvider>
 			<Suspense fallback={<LoadingSpinner text="Loading..." />}>
