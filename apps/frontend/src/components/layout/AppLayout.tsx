@@ -6,7 +6,7 @@ import { Outlet, useLoaderData } from "react-router";
 import { DesktopNavbar } from "./DesktopNavbar";
 import { MobileNavbar } from "./MobileNavbar";
 import { PwaInstallPrompt } from "../pwa/PwaInstallPrompt.pwa";
-import { PwaUpdatePrompt } from "../pwa/PwaUpdatePromtp.pwa";
+import { PwaUpdatePrompt } from "../pwa/PwaUpdatePrompt.pwa";
 
 /**
  * AppLayout - Main layout wrapper for authenticated pages
