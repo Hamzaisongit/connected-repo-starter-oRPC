@@ -24,7 +24,7 @@
 	"private": true,
 	"repository": "git@github.com:teziapp/connected-repo-starter-oRPC.git",
 	"scripts": {
-		"build": "yarn env:sync && turbo run build",
+		"build": "turbo run build",
 		"check-types": "turbo run check-types",
 		"clean": "turbo run clean && rm -rf node_modules && rm -rf .yarn/cache && yarn cache clean",
 		"db": "turbo db --",
