@@ -3,7 +3,8 @@
 	"description": "Common Material-UI components for the monorepo",
 	"devDependencies": {
 		"@connected-repo/typescript-config": "*",
-		"@types/react": "^19.2.2"
+		"@types/react": "^19.2.2",
+		"tsc-alias": "^1.8.16"
 	},
 	"exports": {
 		"./components/*": {
@@ -73,10 +74,10 @@
 	"private": true,
 	"repository": "git@github.com:teziapp/connected-repo-starter-oRPC.git",
 	"scripts": {
-		"build": "tsc && npx tsc-alias",
+		"build": "tsc && tsc-alias",
 		"check-types": "tsc --noEmit",
 		"clean": "rm -rf node_modules && rm -rf dist",
-		"dev": "concurrently --kill-others \"tsc -w\" \"npx tsc-alias -w\"",
+		"dev": "concurrently --kill-others \"tsc -w\" \"tsc-alias -w\"",
 		"format": "biome format . --write",
 		"lint": "biome check .",
 		"typecheck": "tsc --noEmit"

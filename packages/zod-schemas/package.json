@@ -10,8 +10,8 @@
 	"private": true,
 	"scripts": {
 		"check-types": "tsc --noEmit",
-		"build": "tsc && npx tsc-alias",
-		"dev": "concurrently --kill-others \"tsc -w\" \"npx tsc-alias -w\"",
+		"build": "tsc && tsc-alias",
+		"dev": "concurrently --kill-others \"tsc -w\" \"tsc-alias -w\"",
 		"clean": "rm -rf node_modules && rm -rf dist",
 		"lint": "biome check .",
 		"format": "biome format . --write",
@@ -21,7 +21,8 @@
 		"zod": "^4.1.12"
 	},
 	"devDependencies": {
-		"@connected-repo/typescript-config": "*"
+		"@connected-repo/typescript-config": "*",
+		"tsc-alias": "^1.8.16"
 	},
 	"exports": {
 		"./*": {
