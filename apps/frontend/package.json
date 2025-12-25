@@ -37,15 +37,15 @@
 	"private": true,
 	"repository": "git@github.com:teziapp/connected-repo-starter-oRPC.git",
 	"scripts": {
-		"build": "tsc -b && vite build",
-		"build:debug": "tsc -b && vite build --debug",
+		"build": "npx tsc -b && vite build",
+		"build:debug": "npx tsc -b && vite build --debug",
 		"check-types": "tsc --noEmit",
 		"clean": "rm -rf node_modules && rm -rf dist",
 		"dev": "vite",
 		"format": "biome format . --write",
 		"lint": "biome check .",
 		"preview": "vite preview",
-		"test:build": "tsc -b && vite build --mode test",
+		"test:build": "npx tsc -b && vite build --mode test",
 		"test:e2e": "playwright test",
 		"test:e2e:ui": "playwright test --ui"
 	},
