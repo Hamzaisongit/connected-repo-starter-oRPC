@@ -30,6 +30,9 @@ export default defineConfig(({ mode }) => {
 			srcDir: "src",
 			filename: "sw.ts",
 			registerType: "prompt",
+			injectManifest: {
+				globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+			},
 			workbox: {
 				cleanupOutdatedCaches: true
 			},

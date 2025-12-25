@@ -1,58 +1,100 @@
 import { usePwaInstallStore } from "@frontend/stores/usePwaInstallStore";
-import { Snackbar, Button, IconButton, Box } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import IosShareIcon from '@mui/icons-material/IosShare';
+import { Box, Button, IconButton, Snackbar } from "@mui/material";
 
 export function PwaInstallPrompt() {
   const {
     showPwaInstallationPrompt,
-    userPlatform,
-    triggerInstall,
-    dismissPrompt,
-    isDisplayStandalone,
+    deferredInstallationPrompt,
+    dismissInstallationFlow
   } = usePwaInstallStore();
 
-  if (isDisplayStandalone || !showPwaInstallationPrompt) return null;
-
-  // Define the message content based on platform
-  const getMessage = () => {
-    if (userPlatform === 'ios') {
-      return (
-        <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          Tap <IosShareIcon fontSize="small" color="inherit" /> then "Add to Home Screen"
-        </Box>
-      );
+  const handleInstall = () => {
+    if (deferredInstallationPrompt) {
+      deferredInstallationPrompt.prompt()
+      deferredInstallationPrompt.userChoice.then(({ outcome }) => {
+        if (outcome !== "accepted") {
+          //if user rejects system generated prompt then dismiss installation flow for 90 days
+          dismissInstallationFlow(true);
+        }
+      });
     }
-    if (userPlatform === 'other') {
-      return 'Install app for a better experience';
-    }
-    return 'Install this app on your device?';
-  };
+  }
 
-  return (
-    <Snackbar
-      open={true}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      message={getMessage()}
-      action={
-        <>
-          {/* Show Install Button only for Chromium/Installable browsers */}
-          {userPlatform === 'chromium' && (
-            <Button color="secondary" size="small" onClick={triggerInstall}>
-              Install
-            </Button>
-          )}
-          
-          <IconButton
-            size="small"
-            aria-label="close"
-            color="inherit"
-            onClick={() => dismissPrompt()}
-          >
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        </>
-      }
-    />
-  );
+  const userAgent = window.navigator.userAgent || "";
+  const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+  const isChromium = (window as Window & {chrome?: object} ).chrome !== undefined && !isIOS;
+
+  if (!showPwaInstallationPrompt) return null;
+
+  return(
+      <>
+        {isIOS && (
+          <Snackbar
+            open={true}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            message={
+              <Box component="span" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                Tap <IosShareIcon fontSize="small" color="inherit" /> then "Add to Home Screen"
+              </Box>
+            }
+            action={
+              <IconButton
+                size="small"
+                aria-label="close"
+                color="inherit"
+                onClick={() => dismissInstallationFlow()}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            }
+          />
+        )}
+
+        {!isIOS && !isChromium && (
+          <Snackbar
+            open={true}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            message="Install app for a better experience"
+            action={
+              <IconButton
+                size="small"
+                aria-label="close"
+                color="inherit"
+                onClick={() => dismissInstallationFlow()}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            }
+          />
+        )}
+        {isChromium && !isIOS && (
+          <Snackbar
+            open={true}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            message="Install this app on your device?"
+            action={
+              <>
+                <Button
+                  color="secondary"
+                  size="small"
+                  onClick={handleInstall}
+                >
+                  Install
+                </Button>
+                <IconButton
+                  size="small"
+                  aria-label="close"
+                  color="inherit"
+                  onClick={() => dismissInstallationFlow()}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </>
+            }
+          />
+        )}
+      </>
+  )
 }

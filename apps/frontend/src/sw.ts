@@ -1,4 +1,5 @@
-import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
+import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
+import { NavigationRoute, registerRoute } from 'workbox-routing'
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -11,6 +12,11 @@ precacheAndRoute(self.__WB_MANIFEST);
 // Listen for SKIP_WAITING message from the app
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    (self as any).skipWaiting();
+    (self as ServiceWorkerGlobalScope).skipWaiting();
   }
 });
+
+// Offline fallback for navigation (SPA routing)
+registerRoute(
+  new NavigationRoute(createHandlerBoundToURL('/index.html'))
+);
