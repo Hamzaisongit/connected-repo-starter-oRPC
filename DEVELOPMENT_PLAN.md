@@ -552,12 +552,12 @@ Building a **Scheduled Prompt & Journal** app with:
   - Build failures block merge
   - Runs complete in <5 minutes
 
-**7.1.2: Set up Coolify Deployment** 🔄 IN PROGRESS (Dockerfile created)
+**7.1.2: Set up Coolify Deployment** ✅ COMPLETED
 - Install Coolify on server (VPS/cloud)
 - Create Coolify project with shared Supabase database
 - Configure environment variables
 - Create frontend deployment (static site with PM2 scaling)
-- Create backend deployment (Node.js app with PM2 scaling) - Dockerfile created for backend
+- Create backend deployment (Node.js app with PM2 scaling) - Dockerfile updated to handle Yarn workspaces properly
 - Configure custom domain
 - Add SSL/TLS certificates
 - Maximize shared resources (one DB instance for all projects)
