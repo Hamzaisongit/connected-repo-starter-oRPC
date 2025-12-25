@@ -88,7 +88,7 @@ export const usePwaInstallStore = create<InstallState>((set, get) => ({
     set({ showPwaInstallationPrompt: false });
 
     // Analytics
-    (window as any).gtag?.('event', 'pwa_prompt_dismissed', { event_category: 'pwa' });
+    // (window as any).gtag?.('event', 'pwa_prompt_dismissed', { event_category: 'pwa' });
   },
 
   resetDismissal: () => {
