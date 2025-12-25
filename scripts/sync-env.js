@@ -109,8 +109,8 @@ function main() {
 
 	// Check if root .env exists
 	if (!fs.existsSync(ROOT_ENV)) {
-		console.error("❌ Root .env file not found!");
-		process.exit(1);
+		console.warn("⚠️ Root .env file not found, skipping environment sync");
+		process.exit(0);
 	}
 
 	// Parse root .env
