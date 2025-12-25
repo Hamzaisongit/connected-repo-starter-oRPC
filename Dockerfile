@@ -15,6 +15,8 @@ COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/yarn.lock ./yarn.lock
 # Install EVERYTHING (dev + prod) to ensure build tools exist
 RUN yarn install --frozen-lockfile
+# Force the environment to look in the hoisted root node_modules
+ENV PATH="/app/node_modules/.bin:${PATH}"
 # Copy source and build
 COPY --from=pruner /app/out/full/ .
 COPY turbo.json turbo.json
