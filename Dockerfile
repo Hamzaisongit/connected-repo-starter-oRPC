@@ -21,8 +21,7 @@ COPY packages/zod-schemas/package.json ./packages/zod-schemas/package.json
 
 # Install ALL dependencies (including devDependencies for build)
 # This is necessary for TypeScript compilation
-# Skip installing optional dependencies for other platforms to save space
-RUN yarn install --frozen-lockfile --network-timeout 100000 --ignore-optional
+RUN yarn install --frozen-lockfile --network-timeout 100000
 
 # Copy workspace configuration
 COPY turbo.json ./
@@ -36,15 +35,8 @@ COPY packages/zod-schemas ./packages/zod-schemas
 # Copy backend source code
 COPY apps/backend ./apps/backend
 
-# Build zod-schemas first (backend depends on it)
-WORKDIR /app/packages/zod-schemas
-# Use direct path to typescript compiler to avoid npx finding wrong tsc package
-RUN /app/node_modules/.bin/tsc && /app/node_modules/.bin/tsc-alias
-
-# Build the backend
-WORKDIR /app/apps/backend
-# Use direct path to typescript compiler to avoid npx finding wrong tsc package
-RUN /app/node_modules/.bin/tsc && /app/node_modules/.bin/tsc-alias
+# Use Turbo to build the backend (it will automatically build dependencies first)
+RUN yarn run build --filter=@connected-repo/backend
 
 # 2. RUNTIME STAGE: Create minimal production image
 FROM node:22-alpine AS runner
@@ -66,8 +58,7 @@ COPY apps/backend/package.json ./apps/backend/package.json
 COPY packages/zod-schemas/package.json ./packages/zod-schemas/package.json
 
 # Install only production dependencies
-# Skip optional dependencies for other platforms to save space
-RUN yarn install --production --frozen-lockfile --network-timeout 100000 --ignore-optional
+RUN yarn install --production --frozen-lockfile --network-timeout 100000
 
 # Copy built zod-schemas
 COPY --from=builder /app/packages/zod-schemas/dist ./packages/zod-schemas/dist
