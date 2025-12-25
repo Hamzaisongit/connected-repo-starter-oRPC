@@ -1,37 +1,38 @@
 {
-	"name": "@connected-repo/zod-schemas",
-	"version": "1.0.0",
-	"description": "Common Zod Schemas to be used everywhere",
-	"type": "module",
-	"sideEffects": false,
-	"repository": "git@github.com:teziapp/connected-repo-starter-oRPC.git",
 	"author": "Balkrishna Agarwal",
-	"license": "AGPL-3.0-only",
-	"private": true,
-	"scripts": {
-		"check-types": "tsc --noEmit",
-		"build": "tsc && tsc-alias",
-		"dev": "concurrently --kill-others \"tsc -w\" \"tsc-alias -w\"",
-		"clean": "rm -rf node_modules && rm -rf dist",
-		"lint": "biome check .",
-		"format": "biome format . --write",
-		"typecheck": "tsc --noEmit"
+	"dependencies": {
+		"@faker-js/faker": "^10.1.0"
 	},
-	"peerDependencies": {
-		"zod": "^4.1.12"
-	},
+	"description": "Common Zod Schemas to be used everywhere",
 	"devDependencies": {
 		"@connected-repo/typescript-config": "*",
+		"tsc": "^2.0.4",
 		"tsc-alias": "^1.8.16"
 	},
 	"exports": {
 		"./*": {
-			"types": "./src/*.ts",
+			"default": "./dist/*.js",
 			"import": "./dist/*.js",
-			"default": "./dist/*.js"
+			"types": "./src/*.ts"
 		}
 	},
-	"dependencies": {
-		"@faker-js/faker": "^10.1.0"
-	}
+	"license": "AGPL-3.0-only",
+	"name": "@connected-repo/zod-schemas",
+	"peerDependencies": {
+		"zod": "^4.1.12"
+	},
+	"private": true,
+	"repository": "git@github.com:teziapp/connected-repo-starter-oRPC.git",
+	"scripts": {
+		"build": "tsc && tsc-alias",
+		"check-types": "tsc --noEmit",
+		"clean": "rm -rf node_modules && rm -rf dist",
+		"dev": "concurrently --kill-others \"tsc -w\" \"tsc-alias -w\"",
+		"format": "biome format . --write",
+		"lint": "biome check .",
+		"typecheck": "tsc --noEmit"
+	},
+	"sideEffects": false,
+	"type": "module",
+	"version": "1.0.0"
 }
