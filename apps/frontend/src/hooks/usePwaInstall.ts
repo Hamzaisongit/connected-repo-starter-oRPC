@@ -1,6 +1,5 @@
-// src/hooks/usePWAInstall.ts
-import { useEffect } from 'react';
 import { usePwaInstallStore } from '@frontend/stores/usePwaInstallStore';
+import { useEffect } from 'react';
 
 interface BeforeInstallPromptEvent extends Event {
 	prompt: () => Promise<void>;
@@ -9,36 +8,53 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function usePWAInstall() {
-  const { setDeferredPrompt, setShowPrompt } = usePwaInstallStore();
+  const { triggerInstallationFlow, dismissInstallationFlow } = usePwaInstallStore();
 
   useEffect(() => {
 
-    window.addEventListener('beforeinstallprompt', (e: Event) => {
-        setDeferredPrompt(e as BeforeInstallPromptEvent)
-    });
-
-    window.addEventListener('appinstalled', ()=>{
-        // Analytics
-        //(window as any).gtag?.('event', 'pwa_installed', { event_category: 'pwa' });
-        usePwaInstallStore.getState().resetDismissal();
-    });
-
-    // check is display is open in standalone
-    const isDisplayStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                         (navigator as any).standalone === true;
+    // check if display is open in standalone mode, return early if so
+    const isDisplayStandalone = window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as Navigator & {standalone: boolean}).standalone === true;
     if (isDisplayStandalone) {
-      setShowPrompt(false);
+      console.log("STANDALONE")
+      return;
     }
 
-    return () => {
-      window.removeEventListener('beforeinstallprompt', (e: Event) => {
-        setDeferredPrompt(e as BeforeInstallPromptEvent)
-        });
-      window.removeEventListener('appinstalled', ()=>{
-        // Analytics
-        //(window as any).gtag?.('event', 'pwa_installed', { event_category: 'pwa' });
-        usePwaInstallStore.getState().resetDismissal();
-    });
+    // Detect platform and trigger installation flow if not Chromium
+    const userAgent = window.navigator.userAgent || "";
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+    const isChromium = (window as Window & {chrome?: object} ).chrome !== undefined && !isIOS;
+    if (!isChromium) {
+      triggerInstallationFlow();
+      return;
+    }
+    
+    const handleBeforeInstallPrompt = (e: Event) => {
+
+        // Check if installation has been permanently dismissed in the last 90 days
+        const DISMISS_DURATION_DAYS = 90;
+        const dismissedTimestamp = localStorage.getItem("pwa_install_dismissed");
+        if (dismissedTimestamp) {
+            const now = Date.now();
+            const dismissedAt = Number(dismissedTimestamp);
+            const durationMs = DISMISS_DURATION_DAYS * 24 * 60 * 60 * 1000;
+            if (now - dismissedAt < durationMs) {
+                return;
+            }
+        }
+        triggerInstallationFlow(e as BeforeInstallPromptEvent);
     };
-  }, [setDeferredPrompt, setShowPrompt]);
+
+    const handleAppInstalled = () => {
+        dismissInstallationFlow();
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
+  }, [triggerInstallationFlow, dismissInstallationFlow]);
 }

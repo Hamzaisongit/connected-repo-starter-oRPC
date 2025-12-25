@@ -1,6 +1,6 @@
 import { useRegisterSW } from 'virtual:pwa-register/react';
-import { Snackbar, Button, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { Button, IconButton, Snackbar } from '@mui/material';
 
 export function PwaUpdatePrompt() {
   const {
