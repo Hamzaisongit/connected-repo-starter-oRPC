@@ -16,7 +16,7 @@ RUN yarn install --frozen-lockfile
 COPY . .
 
 # Build the backend (Turbo will handle dependencies)
-RUN yarn run build --filter=@connected-repo/backend
+RUN turbo run build --filter=@connected-repo/backend
 
 # Production stage
 FROM node:22-alpine AS runtime
