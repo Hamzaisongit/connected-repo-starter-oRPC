@@ -12,7 +12,7 @@ A production-ready Turborepo monorepo for building full-stack TypeScript applica
   - REST/OpenAPI - External product APIs with automatic Swagger documentation
 - **Database**: PostgreSQL with [Orchid ORM](https://orchid-orm.netlify.app/)
 - **API Gateway**: API key authentication, rate limiting, CORS validation, IP whitelisting, subscription management
-- **Observability**: OpenTelemetry integration
+- **Observability**: OpenTelemetry integration, Sentry for error tracking and RUM
 - **Security**: Helmet, CORS, Rate Limiting, Better Auth (Google OAuth)
 - **Deployment**: Docker support with automated migrations
 
@@ -293,6 +293,8 @@ Multi-layer error handling system:
 
 - OpenTelemetry integration for tracing
 - Custom spans for oRPC errors
+- Sentry integration for error tracking and real user monitoring (RUM)
+- Frontend error boundaries and React Router integration
 
 ## Adding New Features
 

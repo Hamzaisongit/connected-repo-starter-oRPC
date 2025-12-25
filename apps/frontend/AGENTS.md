@@ -12,6 +12,7 @@ This is a React 19 frontend application built with:
 - **UI Library**: Material-UI via `@connected-repo/ui-mui` package
 - **Validation**: Zod schemas from `@connected-repo/zod-schemas`
 - **Authentication**: Better Auth integration
+- **Error Tracking**: Sentry for error tracking and RUM
 
 ## Testing
 - **E2E Tests**: Playwright: `yarn test:e2e`, `yarn test:e2e:ui`

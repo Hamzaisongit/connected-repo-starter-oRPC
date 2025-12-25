@@ -15,6 +15,7 @@
 - **Auth**: Better Auth with Google OAuth (orchid-adapter for transactions)
 - **Testing**: Vitest with test database isolation
 - **Validation**: Zod schemas from `@connected-repo/zod-schemas`
+- **Observability**: OpenTelemetry integration, Sentry error tracking
 
 ## Project Structure
 
@@ -34,6 +35,7 @@ apps/backend/src/
 ├── db/                  # Database setup, migrations, seeds
 ├── test/                # Test utilities (auth helpers, setup)
 ├── configs/             # Environment config, allowed origins
+├── sentry.sdk.ts        # Sentry SDK configuration
 └── server.ts            # Entry point
 ```
 
