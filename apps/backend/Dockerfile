@@ -1,42 +1,60 @@
-# Multi-stage build for minimal image size
-FROM node:22-alpine AS builder
+ARG NODE_VERSION=22.18.12
+FROM node:${NODE_VERSION}-slim AS base
 
-# Set working directory
+# Stage 1: Prepare - Prune the monorepo to only include backend and its dependencies
+FROM base AS prepare
+WORKDIR /app
+RUN corepack enable && corepack prepare yarn@1.22.22 --activate
+RUN yarn global add turbo
+COPY . .
+RUN turbo prune @connected-repo/backend --docker
+
+# Stage 2: Builder - Install dependencies and build
+FROM base AS builder
 WORKDIR /app
 
-# Copy yarn workspace files
-COPY yarn.lock package.json ./
-COPY apps/backend/package.json ./apps/backend/
-COPY packages/ ./packages/
+# Enable Corepack and set up Yarn
+RUN corepack enable && corepack prepare yarn@1.22.22 --activate
 
-# Install dependencies (including dev dependencies for build)
+# First install dependencies (as they change less often)
+COPY --from=prepare /app/out/json/ .
 RUN yarn install --frozen-lockfile
 
-# Copy source code
-COPY . .
+# Build the project and its dependencies
+COPY --from=prepare /app/out/full/ .
 
-# Build the backend (Turbo will handle dependencies)
-RUN yarn run build --filter=@connected-repo/backend
+# Uncomment and use build args to enable remote caching
+# ARG TURBO_TEAM
+# ENV TURBO_TEAM=$TURBO_TEAM
 
-# Production stage
-FROM node:22-alpine AS runtime
+# ARG TURBO_TOKEN
+# ENV TURBO_TOKEN=$TURBO_TOKEN
 
-# Set working directory
+RUN yarn turbo build --filter=@connected-repo/backend
+
+# Stage 3: Runner - Production runtime
+FROM node:${NODE_VERSION}-alpine AS runner
 WORKDIR /app
 
-# Copy built application from builder stage
-COPY --from=builder /app/apps/backend/dist ./dist
+# Enable Corepack and set up Yarn for production
+RUN corepack enable && corepack prepare yarn@1.22.22 --activate
 
-# Copy node_modules for production (only production dependencies)
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/backend/node_modules ./apps/backend/node_modules
+# Don't run production as root
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nodejs
+USER nodejs
 
-# Expose port (default 3000, configurable via env.PORT)
+# Copy only production dependencies and built files
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/dist ./apps/backend/dist
+COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/package.json ./apps/backend/package.json
+COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
+
+# Set environment variables
+ENV NODE_ENV=production
+
+# Expose the port (adjust if your backend uses a different port)
 EXPOSE 3000
 
-# Health check (optional, for Coolify)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
-
-# Start the application
-CMD ["yarn", "run", "start"]
+# Start the backend server
+CMD ["node", "apps/backend/dist/server.js"]
