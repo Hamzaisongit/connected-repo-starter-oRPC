@@ -4,7 +4,7 @@
 	"devDependencies": {
 		"@connected-repo/typescript-config": "*",
 		"@types/react": "^19.2.2",
-		"tsc": "^2.0.4",
+		"typescript": "^5.9.3",
 		"tsc-alias": "^1.8.16"
 	},
 	"exports": {

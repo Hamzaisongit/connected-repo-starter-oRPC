@@ -6,7 +6,7 @@
 	"description": "Common Zod Schemas to be used everywhere",
 	"devDependencies": {
 		"@connected-repo/typescript-config": "*",
-		"tsc": "^2.0.4",
+		"typescript": "^5.9.3",
 		"tsc-alias": "^1.8.16"
 	},
 	"exports": {
