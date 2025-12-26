@@ -34,7 +34,7 @@ COPY --from=prepare /app/out/full/ .
 # ENV TURBO_TOKEN=$TURBO_TOKEN
 
 # Run build
-RUN turbo run build --filter=@connected-repo/backend
+RUN npx turbo run build --filter=@connected-repo/backend
 
 # Stage 3: Installer - Install only production dependencies
 FROM base AS installer
