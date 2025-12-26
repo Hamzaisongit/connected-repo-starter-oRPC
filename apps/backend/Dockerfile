@@ -18,6 +18,7 @@ RUN corepack enable && corepack prepare yarn@1.22.22 --activate
 
 # First install dependencies (as they change less often)
 COPY --from=prepare /app/out/json/ .
+COPY --from=prepare /app/out/yarn.lock ./yarn.lock
 RUN yarn install --frozen-lockfile
 
 # Build the project and its dependencies
@@ -30,7 +31,7 @@ COPY --from=prepare /app/out/full/ .
 # ARG TURBO_TOKEN
 # ENV TURBO_TOKEN=$TURBO_TOKEN
 
-RUN yarn turbo build --filter=@connected-repo/backend
+RUN yarn build --filter=@connected-repo/backend
 
 # Stage 3: Runner - Production runtime
 FROM node:${NODE_VERSION}-alpine AS runner
