@@ -1,4 +1,4 @@
-ARG NODE_VERSION=22.18.12
+ARG NODE_VERSION=22
 FROM node:${NODE_VERSION}-slim AS base
 
 # Stage 1: Prepare - Prune the monorepo to only include backend and its dependencies
