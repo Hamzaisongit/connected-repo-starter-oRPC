@@ -16,9 +16,14 @@ WORKDIR /app
 # Enable Corepack and set up Yarn
 RUN corepack enable && corepack prepare yarn@1.22.22 --activate
 
+# Install TypeScript and tsc-alias globally for build
+RUN yarn global add typescript@5.9.3 tsc-alias@1.8.16
+
 # First install dependencies (as they change less often)
 COPY --from=prepare /app/out/json/ .
 COPY --from=prepare /app/out/yarn.lock ./yarn.lock
+
+# Install dependencies
 RUN yarn install --frozen-lockfile --production=false
 
 # Build the project and its dependencies
@@ -31,7 +36,8 @@ COPY --from=prepare /app/out/full/ .
 # ARG TURBO_TOKEN
 # ENV TURBO_TOKEN=$TURBO_TOKEN
 
-RUN yarn build --filter=@connected-repo/backend
+# Run build using yarn which will find the correct binaries
+RUN yarn turbo run build --filter=@connected-repo/backend
 
 # Stage 3: Installer - Install only production dependencies
 FROM base AS installer

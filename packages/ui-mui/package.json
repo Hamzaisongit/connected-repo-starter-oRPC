@@ -75,7 +75,7 @@
 	"private": true,
 	"repository": "git@github.com:teziapp/connected-repo-starter-oRPC.git",
 	"scripts": {
-		"build": "npx tsc && npx tsc-alias",
+		"build": "tsc && npx tsc-alias",
 		"check-types": "tsc --noEmit",
 		"clean": "rm -rf node_modules && rm -rf dist",
 		"dev": "concurrently --kill-others \"tsc -w\" \"tsc-alias -w\"",
