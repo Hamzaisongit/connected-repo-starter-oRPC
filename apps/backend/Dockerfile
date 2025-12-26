@@ -19,7 +19,7 @@ RUN corepack enable && corepack prepare yarn@1.22.22 --activate
 # First install dependencies (as they change less often)
 COPY --from=prepare /app/out/json/ .
 COPY --from=prepare /app/out/yarn.lock ./yarn.lock
-RUN yarn install --frozen-lockfile
+RUN yarn install --frozen-lockfile --production=false
 
 # Build the project and its dependencies
 COPY --from=prepare /app/out/full/ .
@@ -33,23 +33,41 @@ COPY --from=prepare /app/out/full/ .
 
 RUN yarn build --filter=@connected-repo/backend
 
-# Stage 3: Runner - Production runtime
-FROM node:${NODE_VERSION}-alpine AS runner
+# Stage 3: Installer - Install only production dependencies
+FROM base AS installer
 WORKDIR /app
 
-# Enable Corepack and set up Yarn for production
+# Enable Corepack and set up Yarn
 RUN corepack enable && corepack prepare yarn@1.22.22 --activate
+
+# Copy package files for production install
+COPY --from=prepare /app/out/json/ .
+COPY --from=prepare /app/out/yarn.lock ./yarn.lock
+
+# Install only production dependencies
+RUN yarn install --frozen-lockfile --production=true
+
+# Stage 4: Runner - Production runtime
+FROM node:${NODE_VERSION}-alpine AS runner
+WORKDIR /app
 
 # Don't run production as root
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodejs
-USER nodejs
 
-# Copy only production dependencies and built files
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+# Copy production dependencies and built packages
+COPY --from=installer --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=installer --chown=nodejs:nodejs /app/packages ./packages
+
+# Copy built application
 COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/dist ./apps/backend/dist
 COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/package.json ./apps/backend/package.json
-COPY --from=builder --chown=nodejs:nodejs /app/packages ./packages
+
+# Copy built package outputs
+COPY --from=builder --chown=nodejs:nodejs /app/packages/zod-schemas/dist ./packages/zod-schemas/dist
+COPY --from=builder --chown=nodejs:nodejs /app/packages/typescript-config ./packages/typescript-config
+
+USER nodejs
 
 # Set environment variables
 ENV NODE_ENV=production
