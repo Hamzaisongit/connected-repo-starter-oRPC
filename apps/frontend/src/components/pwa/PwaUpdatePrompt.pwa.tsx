@@ -1,6 +1,5 @@
 import { useRegisterSW } from 'virtual:pwa-register/react';
-import CloseIcon from '@mui/icons-material/Close';
-import { Button, IconButton, Snackbar } from '@mui/material';
+import { Box, Button, Snackbar } from '@mui/material';
 
 export function PwaUpdatePrompt() {
   const {
@@ -28,26 +27,27 @@ export function PwaUpdatePrompt() {
 					: "App ready to work offline"
 			}
 			action={
-				<>
+				<Box sx={{ display: "flex", gap: 1 }}>
 					{needRefresh && (
 						<Button
-							color="secondary"
+							color="primary"
 							size="small"
 							onClick={handleRefresh}
-							sx={{ fontWeight: 600 }}
+							variant="contained"
 						>
 							Refresh
 						</Button>
 					)}
-					<IconButton
+					<Button
 						size="small"
 						aria-label="close"
-						color="inherit"
+						color="secondary"
 						onClick={handleClose}
+						variant="contained"
 					>
-						<CloseIcon fontSize="small" />
-					</IconButton>
-				</>
+						Not Now
+					</Button>
+				</Box>
 			}
 		/>
 	);

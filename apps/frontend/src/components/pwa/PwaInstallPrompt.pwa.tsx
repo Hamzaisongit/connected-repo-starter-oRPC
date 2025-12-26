@@ -75,23 +75,25 @@ export function PwaInstallPrompt() {
             anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
             message="Install this app on your device?"
             action={
-              <>
+              <Box sx={{ display: "flex", gap: 1 }}>
                 <Button
-                  color="secondary"
+                  color="primary"
                   size="small"
                   onClick={handleInstall}
+                  variant="contained"
                 >
                   Install
                 </Button>
-                <IconButton
+                <Button
                   size="small"
                   aria-label="close"
-                  color="inherit"
+                  color="secondary"
                   onClick={() => dismissInstallationFlow()}
+                  variant="contained"
                 >
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              </>
+                  Maybe Later
+                </Button>
+              </Box>
             }
           />
         )}
