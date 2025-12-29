@@ -40,7 +40,7 @@ export function PwaInstallPrompt() {
   };
 
   const userAgent = window.navigator.userAgent || "";
-  const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+  const isIOS = /iPad|iPhone|iPod|Macintosh|Safari/.test(userAgent);
   const isChromium = (window as any).chrome !== undefined && !isIOS;
 
   if (!showPwaInstallationPrompt) return null;

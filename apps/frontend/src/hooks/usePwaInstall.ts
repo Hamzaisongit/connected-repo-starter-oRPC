@@ -22,7 +22,7 @@ export function usePWAInstall() {
 
     // Detect platform and trigger installation flow if not Chromium
     const userAgent = window.navigator.userAgent || "";
-    const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+    const isIOS = /iPad|iPhone|iPod|Macintosh|Safari/.test(userAgent);
     const isChromium = (window as Window & {chrome?: object} ).chrome !== undefined && !isIOS;
 
     if (!isChromium) {
