@@ -15,8 +15,8 @@ export function usePWAInstall() {
     // check if display is open in standalone mode, return early if so
     const isDisplayStandalone = window.matchMedia("(display-mode: standalone)").matches ||
       (navigator as Navigator & {standalone: boolean}).standalone === true;
-    if (isDisplayStandalone) {
-      console.log("STANDALONE")
+    
+      if (isDisplayStandalone) {
       return;
     }
 
@@ -24,24 +24,13 @@ export function usePWAInstall() {
     const userAgent = window.navigator.userAgent || "";
     const isIOS = /iPad|iPhone|iPod/.test(userAgent);
     const isChromium = (window as Window & {chrome?: object} ).chrome !== undefined && !isIOS;
+
     if (!isChromium) {
       triggerInstallationFlow();
       return;
     }
     
     const handleBeforeInstallPrompt = (e: Event) => {
-
-        // Check if installation has been permanently dismissed in the last 90 days
-        const DISMISS_DURATION_DAYS = 90;
-        const dismissedTimestamp = localStorage.getItem("pwa_install_dismissed");
-        if (dismissedTimestamp) {
-            const now = Date.now();
-            const dismissedAt = Number(dismissedTimestamp);
-            const durationMs = DISMISS_DURATION_DAYS * 24 * 60 * 60 * 1000;
-            if (now - dismissedAt < durationMs) {
-                return;
-            }
-        }
         triggerInstallationFlow(e as BeforeInstallPromptEvent);
     };
 

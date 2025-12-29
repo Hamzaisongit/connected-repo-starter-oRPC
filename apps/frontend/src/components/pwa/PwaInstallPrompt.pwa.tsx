@@ -1,7 +1,23 @@
 import { usePwaInstallStore } from "@frontend/stores/usePwaInstallStore";
-import CloseIcon from "@mui/icons-material/Close";
+import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
+import HomeScreenIcon from '@mui/icons-material/Home';
 import IosShareIcon from '@mui/icons-material/IosShare';
-import { Box, Button, IconButton, Snackbar } from "@mui/material";
+import { 
+  Button, 
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Snackbar,
+  Stack, 
+  Typography
+} from "@mui/material";
+import { useState } from "react";
 
 export function PwaInstallPrompt() {
   const {
@@ -10,93 +26,184 @@ export function PwaInstallPrompt() {
     dismissInstallationFlow
   } = usePwaInstallStore();
 
+  const [showIosOverlay, setShowIosOverlay] = useState(false);
+
   const handleInstall = () => {
     if (deferredInstallationPrompt) {
-      deferredInstallationPrompt.prompt()
+      deferredInstallationPrompt.prompt();
       deferredInstallationPrompt.userChoice.then(({ outcome }) => {
         if (outcome !== "accepted") {
-          //if user rejects system generated prompt then dismiss installation flow for 90 days
-          dismissInstallationFlow(true);
+          dismissInstallationFlow();
         }
       });
     }
-  }
+  };
 
   const userAgent = window.navigator.userAgent || "";
   const isIOS = /iPad|iPhone|iPod/.test(userAgent);
-  const isChromium = (window as Window & {chrome?: object} ).chrome !== undefined && !isIOS;
+  const isChromium = (window as any).chrome !== undefined && !isIOS;
 
   if (!showPwaInstallationPrompt) return null;
 
-  return(
-      <>
-        {isIOS && (
+  return (
+    <>
+      {/* ----------------- iOS FLOW ----------------- */}
+      {isIOS && (
+        <>
           <Snackbar
-            open={true}
+            open={!showIosOverlay}
             anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            sx={{
+              bottom: { xs: 20, sm: 10 },
+              "& .MuiSnackbarContent-root": {
+              borderRadius: 2, // Pill shape
+              flexWrap: "nowrap", // FORCE SINGLE LINE
+              minWidth: "auto",
+              maxWidth: "95vw",
+              pl: 2,
+              pr: 2.5,
+              py: 1.5 }
+            }}
             message={
-              <Box component="span" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                Tap <IosShareIcon fontSize="small" color="inherit" /> then "Add to Home Screen"
-              </Box>
+              <Typography variant="body2" fontWeight="500">
+                Install app for best experience
+              </Typography>
             }
             action={
-              <IconButton
-                size="small"
-                aria-label="close"
-                color="inherit"
-                onClick={() => dismissInstallationFlow()}
-              >
-                <CloseIcon fontSize="small" />
-              </IconButton>
-            }
-          />
-        )}
-
-        {!isIOS && !isChromium && (
-          <Snackbar
-            open={true}
-            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-            message="Install app for a better experience"
-            action={
-              <IconButton
-                size="small"
-                aria-label="close"
-                color="inherit"
-                onClick={() => dismissInstallationFlow()}
-              >
-                <CloseIcon fontSize="small" />
-              </IconButton>
-            }
-          />
-        )}
-        {isChromium && !isIOS && (
-          <Snackbar
-            open={true}
-            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-            message="Install this app on your device?"
-            action={
-              <Box sx={{ display: "flex", gap: 1 }}>
+              <Stack direction="row" spacing={0.5} alignItems="center">
                 <Button
-                  color="primary"
+                  onClick={() => setShowIosOverlay(true)}
                   size="small"
-                  onClick={handleInstall}
                   variant="contained"
+                  sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 'bold', fontSize: '0.75rem' }}
                 >
                   Install
                 </Button>
                 <Button
-                  size="small"
-                  aria-label="close"
-                  color="secondary"
                   onClick={() => dismissInstallationFlow()}
-                  variant="contained"
+                  size="small"
+                  sx={{ fontWeight: 'bold', color: '#aaa', textTransform: 'none', fontSize: '0.75rem', minWidth: 'auto' }}
                 >
-                  Maybe Later
+                  Later
                 </Button>
-              </Box>
+              </Stack>
             }
           />
-        )}
-      </>
-  )
+
+          <Dialog
+            open={showIosOverlay}
+            onClose={() => setShowIosOverlay(false)}
+            maxWidth="xs"
+            fullWidth
+            PaperProps={{ sx: { borderRadius: 3, m: 2 } }}
+          >
+            <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>Install on iPhone</DialogTitle>
+            <DialogContent>
+              <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
+                Add to Home Screen for fullscreen view.
+              </Typography>
+              <List dense sx={{ bgcolor: 'action.hover', borderRadius: 2 }}>
+                <ListItem>
+                  <ListItemIcon sx={{ minWidth: 36 }}><IosShareIcon color="primary" /></ListItemIcon>
+                  <ListItemText primary={<span>Tap <b>Share</b></span>} />
+                </ListItem>
+                <Divider component="li" />
+                <ListItem>
+                  <ListItemIcon sx={{ minWidth: 36 }}><AddBoxOutlinedIcon color="primary" /></ListItemIcon>
+                  <ListItemText primary={<span>Tap <b>Add to Home Screen</b></span>} />
+                </ListItem>
+                <Divider component="li" />
+                <ListItem>
+                  <ListItemIcon sx={{ minWidth: 36 }}><HomeScreenIcon color="primary" /></ListItemIcon>
+                  <ListItemText primary={<span>Tap <b>Add</b></span>} />
+                </ListItem>
+              </List>
+            </DialogContent>
+            <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+              <Button onClick={() => { setShowIosOverlay(false); dismissInstallationFlow(); }} variant="contained" fullWidth sx={{ borderRadius: 8, mx: 2 }}>
+                Got it
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </>
+      )}
+
+      {/* ----------------- ANDROID/CHROME FLOW ----------------- */}
+      {isChromium && (
+        <Snackbar
+          open={true}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          sx={{
+            bottom: { xs: 20, sm: 10 },
+            "& .MuiSnackbarContent-root": {
+            borderRadius: 2, // Pill shape
+            flexWrap: "nowrap", // FORCE SINGLE LINE
+            minWidth: "auto",
+            maxWidth: "95vw",
+            pl: 2,
+            pr: 2.5,
+            py: 1.5 }
+          }}
+          message={
+            <Typography variant="body2" fontWeight="500">
+              Install app for best experience
+            </Typography>
+          }
+          action={
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <Button
+                onClick={handleInstall}
+                size="small"
+                variant="contained"
+                sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 'bold', fontSize: '0.75rem' }}
+              >
+                Install
+              </Button>
+              <Button
+                onClick={() => dismissInstallationFlow()}
+                size="small"
+                sx={{ fontWeight: 'bold', color: '#aaa', textTransform: 'none', fontSize: '0.75rem', minWidth: 'auto' }}
+              >
+                Later
+              </Button>
+            </Stack>
+          }
+        />
+      )}
+
+      {!isIOS && !isChromium && (
+        <Snackbar
+          open={true}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          sx={{
+            bottom: { xs: 20, sm: 10 },
+            "& .MuiSnackbarContent-root": {
+             
+              borderRadius: 2,
+              flexWrap: "nowrap",
+              minWidth: "auto",
+              maxWidth: "95vw",
+              pl: 2,
+              pr: 3,
+              py: 1.5
+            }
+          }}
+          message={
+            <Typography variant="body2" fontWeight="500">
+              Install app for best experience
+            </Typography>
+          }
+          action={
+            <Button
+              onClick={() => dismissInstallationFlow()}
+              size="small"
+              sx={{ fontWeight:"bold", textTransform: "none", fontSize: "0.75rem", minWidth: "auto" }}
+            >
+              Close
+            </Button>
+          }
+        />
+      )}
+    </>
+  );
 }

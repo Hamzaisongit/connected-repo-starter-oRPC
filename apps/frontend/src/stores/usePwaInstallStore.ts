@@ -21,25 +21,38 @@ export const usePwaInstallStore = create<InstallState>((set) => ({
   deferredInstallationPrompt: null,
 
   triggerInstallationFlow: (deferredPrompt?: BeforeInstallPromptEvent)=>{
+
+    // Check if installation has been dismissed in the last 2 days
+    const DISMISS_DURATION_DAYS = 2;
+    const dismissedTimestamp = localStorage.getItem("pwa_install_dismissed");
+
+    if (dismissedTimestamp) {
+        const now = Date.now();
+        const dismissedAt = Number(dismissedTimestamp);
+        const durationMs = DISMISS_DURATION_DAYS * 24 * 60 * 60 * 1000;
+        if (now - dismissedAt < durationMs) {
+            return;
+        }
+    }
+
     set({
       showPwaInstallationPrompt: true,
       deferredInstallationPrompt: deferredPrompt ?? null,
     });
+
   },
 
-  dismissInstallationFlow: (permanent?: boolean)=>{
+  dismissInstallationFlow: ()=>{
 
     set({
       showPwaInstallationPrompt: false,
       deferredInstallationPrompt: null,
     });
 
-    if (permanent) {
-      const now = Date.now();
-      try {
-        localStorage.setItem(DISMISS_KEY, now.toString());
-      } catch { /* storage errors are non-fatal */ }
-    }
+    try {
+      localStorage.setItem(DISMISS_KEY, Date.now().toString());
+    } catch { /* storage errors are non-fatal */ }
+    
   }
   
 }));
