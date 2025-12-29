@@ -32,7 +32,9 @@
 		"dotenv": "^17.2.3",
 		"vite": "^7.3.0",
 		"vite-bundle-analyzer": "^1.2.3",
-		"vite-plugin-pwa": "^1.2.0"
+		"vite-plugin-pwa": "^1.2.0",
+		"workbox-expiration": "^7.4.0",
+		"workbox-strategies": "^7.4.0"
 	},
 	"license": "AGPL-3.0-only",
 	"name": "@connected-repo/frontend",

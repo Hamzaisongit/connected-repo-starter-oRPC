@@ -1,6 +1,8 @@
 import "./otel.sdk";
 
-import { createServer } from 'node:http';
+import fs from 'node:fs'
+import type { ServerOptions } from 'node:https';
+import path from 'node:path';
 import { allowedOrigins } from '@backend/configs/allowed_origins.config';
 import { env, isDev, isProd, isStaging, isTest } from '@backend/configs/env.config';
 import { betterAuthHandler } from '@backend/request_handlers/better_auth.handler';
@@ -15,8 +17,29 @@ logger.info({ isDev, isProd, isStaging, isTest }, "Environment:");
 logger.info(allowedOrigins, "Allowed Origins:");
 logger.info(env.ALLOWED_ORIGINS, "ALLOWED_ORIGINS env:");
 
-try {
-  const server = createServer(async (req, res) => {
+(async () => {
+
+  try {
+    // Default to HTTP
+    let createServerFn = (await import('node:http')).createServer;
+    let serverOptions: ServerOptions = {};
+
+    // Switch to HTTPS only if cert paths are provided
+    if (process.env.NODE_ENV === 'test' && process.env.HTTPS_KEY_PATH && process.env.HTTPS_CERT_PATH) {
+      const { createServer: createHttpsServer } = await import('node:https');
+
+      serverOptions = {
+        key: fs.readFileSync(path.resolve(process.cwd(), process.env.HTTPS_KEY_PATH)),
+        cert: fs.readFileSync(path.resolve(process.cwd(), process.env.HTTPS_CERT_PATH)),
+      };
+
+      createServerFn = createHttpsServer;
+      logger.info("Starting server in HTTPS mode");
+    } else {
+      logger.info("Starting server in HTTP mode");
+    }
+
+    const server = createServerFn(serverOptions , async (req, res) => {
      // Get current span and add trace ID to response headers
      const currentSpan = trace.getActiveSpan();
      if (currentSpan) {
@@ -103,7 +126,6 @@ try {
 
     server.listen(
       env.PORT,
-      (isProd || isStaging) ? '0.0.0.0' : '127.0.0.1',
       () => {
         if (process.send) {
           process.send("ready"); // ✅ Let PM2 know the app is ready
@@ -113,8 +135,9 @@ try {
     );
 
   handleServerClose(server)
+
 } catch (err) {
   logger.error("Server failed to start");
   logger.error(err);
   process.exit(1);
-}
+}})()

@@ -1,5 +1,7 @@
+import { ExpirationPlugin } from 'workbox-expiration';
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
 import { NavigationRoute, registerRoute } from 'workbox-routing'
+import {NetworkFirst} from 'workbox-strategies'
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -15,6 +17,21 @@ self.addEventListener('message', (event) => {
     (self as ServiceWorkerGlobalScope).skipWaiting();
   }
 });
+
+//Network first implementation for caching all the api requests to backend
+registerRoute(
+	({url}) => url.origin === import.meta.env.VITE_API_URL && url.pathname.startsWith("/api/"),
+	new NetworkFirst({
+		cacheName: "api-cache",
+		plugins: [
+			new ExpirationPlugin({
+				maxEntries: 50,
+				maxAgeSeconds: 60 * 60 * 24 * 7, // one week
+			}),
+		]
+	}),
+	"GET"
+);
 
 // Offline fallback for navigation (SPA routing)
 registerRoute(
