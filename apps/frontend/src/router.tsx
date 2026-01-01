@@ -39,7 +39,7 @@ const routerObjectWithNavbar: ReactRouterWithNavbar[] = [
 		children: [
 			{
 				index: true,
-				loader: () => redirect("/dashboard"),
+				loader: () => redirect("/home"),
 			},
 			{
 				path: "auth/*",
@@ -51,16 +51,20 @@ const routerObjectWithNavbar: ReactRouterWithNavbar[] = [
 				loader: authLoader,
 				children: [
 					{
-						path: "dashboard",
-						Component: lazy(() => import("@frontend/pages/Dashboard.page")),
+						path: "home",
+						Component: lazy(() => import("@frontend/pages/Home.page")),
 					},
 					{
-						path: "journal-entries/*",
-						Component: lazy(() => import("@frontend/modules/journal-entries/journal-entries.router")),
+						path: "alerts",
+						Component: lazy(() => import("@frontend/pages/Alerts.page")),
+					},
+					{
+						path: "insights",
+						Component: lazy(() => import("@frontend/pages/Insights.page")),
 					},
 					{
 						path: "profile",
-						Component: lazy(() => import("@frontend/pages/Dashboard.page")), // TODO: Create Profile page
+						Component: lazy(() => import("@frontend/pages/Profile.page")),
 					},
 				],
 			},

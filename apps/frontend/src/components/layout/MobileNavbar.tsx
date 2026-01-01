@@ -60,7 +60,7 @@ export const MobileNavbar = () => {
 				>
 					{/* Logo */}
 					<Box
-						onClick={() => navigate("/dashboard")}
+						onClick={() => navigate("/home")}
 						sx={{
 							display: "flex",
 							alignItems: "center",
@@ -76,7 +76,7 @@ export const MobileNavbar = () => {
 								letterSpacing: -0.5,
 							}}
 						>
-							OneQ
+							HelioCoach
 						</Typography>
 					</Box>
 

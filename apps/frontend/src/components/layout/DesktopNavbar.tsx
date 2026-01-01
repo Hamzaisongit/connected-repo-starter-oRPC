@@ -35,7 +35,7 @@ export const DesktopNavbar = () => {
 			<Toolbar sx={{ gap: 2 }}>
 				{/* Logo/Brand */}
 				<Box
-					onClick={() => navigate("/dashboard")}
+					onClick={() => navigate("/home")}
 					sx={{
 						display: "flex",
 						alignItems: "center",
@@ -56,7 +56,7 @@ export const DesktopNavbar = () => {
 							letterSpacing: -0.5,
 						}}
 					>
-						OneQ
+						HelioCoach
 					</Typography>
 				</Box>
 

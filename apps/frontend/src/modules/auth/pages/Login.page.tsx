@@ -45,7 +45,7 @@ export const LoginPage = () => {
    const handleGoogleLogin = async () => {
     setIsLoading(true);
  		let data: { url?: string } | undefined;
-		const callbackURL = `${env.VITE_USER_APP_URL}/dashboard`;
+		const callbackURL = `${env.VITE_USER_APP_URL}/home`;
 		
     try {
 			if(isTest){

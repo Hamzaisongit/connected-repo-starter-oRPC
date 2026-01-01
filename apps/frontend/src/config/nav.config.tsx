@@ -1,7 +1,7 @@
-import { DashboardIcon } from "@connected-repo/ui-mui/icons/DashboardIcon";
 import { HomeIcon } from "@connected-repo/ui-mui/icons/HomeIcon";
-import { ListIcon } from "@connected-repo/ui-mui/icons/ListIcon";
-import { PostAddIcon } from "@connected-repo/ui-mui/icons/PostAddIcon";
+import { DashboardIcon } from "@connected-repo/ui-mui/icons/DashboardIcon";
+import { ErrorOutlineIcon } from "@connected-repo/ui-mui/icons/ErrorOutlineIcon";
+import { AccountCircleIcon } from "@connected-repo/ui-mui/icons/AccountCircleIcon";
 
 interface NavItem {
 	/** Display label for the nav item */
@@ -20,21 +20,27 @@ interface NavItem {
  */
 export const navItems: NavItem[] = [
 	{
-		label: "Dashboard",
-		path: "/dashboard",
+		label: "Home",
+		path: "/home",
+		desktopIcon: <HomeIcon fontSize="small" />,
+		mobileIcon: <HomeIcon />,
+	},
+	{
+		label: "Alerts",
+		path: "/alerts",
+		desktopIcon: <ErrorOutlineIcon fontSize="small" />,
+		mobileIcon: <ErrorOutlineIcon />,
+	},
+	{
+		label: "Insights",
+		path: "/insights",
 		desktopIcon: <DashboardIcon fontSize="small" />,
-		mobileIcon: <HomeIcon />, // Different icon for mobile
+		mobileIcon: <DashboardIcon />,
 	},
 	{
-		label: "Journal Entries",
-		path: "/journal-entries",
-		desktopIcon: <ListIcon fontSize="small" />,
-		mobileIcon: <ListIcon />,
-	},
-	{
-		label: "New Entry",
-		path: "/journal-entries/new",
-		desktopIcon: <PostAddIcon fontSize="small" />,
-		mobileIcon: <PostAddIcon />,
+		label: "Profile",
+		path: "/profile",
+		desktopIcon: <AccountCircleIcon fontSize="small" />,
+		mobileIcon: <AccountCircleIcon />,
 	},
 ];
