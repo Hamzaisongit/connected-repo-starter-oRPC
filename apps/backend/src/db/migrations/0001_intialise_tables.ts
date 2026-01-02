@@ -9,12 +9,17 @@ change(async (db) => {
 
   await db.createEnum('public.webhook_status_enum', ['Pending', 'Sent', 'Failed']);
 
-  await db.createTable('users', (t) => ({
+  await db.createEnum("public.user_adherence_status_enum", ["Taken on-time", "Taken late", "Missed", "Skipped"]);
+
+  await db.createEnum("public.days_of_week_enum", ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]);
+
+  await db.createTable("users", (t) => ({
     id: t.uuid().primaryKey().default(t.sql`gen_random_uuid()`),
     email: t.string().unique(),
     emailVerified: t.boolean().default(false),
     name: t.string(),
     image: t.string().nullable(),
+    timeZone: t.string().nullable(),
     createdAt: t.timestamps().createdAt,
     updatedAt: t.timestamps().updatedAt,
   }));
@@ -176,6 +181,87 @@ change(async (db) => {
         ]
       ),
   );
+
+  await db.createTable(
+    "supplements",
+    (t) => ({
+      id: t.uuid().primaryKey().default(t.sql`gen_random_uuid()`),
+      userId: t.uuid().foreignKey("users", "id", {
+        onDelete: "CASCADE",
+        onUpdate: "RESTRICT",
+      }),
+      name: t.string(),
+      instructions: t.array(t.string()),
+      isActive: t.boolean(),
+      dosage: t.smallint(),
+      unit: t.string(),
+      days: t.array(t.enum("days_of_week_enum")),
+      timesOfDay: t.array(t.string()),
+      imageUrl: t.string().nullable(),
+      createdAt: t.timestamps().createdAt,
+      updatedAt: t.timestamps().updatedAt,
+    }),
+    (t) => t.index(["userId", "isActive"]),
+  );
+
+  await db.createTable(
+    "user_adherence_logs",
+    (t) => ({
+      id: t.uuid().primaryKey().default(t.sql`gen_random_uuid()`),
+      userId: t.uuid().foreignKey("users", "id", {
+        onDelete: "CASCADE",
+        onUpdate: "RESTRICT"
+      }),
+      supplementId: t.uuid().foreignKey("supplements", "id", {
+        onDelete: "CASCADE",
+        onUpdate: "RESTRICT"
+      }),
+      reason: t.string().nullable(),
+      status: t.enum("user_adherence_status_enum"),
+      scheduledFor: t.timestampNumber(),
+      actualAt: t.timestampNumber(),
+      timeZoneOffset: t.smallint(),
+      createdAt: t.timestamps().createdAt,
+      updatedAt: t.timestamps().updatedAt,
+    }),
+    (t) => t.index(["userId", "supplementId", "scheduledFor", "status"]),
+  );
+  
+  await db.createTable(
+    "daily_compliance",
+    (t) => ({
+      id: t.uuid().primaryKey().default(t.sql`gen_random_uuid()`),
+      userId: t.uuid().foreignKey("users", "id", {
+        onDelete: "CASCADE",
+        onUpdate: "RESTRICT"
+      }),
+      adherencePercentage: t.decimal(),
+      date: t.timestampNumber(),
+      dailyShieldOpeningBalance: t.smallint(),
+      dailyShieldClosingBalance: t.smallint(),
+      dailyShieldUsed: t.boolean(),
+      createdAt: t.timestamps().createdAt,
+      updatedAt: t.timestamps().updatedAt
+    }),
+    (t) => t.index(["userId", "date"])
+  );
+
+  await db.createTable(
+    "user_stats",
+    (t) => ({
+      userId: t.uuid().primaryKey().foreignKey("users", "id", {
+        onDelete: "CASCADE",
+        onUpdate: "RESTRICT"
+      }),
+      currentStreak: t.integer().default(0),
+      longestStreak: t.integer().default(0),
+      currentStreakShieldsUsed: t.smallint().default(0),
+      longestStreakShieldsUsed: t.smallint().default(0),
+      createdAt: t.timestamps().createdAt,
+      updatedAt: t.timestamps().updatedAt
+    }),
+  );
+
 });
 
 change(async (db) => {

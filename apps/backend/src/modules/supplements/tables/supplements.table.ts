@@ -15,7 +15,7 @@ export class SupplementTable extends BaseTable {
     isActive: t.boolean(),
     dosage: t.smallint(),
     unit: t.string(),
-    days: t.daysOfWeekEnum(),
+    days: t.array(t.daysOfWeekEnum()),
     timesOfDay: t.array(t.string()),
     imageUrl: t.string().nullable(),
     ...t.timestamps(),
