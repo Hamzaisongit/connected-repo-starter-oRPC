@@ -1,5 +1,5 @@
 import { env } from "@backend/configs/env.config";
-import { cronJobsRouter } from "@backend/routers/cron_jobs/cron_jobs.router";
+import { cronJobsRouter } from "@backend/routers/cron_jobs.router";
 import { orpcErrorParser } from "@backend/utils/errorParser";
 import { logger } from "@backend/utils/logger.utils";
 import { trace } from '@opentelemetry/api';

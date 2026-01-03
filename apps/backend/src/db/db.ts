@@ -4,10 +4,14 @@ import { SessionTable } from "@backend/modules/auth/tables/session.auth.table";
 import { VerificationTable } from "@backend/modules/auth/tables/verification.auth.table";
 import { JournalEntryTable } from "@backend/modules/journal-entries/tables/journal_entries.table";
 import { ApiProductRequestLogsTable } from "@backend/modules/logs/tables/api_product_request_logs.table";
+import { UserAdherenceLogTable } from "@backend/modules/logs/tables/user_adherence_logs.table";
 import { PromptsTable } from "@backend/modules/prompts/tables/prompts.table";
+import { DailyComplianceTable } from "@backend/modules/streaks/tables/daily_complainces.table";
 import { SubscriptionsTable } from "@backend/modules/subscriptions/tables/subscriptions.table";
 import { WebhookCallQueueTable } from "@backend/modules/subscriptions/tables/webhookCallQueue.table";
 import { TeamTable } from "@backend/modules/teams/tables/teams.table";
+import { UserStackTable } from "@backend/modules/user_stacks/tables/user_stacks.table";
+import { UserStatTable } from "@backend/modules/users/tables/user_stats.table";
 import { UserTable } from "@backend/modules/users/tables/users.table";
 import { orchidORM } from "orchid-orm/node-postgres";
 
@@ -20,15 +24,19 @@ export const db = orchidORM(
 		// log: true,
 	},
 	{
-		users: UserTable,
+		accounts: AccountTable,
+		apiProductRequestLogs: ApiProductRequestLogsTable,
+		dailyCompliances: DailyComplianceTable,
 		journalEntries: JournalEntryTable,
 		prompts: PromptsTable,
 		sessions: SessionTable,
-		accounts: AccountTable,
-		verifications: VerificationTable,
 		subscriptions: SubscriptionsTable,
 		teams: TeamTable,
-		apiProductRequestLogs: ApiProductRequestLogsTable,
+		userAdherenceLogs: UserAdherenceLogTable,
+		users: UserTable,
+		userStacks: UserStackTable,
+		userStats: UserStatTable,
+		verifications: VerificationTable,
 		webhookCallQueues: WebhookCallQueueTable,
 	},
 );

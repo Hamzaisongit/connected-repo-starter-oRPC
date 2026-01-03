@@ -1,6 +1,6 @@
 import { allowedOrigins } from '@backend/configs/allowed_origins.config';
 import { isDev, isProd, isStaging } from '@backend/configs/env.config';
-import { userAppRouter } from '@backend/routers/user_app/user_app.router';
+import { userAppRouter } from '@backend/routers/user_app.router';
 import { orpcErrorParser } from '@backend/utils/errorParser';
 import { logger } from '@backend/utils/logger.utils';
 import { trace } from '@opentelemetry/api';

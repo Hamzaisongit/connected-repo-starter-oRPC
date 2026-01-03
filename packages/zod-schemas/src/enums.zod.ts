@@ -17,10 +17,18 @@ export const apiProductSkuEnum = API_PRODUCTS.map(product => product.sku) as ["j
 export const apiProductSkuZod = z.enum(apiProductSkuEnum);
 export type ApiProductSku = z.infer<typeof apiProductSkuZod>;
 
-export const WEBHOOK_STATUS_ENUM = ["Pending", "Sent", "Failed"] as const;
-export const webhookStatusZod = z.enum(WEBHOOK_STATUS_ENUM);
-export type WebhookStatus = z.infer<typeof webhookStatusZod>;
-
 export const API_REQUEST_METHOD_ENUM = ["GET", "POST", "PUT", "DELETE"] as const;
 export const apiRequestMethodZod = z.enum(API_REQUEST_METHOD_ENUM);
 export type ApiRequestMethod = z.infer<typeof apiRequestMethodZod>;
+
+export const DAYS_OF_WEEK_ENUM = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
+export const daysOfWeekZod = z.enum(DAYS_OF_WEEK_ENUM);
+export type DaysOfWeek = z.infer<typeof daysOfWeekZod>;
+
+export const USER_ADHERENCE_STATUS_ENUM = ["Taken on-time", "Taken late", "Missed", "Skipped"] as const;
+export const userAdherenceStatusZod = z.enum(USER_ADHERENCE_STATUS_ENUM);
+export type UserAdherenceStatus = z.infer<typeof userAdherenceStatusZod>;
+
+export const WEBHOOK_STATUS_ENUM = ["Pending", "Sent", "Failed"] as const;
+export const webhookStatusZod = z.enum(WEBHOOK_STATUS_ENUM);
+export type WebhookStatus = z.infer<typeof webhookStatusZod>;

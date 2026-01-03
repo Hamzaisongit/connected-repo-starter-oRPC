@@ -420,28 +420,30 @@ If after 60 days:
 
 **Issues:**
 
-**5.0.1: Create Supplement Table**
-- Create `supplements` table (id, userId, name, dosage, form, timing, notes, createdAt, updatedAt)
-- Support multiple supplements per user
-- Add validation (name required, dosage optional)
+**5.0.1: Create User Stacks Table** ✅ COMPLETED
+- Create `user_stacks` table (id, userId, name, instructions, isActive, dosage, unit, days, timesOfDay, imageUrl, createdAt, updatedAt)
+- Support multiple stacks per user
+- Add validation (name required, dosage required, unit required)
 - Run migration
 - **Acceptance Criteria:**
   - Table created with proper schema
   - Foreign key to users table
   - Indexes on userId
   - Validation rules enforced
+- Note: Implementation uses "user_stacks" instead of "supplements" to better reflect user-managed supplement regimens
 
-**5.0.2: Build Supplement CRUD Endpoints**
-- `supplement.create` - Add new supplement to stack
-- `supplement.getAll` - Get user's supplement stack
-- `supplement.getById` - Get single supplement
-- `supplement.update` - Update supplement details
-- `supplement.delete` - Remove supplement from stack
+**5.0.2: Build User Stack CRUD Endpoints** ✅ COMPLETED
+- `userStack.create` - Add new supplement stack
+- `userStack.getAll` - Get user's supplement stacks
+- `userStack.getById` - Get single supplement stack
+- `userStack.update` - Update supplement stack details
+- `userStack.delete` - Remove supplement stack
 - **Acceptance Criteria:**
   - All endpoints tested
-  - User can only access their own supplements
+  - User can only access their own stacks
   - Validation works
   - Error handling robust
+- Note: Endpoints renamed to userStack.* to match table name
 
 **5.0.3: Create Supplement Stack Setup UI**
 - Build supplement entry form (manual)
@@ -466,6 +468,15 @@ If after 60 days:
   - Search returns relevant results
   - Users can add custom supplements
   - Fast autocomplete (< 100ms)
+
+**5.0.5: Add New Database Enums** ✅ COMPLETED
+- Added DAYS_OF_WEEK_ENUM: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+- Added USER_ADHERENCE_STATUS_ENUM: ['Taken on-time', 'Taken late', 'Missed', 'Skipped']
+- Updated base_table.ts with new enum helpers
+- **Acceptance Criteria:**
+  - Enums added to database schema
+  - Zod schemas created
+  - Available in base table definitions
 
 ---
 
@@ -810,17 +821,17 @@ If after 60 days:
 
 **Issues:**
 
-**8.1.1: Create Supplement Log Table**
-- Create `supplement_logs` table (id, userId, supplementId, takenAt, status, loggedFrom)
-- Status enum: 'taken', 'skipped', 'late', 'snoozed'
-- loggedFrom enum: 'notification', 'manual', 'offline_sync'
-- Index on (userId, supplementId, takenAt) for fast queries
+**8.1.1: Create User Adherence Logs Table** ✅ COMPLETED
+- Create `user_adherence_logs` table (id, userId, supplementId, status, scheduledFor, actualAt, reason, timeZoneOffset, createdAt, updatedAt)
+- Status enum: 'Taken on-time', 'Taken late', 'Missed', 'Skipped'
+- Index on (userId, scheduledFor) for fast queries
 - Run migration
 - **Acceptance Criteria:**
   - Table created with proper schema
-  - Foreign keys to users and supplements
+  - Foreign keys to users and user_stacks
   - Status validation works
   - Efficient querying for compliance calculations
+- Note: Table includes scheduledFor and actualAt for more precise tracking, timezone offset for accuracy
 
 **8.1.2: Implement Offline-Safe Logging**
 - Install Dexie.js for IndexedDB
@@ -836,17 +847,19 @@ If after 60 days:
   - Sync status visible to user
   - Conflicts resolved correctly
 
-**8.1.3: Build One-Tap Logging Endpoints**
-- `log.create` - Log supplement as taken
-- `log.skip` - Mark supplement as skipped
-- `log.getToday` - Get today's logs
-- `log.getRange` - Get logs for date range
+**8.1.3: Build Adherence Logging Endpoints** ✅ COMPLETED
+- `userAdherenceLogs.create` - Log adherence for supplement
+- `userAdherenceLogs.getAll` - Get user's adherence logs
+- `userAdherenceLogs.getById` - Get single adherence log
+- `userAdherenceLogs.update` - Update adherence log (with restrictions)
+- `userAdherenceLogs.delete` - Delete adherence log (with restrictions)
 - Batch endpoint for offline sync
 - **Acceptance Criteria:**
   - Endpoints fast (< 100ms)
   - Validation works
   - User can only log their own supplements
   - Batch sync efficient
+  - Restrictions prevent editing after daily compliance finalized
 
 **8.1.4: Create One-Tap Logging UI**
 - Lock screen notification → tap → mark taken
@@ -886,6 +899,16 @@ If after 60 days:
 #### Epic 9.1: Compliance Calculation & Display
 
 **Issues:**
+
+**9.0.1: Create Daily Compliances Table** ✅ COMPLETED
+- Create `daily_compliances` table (id, userId, adherencePercentage, date, dailyShieldOpeningBalance, dailyShieldClosingBalance, dailyShieldUsed, createdAt, updatedAt)
+- Tracks daily adherence percentage and shield mechanics
+- Run migration
+- **Acceptance Criteria:**
+  - Table created with proper schema
+  - Foreign key to users
+  - Index on (userId, date)
+  - Decimal precision for percentage
 
 **9.1.1: Implement Compliance Calculation Logic**
 - Calculate daily compliance % per supplement
@@ -949,15 +972,17 @@ If after 60 days:
 
 **Issues:**
 
-**10.1.1: Create Streak Table**
-- Create `supplement_streaks` table (id, userId, supplementId, currentStreak, longestStreak, lastLogDate, shieldUsed)
-- Track streak per supplement
-- Track if shield has been used
+**10.1.1: Create User Stats Table** ✅ COMPLETED
+- Create `user_stats` table (userId, currentStreak, longestStreak, currentStreakShieldsUsed, longestStreakShieldsUsed, createdAt, updatedAt)
+- Track overall user streaks across all supplements
+- Track shield usage for forgiveness mechanic
 - Run migration
 - **Acceptance Criteria:**
   - Table created with proper schema
-  - Foreign keys to users and supplements
-  - Indexes on userId and supplementId
+  - Foreign key to users
+  - Primary key on userId (one record per user)
+  - Indexes on userId
+- Note: Changed from per-supplement streaks to user-level streaks for simplicity in V1
 
 **10.1.2: Implement Streak Calculation Logic**
 - Calculate streak on each log

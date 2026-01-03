@@ -3,7 +3,7 @@ import { journalEntriesOpenApiRouter } from "@backend/modules/journal-entries/jo
 import { subscriptionOpenApiRouter } from "@backend/modules/subscriptions/subscription.router";
 import { openApiPublicProcedure } from "@backend/procedures/open_api_public.procedure";
 import * as z from "zod";
-import { teamRouter } from "./team.router";
+import { teamRouter } from "../modules/teams/team.router";
 
 // Health check endpoint for OpenAPI (public - no auth required)
 const healthCheck = openApiPublicProcedure

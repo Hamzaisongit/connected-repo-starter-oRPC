@@ -1,7 +1,11 @@
 import { journalEntriesRouter } from '@backend/modules/journal-entries/journal-entries.router'
+import { userAdherenceLogsRouter } from '@backend/modules/logs/user_adherence_logs.user_app.router'
 import { promptsRouter } from '@backend/modules/prompts/prompts.router'
+import { dailyCompliancesRouter } from '@backend/modules/streaks/daily_compliances.user_app.router'
+import { userStackRouter } from '@backend/modules/user_stacks/user_stack.user_app.router'
+import { userStatsRouter } from '@backend/modules/users/user_stats.user_app.router'
+import { usersRouter } from '@backend/modules/users/users.user_app.router'
 import { rpcPublicProcedure } from '@backend/procedures/public.procedure'
-import { usersRouter } from '@backend/routers/user_app/users.user_app.router'
 import type { InferRouterInputs, InferRouterOutputs, RouterClient } from '@orpc/server'
 
 // Phase 1: Basic health check and testing endpoints
@@ -24,6 +28,10 @@ export const userAppRouter = {
 	users: usersRouter,
 	journalEntries: journalEntriesRouter,
 	prompts: promptsRouter,
+	userStacks: userStackRouter,
+	userAdherenceLogs: userAdherenceLogsRouter,
+	dailyCompliances: dailyCompliancesRouter,
+	userStats: userStatsRouter,
 };
 
 export type UserAppRouter = RouterClient<typeof userAppRouter>;

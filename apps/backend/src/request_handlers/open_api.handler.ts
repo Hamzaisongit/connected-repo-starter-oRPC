@@ -1,5 +1,5 @@
 import { isProd } from "@backend/configs/env.config";
-import { openApiRouter } from "@backend/routers/open_api/open_api.router";
+import { openApiRouter } from "@backend/routers/open_api.router";
 import { orpcErrorParser } from "@backend/utils/errorParser";
 import { logger } from "@backend/utils/logger.utils";
 import { trace } from '@opentelemetry/api';
