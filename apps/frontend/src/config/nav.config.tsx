@@ -37,4 +37,10 @@ export const navItems: NavItem[] = [
 		desktopIcon: <PostAddIcon fontSize="small" />,
 		mobileIcon: <PostAddIcon />,
 	},
+	{
+		label: "Add to Stack",
+		path: "/user-stack/new",
+		desktopIcon: <PostAddIcon fontSize="small" />,
+		mobileIcon: <PostAddIcon />,
+	},
 ];

@@ -49,18 +49,19 @@ export const RhfSelect = ({
           }}
         >
           {label && <InputLabel id={labelId}>{label}</InputLabel>}
-          <Select
-            {...field}
-            labelId={labelId}
-            label={label}
-            displayEmpty={!!placeholder}
-            sx={{
-              "& .MuiSelect-select": {
-                fontSize: { xs: "16px", md: "14px" }, // Prevent iOS zoom on focus
-              },
-            }}
-            {...props}
-          >
+           <Select
+             {...field}
+             labelId={labelId}
+             label={label}
+             displayEmpty={!!placeholder}
+             size="small"
+             sx={{
+               "& .MuiSelect-select": {
+                 fontSize: { xs: "16px", md: "14px" }, // Prevent iOS zoom on focus
+               },
+             }}
+             {...props}
+           >
             {placeholder && (
               <MenuItem value="" disabled>
                 <em>{placeholder}</em>
