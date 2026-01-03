@@ -76,7 +76,7 @@ export const MobileNavbar = () => {
 								letterSpacing: -0.5,
 							}}
 						>
-							OneQ
+							HelioCoach
 						</Typography>
 					</Box>
 

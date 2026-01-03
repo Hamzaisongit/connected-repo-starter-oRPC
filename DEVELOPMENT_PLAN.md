@@ -1,57 +1,111 @@
-# Development Plan - Scheduled Prompt & Journal App
+# Development Plan - HelioCoach (Supplement Compliance App)
 
-**Project:** Connected Repo Starter - Journal MVP
-**Repository:** shipmyapp/connected-repo
-**Tech Stack:** oRPC, Orchid ORM, Better Auth, React 19, Vite, PostgreSQL
-**Last Updated:** 2026-01-01
+**Project:** HelioCoach - Mobile-First Supplement Compliance Tracker
+**Repository:** shipmyapp/heliocoach
+**Tech Stack:** oRPC, Orchid ORM, Better Auth, React 19, Vite, PostgreSQL, Capacitor
+**Last Updated:** 2026-01-04
 
 ---
 
 ## Executive Summary
 
-Building a **Scheduled Prompt & Journal** app with:
-- Timed notifications with thought-provoking prompts
-- Simple text-based journaling
-- Search functionality for past entries
-- Gamification (streaks & badges)
-- Free tier (with ads) and paid tier (cloud sync, ad-free)
-- Mobile & web support (PWA + Capacitor)
+Building **HelioCoach**, a mobile-first supplement compliance app focused on one goal:
 
-### Current State Analysis
+**Improve supplement consistency meaningfully within 30 days of install.**
 
-**ALREADY IMPLEMENTED ✅**
+### V1 Core Features (Survival Mode)
+1. **Rock-Solid Reminder Engine** - Timezone-aware, bundled, offline-safe (99.9% delivery target)
+2. **One-Tap Logging** - Lock screen → tap → logged (< 5 seconds)
+3. **Simple Compliance Tracking** - Daily checklist, weekly calendar, 30-day %
+4. **Smart Streaks (Lite)** - Daily streak + one shield (no complex recovery)
+5. **Manual-First Stack Setup** - Manual entry + search, optional photo assist
+6. **Basic Interaction Warnings** - High-confidence only, informational
+
+### V1 Kill Criteria
+If after 60 days:
+- Users disable notifications at high rates
+- Compliance does not improve meaningfully
+- Trust complaints exceed engagement praise
+
+**→ Do not scale engagement mechanics. Fix the core loop first.**
+
+### Current State Analysis (Inherited Template)
+
+**ALREADY IMPLEMENTED ✅ (From Template)**
 - Better Auth with Google OAuth
 - Database setup with OrchidORM + PostgreSQL
-- User, JournalEntry, Prompt, Subscription, Team tables
-- Basic journal entry CRUD endpoints (oRPC)
-- Basic prompt endpoints (getAllActive, getRandomActive)
-- **Journal Entry Form & List View (UI Components)**
+- User, JournalEntry, Prompt, Subscription, Team tables (will be repurposed)
+- Basic oRPC endpoints and routing structure
 - Frontend with React 19, React Router 7, Material UI
-- Dashboard page with user context
 - Biome linting & formatting configured
 - Turbo monorepo setup with workspace dependencies
-- Environment variable sync script
-- **Code Hygiene (P0):** Pre-commit hooks, linting on save, unused code detection, contribution guidelines ✅ COMPLETED
-- **Testing Infrastructure (P0):** Vitest + Playwright setup with database integration ✅ COMPLETED
-- **OpenTelemetry & RUM (P0):** Sentry + OTEL distributed tracing ✅ COMPLETED
-- **CI/CD (P0):** GitHub Actions + Coolify deployment (basic) ✅ COMPLETED
+- **Code Hygiene:** Pre-commit hooks, linting on save, unused code detection ✅
+- **Testing Infrastructure:** Vitest + Playwright setup ✅
+- **OpenTelemetry & RUM:** Sentry + OTEL distributed tracing ✅
+- **CI/CD:** GitHub Actions + Coolify deployment (basic) ✅
 
-**MISSING FOR MVP ❌**
-1. ~~**Testing Infrastructure (P0):** Vitest setup for backend/frontend with database integration~~ ✅ COMPLETED
-2. ~~**OpenTelemetry & RUM (P0):** Error tracking, performance monitoring, distributed tracing~~ ✅ COMPLETED
-3. ~~**CI/CD & DevOps (P0):** GitHub Actions, Coolify deployment setup~~ ✅ COMPLETED (Basic CI/CD)
-4. **PWA Setup (P0):** Service workers, manifest, offline support, install prompt
-5. **Event-Driven Architecture (P0):** Database-backed event bus (swappable with Kafka/RabbitMQ later)
-6. **Email & Notification Infrastructure (P0):** Brevo setup, event-driven notification module (email-first, extensible for push/SMS/in-app)
-7. **User Schedules (P0):** Schedule management for timed notifications
-8. **Email Notifications (P0):** Event-driven daily prompt emails via Brevo (after PWA for testing)
-9. **Capacitor Setup (P0):** iOS/Android native app configuration (after email notifications working)
-10. **Push Notifications (P0):** FCM/APNs setup and event-driven push notifications (after Capacitor)
-11. **Mobile CI/CD (P0):** GitHub Actions for Android/iOS builds and store uploads
-12. **Payments & Subscriptions (P0):** Stripe integration ($5/month, $50/year)
-13. **Offline-First (V1):** Make app offline-first, free version offline-only, paid gets cloud sync
-14. **Search Functionality (V1):** Backend search implementation
-15. **Gamification (V1):** Streaks and badges system (event-driven)
+**NEW REQUIREMENTS FOR HELIOCOACH V1 ❌**
+
+**Phase 1: Core Data Model & Domain Logic**
+1. **Supplement Stack Management**
+   - Supplement table (name, dosage, form, timing, userId)
+   - Manual entry + search functionality
+   - Photo assist (optional, no auto-activation)
+   - Stack setup wizard UI
+
+2. **Reminder Engine Foundation**
+   - Reminder schedule table (supplementId, time, frequency, timezone, isActive)
+   - Timezone-aware scheduling logic
+   - Bundled reminders (group supplements by time)
+   - Snooze logic with escalation (max 3 attempts)
+
+3. **Compliance Tracking**
+   - SupplementLog table (supplementId, userId, takenAt, status: taken/skipped/late)
+   - Offline-safe logging (IndexedDB → sync to backend)
+   - Daily checklist view
+   - Weekly calendar view
+   - Rolling 30-day compliance % calculation
+
+4. **Smart Streaks (Lite)**
+   - Streak calculation logic (daily streaks per supplement)
+   - One streak shield (forgiveness mechanic)
+   - No recovery mechanics in V1
+
+**Phase 2: Mobile-First Notification System**
+5. **PWA Setup:** Service workers, manifest, offline support, install prompt
+6. **Capacitor Setup:** iOS/Android native app configuration
+7. **Push Notifications (Primary):** FCM/APNs setup, reliable delivery (99.9% target)
+8. **Email Notifications (Fallback):** Brevo integration for users who disable push
+9. **Event-Driven Notifications:** pg-tbus event bus for `reminder.scheduled` events
+10. **Mobile CI/CD:** GitHub Actions for Android/iOS builds
+
+**Phase 3: Trust & Safety**
+11. **Interaction Warnings Database**
+    - Supplement interactions table (supplement pairs, severity, source)
+    - High-confidence warnings only (clinical sources)
+    - "Consult your doctor" language
+    
+12. **Safety UI**
+    - Warning display on stack setup
+    - Informational only (no blocking)
+    - Source citations
+
+**Phase 4: Progress & Engagement (Minimal)**
+13. **Progress Visualization**
+    - Current streak display
+    - Longest streak
+    - Days completed this month
+    - Compliance % (rolling 30-day)
+
+**EXPLICITLY EXCLUDED FROM V1:**
+- ❌ Leagues, points, challenges
+- ❌ Social features, buddies
+- ❌ Wearable integrations
+- ❌ Caregiver features
+- ❌ Experiment mode
+- ❌ AI optimization
+- ❌ Clinical export
+- ❌ Payments/subscriptions (MVP will be free to prove value first)
 
 ---
 
@@ -63,7 +117,17 @@ Building a **Scheduled Prompt & Journal** app with:
 
 ---
 
-## V0: MVP FOUNDATION (CRITICAL)
+## V1: SUPPLEMENT COMPLIANCE MVP (CRITICAL)
+
+**Goal:** Prove reliable supplement compliance improvement in 30 days.
+
+**Success Metrics:**
+- Reminder delivery ≥ 99.9%
+- 7-day retention ≥ 50%
+- ≥ 20% improvement in self-reported consistency
+- < 2% support tickets related to reminders/data loss
+
+## V0: FOUNDATION (Leverage Existing Template)
 
 ### Phase 1: Developer Experience & Code Hygiene 🔧
 
@@ -348,11 +412,143 @@ Building a **Scheduled Prompt & Journal** app with:
 
 ---
 
-### Phase 5: Centralized Notification Service 🔔
+### Phase 5: HelioCoach Data Model 💊
+
+**Priority:** CRITICAL - Core domain models for supplement tracking
+
+#### Epic 5.0: Supplement Stack Management
+
+**Issues:**
+
+**5.0.1: Create Supplement Table**
+- Create `supplements` table (id, userId, name, dosage, form, timing, notes, createdAt, updatedAt)
+- Support multiple supplements per user
+- Add validation (name required, dosage optional)
+- Run migration
+- **Acceptance Criteria:**
+  - Table created with proper schema
+  - Foreign key to users table
+  - Indexes on userId
+  - Validation rules enforced
+
+**5.0.2: Build Supplement CRUD Endpoints**
+- `supplement.create` - Add new supplement to stack
+- `supplement.getAll` - Get user's supplement stack
+- `supplement.getById` - Get single supplement
+- `supplement.update` - Update supplement details
+- `supplement.delete` - Remove supplement from stack
+- **Acceptance Criteria:**
+  - All endpoints tested
+  - User can only access their own supplements
+  - Validation works
+  - Error handling robust
+
+**5.0.3: Create Supplement Stack Setup UI**
+- Build supplement entry form (manual)
+- Add supplement search/autocomplete (from common supplement database)
+- Display current stack in list view
+- Edit/delete supplements
+- Optional: Photo assist (future enhancement, not V1)
+- **Acceptance Criteria:**
+  - Clean, mobile-optimized UI
+  - Manual entry works smoothly
+  - Search autocomplete functional
+  - Stack management intuitive
+  - One-hand, one-thumb operation
+
+**5.0.4: Implement Supplement Search Database**
+- Create `supplement_library` table (common supplements with standard names)
+- Seed with top 100 common supplements
+- Implement autocomplete search
+- Allow custom entries if not in library
+- **Acceptance Criteria:**
+  - Library seeded with common supplements
+  - Search returns relevant results
+  - Users can add custom supplements
+  - Fast autocomplete (< 100ms)
+
+---
+
+### Phase 6: Reminder Engine 🔔
+
+**Priority:** HIGHEST - Core value proposition (99.9% delivery target)
+
+#### Epic 6.1: Reminder Scheduling System
+
+**Issues:**
+
+**6.1.1: Create Reminder Schedule Table**
+- Create `reminder_schedules` table (id, userId, supplementId, time, timezone, frequency, isActive, bundleGroup)
+- Support daily frequency for V1
+- Store time as string ("08:00", "20:00")
+- Store timezone (IANA format)
+- Add bundleGroup for grouping supplements at same time
+- Run migration
+- **Acceptance Criteria:**
+  - Table created with proper schema
+  - Timezone validation
+  - Foreign keys to users and supplements
+  - Composite index on (userId, isActive, time)
+
+**6.1.2: Build Reminder Schedule Endpoints**
+- `reminder.create` - Create reminder for supplement
+- `reminder.getAll` - Get user's reminders
+- `reminder.update` - Update reminder time/frequency
+- `reminder.delete` - Remove reminder
+- `reminder.snooze` - Snooze reminder (15min, 30min, 1hr)
+- Validate timezone against IANA list
+- Validate time format (HH:MM)
+- **Acceptance Criteria:**
+  - Endpoints validate input
+  - Timezone validation works
+  - User can only modify their own reminders
+  - Snooze logic implemented
+
+**6.1.3: Implement Timezone-Aware Scheduling Logic**
+- Convert reminder times to user's local timezone
+- Handle daylight saving time transitions
+- Support timezone changes (travelers)
+- Calculate next reminder time for each supplement
+- **Acceptance Criteria:**
+  - Reminders fire at correct local time
+  - DST transitions handled correctly
+  - Timezone changes don't break reminders
+  - Next reminder time calculated accurately
+
+**6.1.4: Implement Smart Bundling**
+- Group supplements scheduled within 15-min window
+- Send ONE notification for multiple supplements
+- Notification shows all supplements in bundle
+- Tapping opens checklist with all bundled supplements
+- **Acceptance Criteria:**
+  - Supplements bundled correctly
+  - Single notification for bundle
+  - All supplements shown in notification
+  - Checklist opens with bundle
+
+**6.1.5: Build Reminder Settings UI**
+- Settings page for each supplement's reminder
+- Time picker for scheduled time
+- Timezone selector (auto-detected)
+- Frequency selector (daily for V1)
+- Toggle to enable/disable reminder
+- Show bundled reminders grouped
+- **Acceptance Criteria:**
+  - Clean, intuitive UI
+  - Time picker mobile-friendly
+  - Timezone auto-detected
+  - Changes saved successfully
+  - Bundle preview visible
+
+---
+
+### Phase 7: Centralized Notification Service 🔔
 
 **Priority:** HIGH - Core infrastructure for all notification types (do AFTER PWA)
 
-#### Epic 5.1: Email Setup with Brevo & Centralized Notification Module
+**NOTE:** For HelioCoach, push notifications are PRIMARY, email is FALLBACK only.
+
+#### Epic 7.1: Email Setup with Brevo & Centralized Notification Module
 
 **Issues:**
 
@@ -606,7 +802,249 @@ Building a **Scheduled Prompt & Journal** app with:
 
 ---
 
-### Phase 6: Capacitor Mobile App 📲
+### Phase 8: Compliance Tracking & One-Tap Logging 📝
+
+**Priority:** CRITICAL - Core user interaction (< 5 second target)
+
+#### Epic 8.1: Supplement Logging System
+
+**Issues:**
+
+**8.1.1: Create Supplement Log Table**
+- Create `supplement_logs` table (id, userId, supplementId, takenAt, status, loggedFrom)
+- Status enum: 'taken', 'skipped', 'late', 'snoozed'
+- loggedFrom enum: 'notification', 'manual', 'offline_sync'
+- Index on (userId, supplementId, takenAt) for fast queries
+- Run migration
+- **Acceptance Criteria:**
+  - Table created with proper schema
+  - Foreign keys to users and supplements
+  - Status validation works
+  - Efficient querying for compliance calculations
+
+**8.1.2: Implement Offline-Safe Logging**
+- Install Dexie.js for IndexedDB
+- Create IndexedDB schema for pending logs
+- Log to IndexedDB immediately (offline-safe)
+- Sync to backend when online
+- Handle conflicts (local wins)
+- Show sync status indicator
+- **Acceptance Criteria:**
+  - Logs saved offline instantly
+  - Sync happens automatically when online
+  - No data loss
+  - Sync status visible to user
+  - Conflicts resolved correctly
+
+**8.1.3: Build One-Tap Logging Endpoints**
+- `log.create` - Log supplement as taken
+- `log.skip` - Mark supplement as skipped
+- `log.getToday` - Get today's logs
+- `log.getRange` - Get logs for date range
+- Batch endpoint for offline sync
+- **Acceptance Criteria:**
+  - Endpoints fast (< 100ms)
+  - Validation works
+  - User can only log their own supplements
+  - Batch sync efficient
+
+**8.1.4: Create One-Tap Logging UI**
+- Lock screen notification → tap → mark taken
+- In-app daily checklist with one-tap buttons
+- Show neutral grey for missed (never red)
+- "Taken late" still counts for encouragement
+- Haptic feedback on tap
+- Immediate visual confirmation
+- **Acceptance Criteria:**
+  - Notification tap opens app to log screen
+  - One tap marks supplement taken
+  - Visual feedback instant (< 200ms)
+  - Haptic feedback works (iOS/Android)
+  - Missed doses show neutral (grey)
+  - Total interaction time < 5 seconds
+
+**8.1.5: Build Daily Checklist View**
+- Show all supplements for today
+- Group by scheduled time (bundles)
+- Show status: pending, taken, skipped, late
+- One-tap to mark taken/skipped
+- Show time taken (if logged)
+- Swipe to snooze
+- **Acceptance Criteria:**
+  - All supplements visible
+  - Status clear and intuitive
+  - One-tap actions work
+  - Swipe gestures smooth
+  - Mobile-optimized layout
+
+---
+
+### Phase 9: Compliance Tracking & Progress Visualization 📊
+
+**Priority:** HIGH - Show value to users
+
+#### Epic 9.1: Compliance Calculation & Display
+
+**Issues:**
+
+**9.1.1: Implement Compliance Calculation Logic**
+- Calculate daily compliance % per supplement
+- Calculate weekly compliance % 
+- Calculate rolling 30-day compliance %
+- Aggregate compliance across all supplements
+- Handle partial days (don't penalize)
+- Cache calculations for performance
+- **Acceptance Criteria:**
+  - Calculations accurate
+  - Partial days handled fairly
+  - Performance < 500ms for 30-day calculation
+  - Results cached appropriately
+
+**9.1.2: Build Weekly Calendar View**
+- Show 7-day calendar grid
+- Color code: green (taken), yellow (late), grey (missed)
+- Never use red (no punishment)
+- Tap day to see details
+- Swipe to navigate weeks
+- Show compliance % for week
+- **Acceptance Criteria:**
+  - Calendar intuitive and readable
+  - Colors encouraging, not punishing
+  - Navigation smooth
+  - Mobile-optimized layout
+  - Details view helpful
+
+**9.1.3: Create Compliance Dashboard**
+- Show rolling 30-day compliance %
+- Display current streak
+- Display longest streak
+- Show days completed this month
+- Display per-supplement compliance
+- Motivational messages
+- **Acceptance Criteria:**
+  - Dashboard visually appealing
+  - Key metrics prominent
+  - Motivational tone
+  - Responsive design
+  - Fast loading (< 500ms)
+
+**9.1.4: Build Compliance oRPC Endpoints**
+- `compliance.getDaily` - Daily compliance stats
+- `compliance.getWeekly` - Weekly compliance stats
+- `compliance.getMonthly` - Rolling 30-day stats
+- `compliance.getBySupplement` - Per-supplement compliance
+- **Acceptance Criteria:**
+  - Endpoints return accurate data
+  - Fast queries (< 300ms)
+  - Efficient aggregation
+  - User can only see their own data
+
+---
+
+### Phase 10: Smart Streaks (Lite) 🔥
+
+**Priority:** MEDIUM - Positive reinforcement without complexity
+
+#### Epic 10.1: Streak Tracking System
+
+**Issues:**
+
+**10.1.1: Create Streak Table**
+- Create `supplement_streaks` table (id, userId, supplementId, currentStreak, longestStreak, lastLogDate, shieldUsed)
+- Track streak per supplement
+- Track if shield has been used
+- Run migration
+- **Acceptance Criteria:**
+  - Table created with proper schema
+  - Foreign keys to users and supplements
+  - Indexes on userId and supplementId
+
+**10.1.2: Implement Streak Calculation Logic**
+- Calculate streak on each log
+- Increment streak for consecutive days
+- Apply ONE shield for missed day (forgiveness)
+- Reset streak after shield used + another miss
+- Timezone-aware calculations
+- Handle multiple logs same day
+- **Acceptance Criteria:**
+  - Streak increments correctly
+  - Shield mechanic works (one forgiveness)
+  - Streak resets after shield exhausted
+  - Timezone-aware
+  - No double-counting same day
+
+**10.1.3: Build Streak oRPC Endpoints**
+- `streak.get` - Get streak for supplement
+- `streak.getAll` - Get all streaks for user
+- Include in compliance dashboard response
+- **Acceptance Criteria:**
+  - Endpoints return accurate data
+  - Fast queries (< 100ms)
+  - User can only see their own streaks
+
+**10.1.4: Create Streak UI Components**
+- Show current streak with fire icon 🔥
+- Display longest streak
+- Show shield status (available/used)
+- Animate streak increment
+- Show streak in daily checklist
+- **Acceptance Criteria:**
+  - Visually appealing design
+  - Current streak prominent
+  - Shield status clear
+  - Animation smooth
+  - Mobile-optimized
+
+---
+
+### Phase 11: Interaction Warnings (Trust & Safety) ⚠️
+
+**Priority:** MEDIUM - Build trust, prevent harm
+
+#### Epic 11.1: Basic Interaction Warnings
+
+**Issues:**
+
+**11.1.1: Create Interaction Warnings Database**
+- Create `supplement_interactions` table (id, supplement1, supplement2, severity, description, source)
+- Severity enum: 'high', 'moderate', 'low'
+- Seed with high-confidence interactions only (< 50 for V1)
+- Include source citations (clinical studies)
+- **Acceptance Criteria:**
+  - Table created with proper schema
+  - Seeded with verified interactions
+  - Source citations included
+  - Severity levels defined
+
+**11.1.2: Implement Interaction Detection Logic**
+- Check for interactions when adding supplement
+- Only show high-confidence warnings
+- Display informational message (not blocking)
+- Include "Consult your doctor" language
+- Cite sources
+- **Acceptance Criteria:**
+  - Detection accurate
+  - Only high-confidence shown
+  - Messaging appropriate
+  - Sources cited
+  - Not alarmist
+
+**11.1.3: Build Warning UI**
+- Show warning card on stack setup
+- Display severity level
+- Show description and source
+- Allow user to proceed (informational only)
+- Option to dismiss and save
+- **Acceptance Criteria:**
+  - Warning clear but not scary
+  - Source visible
+  - User can proceed
+  - Mobile-friendly design
+  - Appropriate tone
+
+---
+
+### Phase 12: Capacitor Mobile App 📲
 
 **Priority:** CRITICAL - Native mobile experience (do AFTER email notifications)
 
@@ -813,15 +1251,144 @@ Building a **Scheduled Prompt & Journal** app with:
 
 ---
 
-### Phase 9: Payments & Subscriptions 💳
+### Phase 9: Super-Admin Analytics Dashboard 📊
 
-**Priority:** CRITICAL - Revenue generation (after mobile CI/CD)
+**Priority:** CRITICAL - Track V1 success & kill criteria in real-time
 
-#### Epic 9.1: Stripe Integration for Web [$5/month, $50/year]
+**NOTE:** This dashboard is INTERNAL ONLY (not user-facing). It's for founders/team to monitor if V1 is succeeding or failing against defined criteria.
+
+#### Epic 9.1: Success Metrics Tracking
 
 **Issues:**
 
-**9.1.1: Set up Stripe Account & Products**
+**9.1.1: Create Analytics Events Table**
+- Create `analytics_events` table (id, eventType, userId, metadata, createdAt)
+- Event types:
+  - `notification.sent` - Notification attempt
+  - `notification.delivered` - Notification confirmed delivered
+  - `notification.failed` - Notification failed to deliver
+  - `notification.disabled` - User disabled notifications
+  - `user.registered` - New user signup
+  - `user.returned_day_7` - User active on day 7
+  - `user.returned_day_30` - User active on day 30
+  - `supplement.logged` - Supplement marked as taken
+  - `compliance.improved` - User reports improvement (survey)
+  - `support.ticket_created` - Support ticket opened
+  - `support.ticket_category` - Categorize tickets (reminders, data_loss, etc.)
+- Add indexes on (eventType, createdAt) for fast aggregation
+- Run migration
+- **Acceptance Criteria:**
+  - Table created with proper schema
+  - Indexes for efficient querying
+  - Supports JSON metadata for flexibility
+
+**9.1.2: Implement Event Tracking Throughout App**
+- Track notification delivery events:
+  - Log when notification sent (backend cron)
+  - Log when notification delivered (FCM/APNs callback)
+  - Log when notification failed (FCM/APNs error)
+  - Log when user disables notifications (app settings)
+- Track retention events:
+  - Log user registration date
+  - Log daily active users (first action each day)
+  - Calculate day 7 and day 30 returns
+- Track compliance events:
+  - Log every supplement log entry
+  - Calculate baseline compliance (first week)
+  - Calculate current compliance (rolling window)
+- Track support events:
+  - Log support ticket creation
+  - Categorize by topic (reminders, data_loss, features, etc.)
+- **Acceptance Criteria:**
+  - Events tracked at all critical points
+  - No performance impact (async logging)
+  - Events can be queried efficiently
+
+**9.1.3: Build Super-Admin Analytics API Endpoints**
+- `analytics.getNotificationDeliveryRate` - Calculate % delivered vs sent (rolling 7-day, 30-day)
+- `analytics.getRetentionMetrics` - Day 7 and Day 30 retention %
+- `analytics.getComplianceImprovement` - Average compliance improvement (baseline vs current)
+- `analytics.getSupportTicketMetrics` - Ticket count by category, % related to reminders/data loss
+- `analytics.getNotificationDisabledRate` - % of users who disabled notifications
+- `analytics.getKillCriteriaStatus` - RED/YELLOW/GREEN status for each kill criterion
+- Auth: Super-admin only (role-based access)
+- **Acceptance Criteria:**
+  - All endpoints return accurate calculations
+  - Fast queries (< 1s for 30-day aggregations)
+  - Only accessible to super-admin users
+  - Clear RED/YELLOW/GREEN indicators
+
+**9.1.4: Create Super-Admin Dashboard UI**
+- Build `/admin/analytics` page (protected route)
+- **Section 1: V1 Success Metrics (Top KPIs)**
+  - Notification delivery rate: TARGET ≥ 99.9% (RED < 98%, YELLOW 98-99.8%, GREEN ≥ 99.9%)
+  - Day 7 retention: TARGET ≥ 50% (RED < 40%, YELLOW 40-49%, GREEN ≥ 50%)
+  - Compliance improvement: TARGET ≥ 20% (RED < 10%, YELLOW 10-19%, GREEN ≥ 20%)
+  - Support tickets (reminders/data loss): TARGET < 2% (RED > 5%, YELLOW 2-5%, GREEN < 2%)
+- **Section 2: Kill Criteria Monitoring (Critical Alerts)**
+  - Notification disabled rate: KILL if > 30% (RED > 30%, YELLOW 20-30%, GREEN < 20%)
+  - Compliance not improving: KILL if < 10% improvement (RED < 10%, YELLOW 10-15%, GREEN > 15%)
+  - Trust complaints: KILL if trust complaints > engagement praise (track ticket sentiment)
+- **Section 3: Detailed Breakdowns**
+  - Daily notification delivery trend (line chart, 30-day)
+  - Retention cohort analysis (week-by-week)
+  - Compliance improvement distribution (histogram)
+  - Support ticket breakdown by category (pie chart)
+- **Section 4: User Cohort Analysis**
+  - Cohort table showing retention by signup week
+  - Average compliance by cohort
+  - Notification delivery rate by cohort
+- Color coding: GREEN (on track), YELLOW (at risk), RED (failing)
+- Auto-refresh every 5 minutes
+- Export data as CSV
+- **Acceptance Criteria:**
+  - Dashboard shows real-time metrics
+  - Color coding clear and actionable
+  - Kill criteria prominently displayed
+  - Auto-refresh works
+  - Responsive design
+  - Export functionality works
+
+**9.1.5: Implement Kill Criteria Alerts**
+- Create Slack/email integration for alerts
+- Send alerts when kill criteria breached:
+  - RED alert: Notification disabled rate > 30%
+  - RED alert: Compliance improvement < 10% (after 30 days)
+  - RED alert: Support ticket rate > 5%
+  - YELLOW alert: Any metric in yellow zone for > 7 days
+- Include dashboard link in alerts
+- **Acceptance Criteria:**
+  - Alerts sent to team Slack/email
+  - Alert messages clear and actionable
+  - Dashboard link included
+  - No false positives (threshold tuning)
+
+**9.1.6: Add User Feedback Survey System**
+- Create simple in-app survey (triggered at day 30):
+  - "Has HelioCoach improved your supplement consistency?"
+  - Options: "Yes, significantly", "Yes, somewhat", "No change", "Worse"
+  - "How likely are you to recommend HelioCoach?" (NPS 0-10)
+- Store responses in `user_feedback` table
+- Include in analytics dashboard
+- **Acceptance Criteria:**
+  - Survey shown at day 30
+  - Responses stored correctly
+  - Included in analytics calculations
+  - Non-intrusive UI
+
+---
+
+### Phase 10: Payments & Subscriptions 💳
+
+**Priority:** LOW - Only build AFTER V1 success criteria met (post-60 day evaluation)
+
+**IMPORTANT:** Do NOT build this until V1 proves value. Free version must work first.
+
+#### Epic 10.1: Stripe Integration for Web [$5/month, $50/year]
+
+**Issues:**
+
+**10.1.1: Set up Stripe Account & Products**
 - Create Stripe account
 - Create subscription products:
   - Monthly: $5/month
@@ -833,7 +1400,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Products created with correct pricing
   - Test mode enabled
 
-**9.1.2: Update Subscription Schema**
+**10.1.2: Update Subscription Schema**
 - Update database schema for subscriptions
 - Add tier enum (FREE, PREMIUM)
 - Add status enum (ACTIVE, EXPIRED, CANCELED, TRIAL)
@@ -845,7 +1412,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Status tracking works
   - Middleware blocks premium features for free users
 
-**9.1.3: Implement Stripe Checkout Flow**
+**10.1.3: Implement Stripe Checkout Flow**
 - Install Stripe SDK
 - Create checkout session endpoint (oRPC)
 - Build checkout page with Stripe Elements
@@ -858,7 +1425,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - User upgraded to PREMIUM tier
   - Test mode transactions succeed
 
-**9.1.4: Implement Stripe Webhooks**
+**10.1.4: Implement Stripe Webhooks**
 - Create webhook endpoint
 - Verify Stripe signatures
 - Handle events: checkout.session.completed, customer.subscription.updated, customer.subscription.deleted
@@ -874,11 +1441,11 @@ Building a **Scheduled Prompt & Journal** app with:
 
 ## V1: POST-MVP FEATURES
 
-### Phase 10: Offline-First Implementation 📱
+### Phase 11: Offline-First Implementation 📱
 
 **Priority:** HIGH - Make app work offline, free version offline-only, paid gets cloud sync
 
-#### Epic 10.1: Offline-First Architecture
+#### Epic 11.1: Offline-First Architecture
 
 **Issues:**
 
@@ -937,15 +1504,15 @@ Building a **Scheduled Prompt & Journal** app with:
 
 ---
 
-### Phase 11: Search Implementation 🔍
+### Phase 12: Search Implementation 🔍
 
 **Priority:** MEDIUM - User-requested feature
 
-#### Epic 11.1: Backend Search Implementation
+#### Epic 12.1: Backend Search Implementation
 
 **Issues:**
 
-**11.1.1: Implement pg_textsearch with Trigram & BM25 Search**
+**12.1.1: Implement pg_textsearch with Trigram & BM25 Search**
 - Create `journalEntries.search` oRPC endpoint
 - Use pg_textsearch library (open-sourced) for advanced text search with trigram similarity and BM25 ranking
 - Combine trigram similarity for fuzzy matching and BM25 for keyword relevance scoring
@@ -962,7 +1529,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Only user's entries returned
   - Full-text search indexes created
 
-**11.1.2: Build Search UI**
+**12.1.2: Build Search UI**
 - Create search page with search bar
 - Add date range picker (from/to dates)
 - Display results in list format
@@ -978,15 +1545,15 @@ Building a **Scheduled Prompt & Journal** app with:
 
 ---
 
-### Phase 12: Gamification System 🏆
+### Phase 13: Gamification System 🏆
 
 **Priority:** MEDIUM - Increase engagement and retention
 
-#### Epic 12.1: Streaks & Badges Implementation
+#### Epic 13.1: Streaks & Badges Implementation
 
 **Issues:**
 
-**12.1.1: Create Streak & Badge Tables**
+**13.1.1: Create Streak & Badge Tables**
 - Create `UserStreak` table (userId, currentStreak, longestStreak, lastEntryDate)
 - Create `Badge` table (id, name, description, iconUrl, milestoneValue)
 - Create `UserBadge` junction table (userId, badgeId, awardedAt)
@@ -998,7 +1565,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Badges seeded with data
   - Indexes on userId
 
-**12.1.2: Implement Streak Calculation**
+**13.1.2: Implement Streak Calculation**
 - Create background job (or hook on entry creation)
 - Calculate if entry extends current streak
 - Reset streak if >24h gap (timezone-aware)
@@ -1011,7 +1578,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Timezone-aware calculations
   - Multiple entries same day don't duplicate count
 
-**12.1.3: Implement Badge Award Logic**
+**13.1.3: Implement Badge Award Logic**
 - Define badge metadata (names, descriptions, icons)
 - Create or find badge icons/images
 - Check if user qualifies for badges after each entry
@@ -1028,7 +1595,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Awards triggered correctly
   - No duplicate awards
 
-**12.1.4: Build Gamification oRPC Endpoints**
+**13.1.4: Build Gamification oRPC Endpoints**
 - `gamification.getStreak` - Get user's current streak
 - `gamification.getBadges` - Get user's earned badges
 - Include streak in user profile response
@@ -1038,7 +1605,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - User can only see their own streaks
   - Leaderboard optional for MVP
 
-**12.1.5: Design Streak UI Component**
+**13.1.5: Design Streak UI Component**
 - Create streak display component
 - Show current streak number prominently
 - Display flame/fire icon (🔥)
@@ -1054,15 +1621,15 @@ Building a **Scheduled Prompt & Journal** app with:
 
 ---
 
-### Phase 13: Advanced Features ✨
+### Phase 14: Advanced Features ✨
 
 **Priority:** MEDIUM - Premium features & polish
 
-#### Epic 13.1: Cloud Sync & Data Export
+#### Epic 14.1: Cloud Sync & Data Export
 
 **Issues:**
 
-**13.1.1: Implement Cloud Backup (Premium)**
+**14.1.1: Implement Cloud Backup (Premium)**
 - Set up S3 or Cloudflare R2 for storage
 - Create backup API endpoint (premium users only)
 - Encrypt journal data before upload (AES-256)
@@ -1076,7 +1643,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Automatic backups work
   - Restore tested and works
 
-**13.1.2: Add Data Export (GDPR Compliance)**
+**14.1.2: Add Data Export (GDPR Compliance)**
 - Create export endpoint
 - Support JSON format (all user data)
 - Support CSV format (entries only)
@@ -1090,7 +1657,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Download works
   - GDPR compliant
 
-**13.1.3: Implement Account Deletion (GDPR)**
+**14.1.3: Implement Account Deletion (GDPR)**
 - Create account deletion endpoint
 - Delete all user data (cascade)
 - Remove from Stripe, Sentry, etc.
@@ -1108,15 +1675,15 @@ Building a **Scheduled Prompt & Journal** app with:
 
 ## V2: SCALING & POLISH
 
-### Phase 14: Advertising for Free Tier 📢
+### Phase 15: Advertising for Free Tier 📢
 
 **Priority:** MEDIUM - Monetize free users
 
-#### Epic 14.1: Ad Integration
+#### Epic 15.1: Ad Integration
 
 **Issues:**
 
-**14.1.1: Select & Set Up Ad Provider**
+**15.1.1: Select & Set Up Ad Provider**
 - Choose between Google AdSense (web) + AdMob (mobile) OR alternatives
 - Create accounts
 - Get approval for app
@@ -1127,7 +1694,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - App approved for ads
   - Ad units created
 
-**14.1.2: Integrate Ads into Web App**
+**15.1.2: Integrate Ads into Web App**
 - Install AdSense SDK
 - Create ad components
 - Place ads between entries (non-intrusive)
@@ -1140,7 +1707,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Premium users see no ads
   - Ad blockers handled
 
-**14.1.3: Integrate AdMob for Mobile**
+**15.1.3: Integrate AdMob for Mobile**
 - Install AdMob plugin (Capacitor)
 - Configure Android ad units
 - Configure iOS ad units
@@ -1153,7 +1720,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Placement appropriate
   - Premium users see no ads
 
-**14.1.4: Implement Ad Compliance**
+**15.1.4: Implement Ad Compliance**
 - Add GDPR consent for ads (EU users)
 - Update privacy policy
 - Test ad content appropriateness
@@ -1166,15 +1733,15 @@ Building a **Scheduled Prompt & Journal** app with:
 
 ---
 
-### Phase 15: Performance Optimization ⚡
+### Phase 16: Performance Optimization ⚡
 
 **Priority:** MEDIUM - Scale to 10,000+ users
 
-#### Epic 15.1: Performance & Scalability
+#### Epic 16.1: Performance & Scalability
 
 **Issues:**
 
-**15.1.1: Add Database Indexes**
+**16.1.1: Add Database Indexes**
 - Analyze slow queries (use pg_stat_statements)
 - Add indexes on:
   - journal_entries(authorUserId, createdAt)
@@ -1189,7 +1756,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Queries 10x faster
   - No over-indexing
 
-**15.1.2: Set up CDN for Static Assets**
+**16.1.2: Set up CDN for Static Assets**
 - Configure Cloudflare CDN
 - Upload static assets (images, fonts, icons)
 - Configure cache headers
@@ -1202,7 +1769,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Page load 50% faster
   - Cache headers correct
 
-**15.1.3: Implement Redis for Caching**
+**16.1.3: Implement Redis for Caching**
 - Install Redis
 - Install ioredis
 - Cache user sessions
@@ -1216,7 +1783,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Cache invalidation works
   - Reduces database load by 60%
 
-**15.1.4: Optimize Frontend Bundle**
+**16.1.4: Optimize Frontend Bundle**
 - Analyze bundle size (vite-bundle-analyzer)
 - Implement code splitting
 - Lazy load routes
@@ -1228,7 +1795,7 @@ Building a **Scheduled Prompt & Journal** app with:
   - Lazy loading works
   - Lighthouse score >90
 
-**15.1.5: Migrate to Kafka (If Needed for Scale)**
+**16.1.5: Migrate to Kafka (If Needed for Scale)**
 - Evaluate if Kafka is needed (only if >10k users and high event throughput)
 - Set up managed Kafka cluster (e.g., Confluent Cloud, AWS MSK)
 - Replace pg-tbus calls with Kafka client (kafkajs)
@@ -1248,32 +1815,86 @@ Building a **Scheduled Prompt & Journal** app with:
 
 ## Success Metrics
 
-### MVP Launch (V0 Complete)
+### Foundation Complete (Inherited from Template)
 - [x] Users can sign in with Google
-- [x] Users can create journal entries (form & list view)
-- [x] App installable as PWA
-- [x] Native mobile apps (Android + iOS) via Capacitor
-- [x] Users receive email & push notifications with prompts
-- [x] Premium subscriptions live ($5/month, $50/year via Stripe)
+- [x] Database setup with OrchidORM + PostgreSQL
+- [x] Frontend with React 19, React Router 7, Material UI
 - [x] 80% test coverage on backend, E2E on frontend
 - [x] CI/CD pipeline operational
-- [x] Error monitoring & RUM active
-- [x] Coolify deployment automated
+- [x] Error monitoring & RUM active (Sentry + OTEL)
+- [x] Code hygiene (Biome, pre-commit hooks)
 
-### Post-MVP (V1 Complete)
-- [ ] Offline-first app (free offline-only, paid cloud sync)
-- [ ] Search functionality implemented
-- [ ] Gamification system (streaks & badges)
-- [ ] Cloud sync & data export for premium users
+### V1 Launch (HelioCoach MVP - Survival Mode)
+- [ ] **Rock-Solid Reminder Engine**
+  - [ ] Reminder delivery ≥ 99.9%
+  - [ ] Timezone-aware scheduling
+  - [ ] Smart bundling (group supplements by time)
+  - [ ] Snooze logic with escalation
+  - [ ] Offline-safe logging
+- [ ] **One-Tap Logging (< 5 seconds)**
+  - [ ] Lock screen → tap → logged
+  - [ ] Daily checklist with one-tap actions
+  - [ ] Offline-safe (IndexedDB → sync)
+  - [ ] Haptic feedback
+- [ ] **Simple Compliance Tracking**
+  - [ ] Daily checklist view
+  - [ ] Weekly calendar view (green/yellow/grey, no red)
+  - [ ] Rolling 30-day compliance %
+- [ ] **Smart Streaks (Lite)**
+  - [ ] Daily streak counter
+  - [ ] One streak shield (forgiveness)
+  - [ ] No recovery mechanics
+- [ ] **Manual-First Stack Setup**
+  - [ ] Manual entry + search
+  - [ ] Common supplement autocomplete
+  - [ ] Optional photo assist (future)
+- [ ] **Basic Interaction Warnings**
+  - [ ] High-confidence warnings only
+  - [ ] Informational, source-cited
+  - [ ] "Consult your doctor" language
+- [ ] **Minimal Progress Visualization**
+  - [ ] Current streak
+  - [ ] Longest streak
+  - [ ] Days completed this month
+  - [ ] 30-day compliance %
+- [ ] **Mobile Apps Live**
+  - [ ] App installable as PWA
+  - [ ] Native Android app via Capacitor
+  - [ ] Native iOS app via Capacitor
+  - [ ] Push notifications working (FCM/APNs)
+  - [ ] Email fallback for push-disabled users
+
+### V1 Success Criteria (60-Day Evaluation)
+**Core Metrics:**
+- [ ] Reminder delivery success ≥ 99.9%
+- [ ] 7-day retention ≥ 50%
+- [ ] ≥ 20% improvement in self-reported consistency vs baseline
+- [ ] < 2% support tickets related to reminders or data loss
+
+**Kill Criteria (If ANY of these occur, DO NOT SCALE):**
+- [ ] Users disable notifications at high rates (> 30%)
+- [ ] Compliance does not improve meaningfully (< 10% improvement)
+- [ ] Trust complaints exceed engagement praise
+
+**If kill criteria triggered:** Fix the core loop first. Do not add engagement mechanics.
+
+### Post-V1 (Only if V1 Success Criteria Met)
+- [ ] Advanced streaks & badges system
+- [ ] Social features (optional buddies)
+- [ ] Wearable integrations (Apple Health, Google Fit)
+- [ ] AI-powered reminder optimization
+- [ ] Premium subscriptions ($5/month, $50/year)
 - [ ] 1000+ registered users
 - [ ] 40% Day 7 retention
 - [ ] 5% free → premium conversion
 
-### V2 Goals
-- [ ] Ads displayed to free users
+### V2 Goals (Growth & Scale)
+- [ ] Caregiver features
+- [ ] Clinical export (for doctors)
+- [ ] Experiment mode (A/B test supplement stacks)
 - [ ] 10,000+ registered users
 - [ ] 99.9% uptime
-- [ ] <2s average page load time
+- [ ] < 2s average page load time
 - [ ] Profitable (revenue > costs)
 
 ---
@@ -1282,7 +1903,7 @@ Building a **Scheduled Prompt & Journal** app with:
 
 ### Backend
 - **Runtime:** Node.js 22
-- **Framework:** oRPC (HTTP server)
+- **Framework:** Fastify + oRPC
 - **ORM:** Orchid ORM
 - **Database:** PostgreSQL
 - **Auth:** Better Auth (Google OAuth)
@@ -1291,27 +1912,45 @@ Building a **Scheduled Prompt & Journal** app with:
 - **Monitoring:** Sentry, OpenTelemetry
 - **Event Bus:** pg-tbus (Transactional Outbox Pattern) - built for easy Kafka migration
 - **Architecture:** Event-driven with Transactional Outbox Pattern
-- **Cron Jobs:** node-cron (scheduling)
-- **Notifications:** Brevo (transactional email), FCM/APNs (push notifications)
-- **Payments:** Stripe, Google Play Billing, Apple IAP
+- **Cron Jobs:** node-cron (reminder scheduling - runs every minute)
+- **Notifications:** 
+  - **Primary:** FCM/APNs (push notifications - 99.9% delivery target)
+  - **Fallback:** Brevo (transactional email for push-disabled users)
+- **Timezone Handling:** IANA timezone database, daylight saving time aware
+- **Payments:** Stripe (post-V1 when value proven)
 - **Testing:** Vitest
 
 ### Frontend
 - **Framework:** React 19
 - **Router:** React Router 7
 - **State:** TanStack Query (React Query)
-- **UI:** Material UI (MUI)
+- **UI:** Material UI (MUI) - mobile-first, one-thumb optimized
 - **Forms:** React Hook Form + Zod
 - **PWA:** Vite PWA Plugin (Workbox)
-- **Mobile:** Capacitor (iOS + Android)
-- **Testing:** Vitest + React Testing Library
+- **Offline Storage:** Dexie.js (IndexedDB wrapper)
+- **Mobile:** Capacitor (iOS + Android) - PRIMARY platform
+- **Haptics:** Capacitor Haptics plugin
+- **Push Notifications:** 
+  - **@capacitor/push-notifications** plugin
+  - FCM for Android
+  - APNs for iOS
+- **Testing:** Playwright (E2E critical flows only)
 - **Monitoring:** Sentry RUM
 
 ### DevOps
-- **CI/CD:** GitHub Actions
-- **Deployment:** Coolify
-- **Code Quality:** Biome (lint + format), Commitlint, Husky
+- **CI/CD:** GitHub Actions (web + mobile builds)
+- **Mobile CI/CD:** Automated APK/IPA builds, store uploads
+- **Deployment:** Coolify (backend), App Store + Google Play (mobile)
+- **Code Quality:** Biome (lint + format), pre-commit hooks
 - **Monorepo:** Turborepo + Yarn Workspaces
+
+### Key Design Decisions (Mobile-First)
+- **Notification Priority:** Push > Email (99.9% delivery is critical)
+- **Offline-First:** All logging happens in IndexedDB first, syncs when online
+- **One-Tap UX:** All primary actions < 5 seconds (lock screen → logged)
+- **Timezone-Aware:** All reminders calculated in user's local timezone
+- **No Punishment:** Missed doses show grey (neutral), never red
+- **Trust-First:** No supplement sales, no recommendations, informational warnings only
 
 ---
 
@@ -1497,18 +2136,20 @@ When you reach scale (10k+ users, high event throughput), migrate to Kafka by:
 - Simple daily prompt rotation (no ML personalization)
 
 ### Future Enhancements (V3+)
-- AI-powered prompt personalization (based on user's writing)
-- Voice journaling (speech-to-text)
-- Rich text editor (formatting, images)
-- Multiple journals/categories
-- Social features (share entries with friends, prompts marketplace)
-- Export to PDF with beautiful formatting
-- Desktop apps (Tauri)
-- Integrations (Notion, Obsidian, Day One)
-- Analytics dashboard for users (word count, sentiment analysis)
-- Habit tracking integration
-- Mood tracking
-- Journaling templates
+- AI-powered reminder optimization (learn best times per user)
+- Voice logging (speech-to-text "Took my vitamin D")
+- Smart supplement recommendations (based on goals, deficiencies)
+- Integration with pharmacy APIs (auto-import prescriptions)
+- Wearable integrations (Apple Watch complications)
+- Family/caregiver sharing (elderly care)
+- Supplement expiration tracking
+- Auto-reorder reminders
+- Detailed analytics (best compliance times, patterns)
+- Export to PDF for doctor visits
+- Integration with health apps (Apple Health, Google Fit)
+- Barcode scanning for supplement entry
+- Mood/energy tracking correlated with compliance
+- Supplement efficacy self-reports
 
 ---
 
@@ -1521,8 +2162,51 @@ When you reach scale (10k+ users, high event throughput), migrate to Kafka by:
 - **Naming:**
   - camelCase for code
   - snake_case for database tables/columns
-  - Descriptive IDs (`userId` not `id`, `authorUserId` not `authorId`)
+  - Descriptive IDs (`userId`, `supplementId`, `reminderId` - never just `id`)
 - **Error Handling:** Throw standard errors - centralized error formatter converts to HTTP responses
+
+### Mobile-First Development Principles
+- **Performance Budgets:**
+  - API responses: < 300ms
+  - UI interactions: < 200ms visual feedback
+  - Total logging flow: < 5 seconds (lock screen → logged)
+  - Notification delivery: ≥ 99.9%
+- **Offline-First:**
+  - ALL writes go to IndexedDB first
+  - Sync to backend in background
+  - Never block on network
+  - Show sync status clearly
+- **One-Thumb Optimized:**
+  - Primary actions in thumb zone (bottom 60% of screen)
+  - Large tap targets (min 44x44 iOS, 48x48 Android)
+  - Swipe gestures for secondary actions
+- **Accessibility:**
+  - WCAG AA compliance
+  - Screen reader support
+  - High contrast mode
+  - Large text support
+
+### HelioCoach-Specific Patterns
+- **Timezone Handling:**
+  - ALWAYS store reminders with timezone
+  - ALWAYS calculate next reminder in user's local time
+  - ALWAYS handle DST transitions
+  - Test with multiple timezones
+- **Notification Reliability:**
+  - Log ALL notification attempts (sent, delivered, failed)
+  - Retry failed notifications (max 3 attempts)
+  - Escalate to email if push fails
+  - Monitor delivery rates (target ≥ 99.9%)
+- **Trust & Safety:**
+  - NO supplement recommendations without user request
+  - ALWAYS cite sources for interaction warnings
+  - ALWAYS use "Consult your doctor" language
+  - HIGH-confidence warnings only (clinical sources)
+- **No Punishment UX:**
+  - Missed doses = grey (neutral)
+  - Never use red for missed doses
+  - Focus on positive streaks, not negative gaps
+  - Shield mechanic for forgiveness
 
 ### Git Workflow
 - **Branches:** `main` (production), `develop` (staging), `feat/*`, `fix/*`, `chore/*`
@@ -1531,10 +2215,30 @@ When you reach scale (10k+ users, high event throughput), migrate to Kafka by:
 
 ### Testing Requirements
 - **Backend:** >80% coverage on routers and critical logic
-- **Frontend:** >70% coverage on components and pages
+- **Frontend:** E2E tests for critical flows only (authentication, logging, reminders)
+- **Mobile:** Test on real devices (iOS + Android)
+- **Notification Testing:** Test across timezones, offline scenarios, background/foreground
 - **All PRs:** Must include tests for new features
+
+### V1 Focus Areas (Non-Negotiable)
+1. **Notification Reliability** - 99.9% delivery or V1 fails
+2. **One-Tap Logging** - < 5 seconds or users quit
+3. **Offline-Safe** - Works without network or data loss
+4. **Timezone Correct** - Reminders fire at right local time
+5. **Trust-First** - No sales, no recommendations, informational only
+
+### V1 Anti-Patterns (Do NOT Build)
+- ❌ Social features, leagues, challenges
+- ❌ AI optimization or personalization
+- ❌ Wearable integrations
+- ❌ Complex gamification (keep streaks simple)
+- ❌ Supplement marketplace or affiliate links
+- ❌ Health diagnostics or recommendations
+
+**Remember:** V1 is about proving ONE thing - reliable supplement compliance improvement in 30 days. Everything else is distraction.
 
 ---
 
-**Last Updated:** 2026-01-01
-**Next Review:** After V0 completion
+**Last Updated:** 2026-01-04
+**Next Review:** After V1 launch (60-day evaluation)
+**Product:** HelioCoach - Mobile-First Supplement Compliance Tracker

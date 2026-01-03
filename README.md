@@ -1,6 +1,6 @@
-# Full-Stack TypeScript Monorepo
+# HelioCoach — Mobile-First Supplement Compliance App
 
-Production-ready Turborepo monorepo for building full-stack TypeScript applications with end-to-end type safety. Includes a complete reference implementation of a Scheduled Prompt & Journal app.
+Production-ready Turborepo monorepo for building full-stack TypeScript applications with end-to-end type safety. Implementation of a mobile-first supplement compliance tracker focused on reliable reminders and frictionless habit-building.
 
 ## Tech Stack
 
@@ -76,10 +76,33 @@ Production-ready Turborepo monorepo for building full-stack TypeScript applicati
 
 ## Project Overview
 
-**Scheduled Prompt & Journal App** - Delivers timed notifications with thought-provoking prompts and enables text-based journaling with search, gamification (streaks & badges), free/paid tiers, and mobile & web support (PWA + Capacitor).
+**HelioCoach** - A mobile-first supplement compliance app that helps users take their supplements consistently through:
+- **Rock-solid reminder engine** (99.9% delivery target)
+- **One-tap logging** (< 5 second interaction)
+- **Smart streaks & positive reinforcement** (no punishment mechanics)
+- **Manual-first supplement stack setup** with optional photo assist
+- **Basic interaction warnings** (high-confidence, informational only)
+- **Minimal progress visualization** (streaks, compliance %, calendar view)
+
+**North Star:** Improve supplement consistency meaningfully within 30 days of install.
+
+**What We Don't Do (V1):**
+- No supplement sales or recommendations
+- No health optimization or diagnosis
+- No social features, leagues, or challenges
+- No wearable integrations or caregiver features
+
+**Super-Admin Analytics Dashboard:**
+- Real-time tracking of V1 success metrics (99.9% delivery, 50% retention, 20% compliance improvement)
+- Kill criteria monitoring with RED/YELLOW/GREEN indicators
+- Automated Slack/email alerts when metrics breach thresholds
+- Notification delivery trends, retention cohorts, compliance distribution
+- Support ticket categorization and sentiment tracking
+- Day 30 user feedback survey integration (NPS + self-reported compliance)
 
 **Documentation**:
-- [DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md) - Roadmap and priorities
+- [project.md](./project.md) - Product vision and core principles
+- [DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md) - V1 roadmap and priorities
 - [CONTRIBUTING.md](./CONTRIBUTING.md) - Contribution guidelines, code style, development setup
 - [AGENTS.md](./AGENTS.md) - Agent guidelines for coding assistants
 
