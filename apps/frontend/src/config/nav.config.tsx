@@ -1,4 +1,5 @@
 import { DashboardIcon } from "@connected-repo/ui-mui/icons/DashboardIcon";
+import { GridViewIcon } from "@connected-repo/ui-mui/icons/GridViewIcon";
 import { HomeIcon } from "@connected-repo/ui-mui/icons/HomeIcon";
 import { ListIcon } from "@connected-repo/ui-mui/icons/ListIcon";
 import { PostAddIcon } from "@connected-repo/ui-mui/icons/PostAddIcon";
@@ -30,6 +31,12 @@ export const navItems: NavItem[] = [
 		path: "/journal-entries",
 		desktopIcon: <ListIcon fontSize="small" />,
 		mobileIcon: <ListIcon />,
+	},
+	{
+		label: "My Stack",
+		path: "/user-stack",
+		desktopIcon: <GridViewIcon fontSize="small" />,
+		mobileIcon: <GridViewIcon />,
 	},
 	{
 		label: "New Entry",

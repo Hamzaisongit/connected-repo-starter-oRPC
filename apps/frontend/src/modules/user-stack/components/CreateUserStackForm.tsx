@@ -8,14 +8,13 @@ import { RhfSelect } from "@connected-repo/ui-mui/rhf-form/RhfSelect";
 import { RhfSubmitButton } from "@connected-repo/ui-mui/rhf-form/RhfSubmitButton";
 import { RhfTextField } from "@connected-repo/ui-mui/rhf-form/RhfTextField";
 import { useRhfForm } from "@connected-repo/ui-mui/rhf-form/useRhfForm";
+import { DAYS_OF_WEEK_ENUM } from "@connected-repo/zod-schemas/enums.zod";
+import type { UserStackCreateInput } from "@connected-repo/zod-schemas/user_stack.zod";
+import { orpcFetch } from "@frontend/utils/orpc.client";
+import { SUPPLEMENT_UNITS } from "@frontend/utils/supplement.constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import z from "zod";
-
-import { DAYS_OF_WEEK_ENUM } from "@connected-repo/zod-schemas/enums.zod";
-import { type UserStackCreateInput } from "@connected-repo/zod-schemas/user_stack.zod";
-import { SUPPLEMENT_UNITS } from "@frontend/utils/supplement.constants";
-import { orpcFetch } from "@frontend/utils/orpc.client";
 
 const createUserStackFormSchema = z.object({
 	name: z.string().min(1, "Name is required"),
