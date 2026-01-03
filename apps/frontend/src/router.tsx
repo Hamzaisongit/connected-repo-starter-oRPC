@@ -5,7 +5,7 @@ import { AppLayout } from "@frontend/components/layout/AppLayout";
 import { authLoader } from "@frontend/utils/auth.loader";
 import * as Sentry from "@sentry/react";
 import { lazy } from "react";
-import { createBrowserRouter, type RouteObject, redirect } from "react-router";
+import { createBrowserRouter, redirect, type RouteObject } from "react-router";
 
 type NavbarFields = {
 	nb_icon?: string;
@@ -53,10 +53,6 @@ const routerObjectWithNavbar: ReactRouterWithNavbar[] = [
 					{
 						path: "dashboard",
 						Component: lazy(() => import("@frontend/pages/Dashboard.page")),
-					},
-					{
-						path: "journal-entries/*",
-						Component: lazy(() => import("@frontend/modules/journal-entries/journal-entries.router")),
 					},
 					{
 						path: "user-stack/*",

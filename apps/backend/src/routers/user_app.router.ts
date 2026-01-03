@@ -1,6 +1,4 @@
-import { journalEntriesRouter } from '@backend/modules/journal-entries/journal-entries.router'
 import { userAdherenceLogsRouter } from '@backend/modules/logs/user_adherence_logs.user_app.router'
-import { promptsRouter } from '@backend/modules/prompts/prompts.router'
 import { dailyCompliancesRouter } from '@backend/modules/streaks/daily_compliances.user_app.router'
 import { userStackRouter } from '@backend/modules/user_stacks/user_stack.user_app.router'
 import { userStatsRouter } from '@backend/modules/users/user_stats.user_app.router'
@@ -26,8 +24,6 @@ const healthCheck = rpcPublicProcedure
 export const userAppRouter = {
 	health: healthCheck,
 	users: usersRouter,
-	journalEntries: journalEntriesRouter,
-	prompts: promptsRouter,
 	userStacks: userStackRouter,
 	userAdherenceLogs: userAdherenceLogsRouter,
 	dailyCompliances: dailyCompliancesRouter,

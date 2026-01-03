@@ -38,7 +38,7 @@ Production-ready Turborepo monorepo for building full-stack TypeScript applicati
 │   │   ├── src/
 │   │   │   ├── modules/              # Feature modules
 │   │   │   │   ├── auth/             # OAuth2 + session management
-│   │   │   │   ├── journal-entries/  # Journal entries (oRPC + tests)
+│   │   │   │   ├── adherence-logs/   # Supplement adherence logging (oRPC + tests)
 │   │   │   │   ├── prompts/          # Prompt management
 │   │   │   │   ├── logs/             # API request logs
 │   │   │   │   ├── subscriptions/    # API subscriptions
@@ -219,7 +219,7 @@ yarn start
 - Type-safe APIs for frontend-backend communication
 - Zero code generation - types flow automatically
 - Routes: `/orpc/*`
-- Example: `orpc.journalEntry.create.useMutation()`
+- Example: `orpc.adherenceLog.create.useMutation()`
 
 **REST/OpenAPI for External APIs:**
 - Automatic Swagger documentation at `/api/documentation`
@@ -270,8 +270,8 @@ The monorepo achieves full type safety without code generation:
 
 ```typescript
 // oRPC usage (internal)
-const { data } = orpc.journalEntry.getAll.useQuery();
-const create = orpc.journalEntry.create.useMutation();
+const { data } = orpc.adherenceLog.getAll.useQuery();
+const create = orpc.adherenceLog.create.useMutation();
 
 // OpenAPI usage (external)
 // See interactive docs at /api/documentation
@@ -292,7 +292,7 @@ const create = orpc.journalEntry.create.useMutation();
 - Frontend: Playwright E2E with shared state across browsers
 - Test utilities for auth flows and common operations
 
-Key tables: users, sessions, teams, team_members, journal_entries, prompts, subscriptions, webhook_call_queue, api_product_request_logs
+Key tables: users, sessions, teams, user_stacks, user_adherence_logs, daily_compliances, user_stats, subscriptions, webhook_call_queue, api_product_request_logs
 
 ### Error Handling
 

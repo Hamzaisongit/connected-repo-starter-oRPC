@@ -6,14 +6,14 @@ export type ApiProductRequestStaus = z.infer<typeof apiProductRequestStatusZod>;
 
 export const API_PRODUCTS = [
   {
-    apiRoute: "journal-entries",
-    name: "Save Journal Entry",
-    sku: "journal_entry_create",
+    apiRoute: "adherence-logs",
+    name: "Log Supplement Adherence",
+    sku: "adherence_log_create_100_30days",
     unit_size: 100,
     validity_days: 30,
   }
 ]as const;
-export const apiProductSkuEnum = API_PRODUCTS.map(product => product.sku) as ["journal_entry_create"];
+export const apiProductSkuEnum = API_PRODUCTS.map(product => product.sku) as ["adherence_log_create_100_30days"];
 export const apiProductSkuZod = z.enum(apiProductSkuEnum);
 export type ApiProductSku = z.infer<typeof apiProductSkuZod>;
 

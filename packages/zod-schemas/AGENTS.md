@@ -45,14 +45,18 @@ export const userGetByIdInputZod = z.object({ userId: z.uuid() });
 src/
 ├── api_product_request_log.zod.ts
 ├── enums.zod.ts
-├── journal_entry.zod.ts
+├── user_adherence_log.zod.ts
+├── user_stack.zod.ts
+├── user_stats.zod.ts
+├── daily_compliance.zod.ts
 ├── node_env.ts
 ├── subscription.zod.ts
 ├── team.zod.ts
 ├── user.zod.ts
 ├── webhook_call_queue.zod.ts
 ├── zod_utils.ts
-├── journal_entry.fixture.ts
+├── user_adherence_log.fixture.ts
+├── user_stack.fixture.ts
 ├── user.fixture.ts
 ```
 

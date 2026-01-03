@@ -16,7 +16,7 @@ React 19, Vite 7 + SWC, React Router 7, TanStack Query + oRPC, React Hook Form, 
 ## Structure
 ```
 src/
-├── modules/          # Feature modules (auth, journal-entries, etc.)
+├── modules/          # Feature modules (auth, user-stack, etc.)
 │   └── <module>/
 │       ├── pages/          # Module pages
 │       ├── <module>.router.tsx  # Routes
@@ -76,11 +76,11 @@ return (
 import { orpc } from '@/utils/orpc.client'
 
 // Query
-const { data, isLoading } = orpc.journalEntry.getAll.useQuery()
+const { data, isLoading } = orpc.adherenceLog.getAll.useQuery()
 
 // Mutation
-const createEntry = orpc.journalEntry.create.useMutation()
-await createEntry.mutateAsync({ content: 'Test' })
+const createLog = orpc.adherenceLog.create.useMutation()
+await createLog.mutateAsync({ supplementId: 'uuid', status: 'Taken on-time', scheduledFor: new Date() })
 ```
 
 ## Design Principles (CRITICAL)

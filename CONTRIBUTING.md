@@ -1,4 +1,4 @@
-# Contributing to Connected Repo Starter - Journal App
+# Contributing to HelioCoach
 
 ## Development Setup
 

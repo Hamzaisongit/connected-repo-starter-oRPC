@@ -145,7 +145,7 @@ export const LoginPage = () => {
 											fontSize: { xs: "1.1rem", sm: "1.25rem" },
 										}}
 									>
-										Scheduled Prompt & Journal
+										HelioCoach
 									</Typography>
 									<Typography
 										variant="body1"
@@ -157,7 +157,7 @@ export const LoginPage = () => {
 											mx: "auto",
 										}}
 									>
-										A simple way to journal and reflect on your day with timely, thought-provoking prompts
+										Build consistent supplement habits with reliable reminders and one-tap logging
 									</Typography>
 								</Box>
 
@@ -239,9 +239,10 @@ export const LoginPage = () => {
 								{/* Feature Highlights */}
 								<Box sx={{ mt: 4, pt: 4, borderTop: "1px solid", borderColor: "divider", width: "100%" }}>
 									<Stack spacing={2}>
-										<FeatureItem icon="📝" text="Daily thought-provoking prompts" />
-										<FeatureItem icon="⏰" text="Scheduled notifications at your chosen time" />
-										<FeatureItem icon="🔍" text="Simple search to revisit past reflections" />
+										<FeatureItem icon="💊" text="Track your supplement stack effortlessly" />
+										<FeatureItem icon="🔔" text="Rock-solid reminders that actually work" />
+										<FeatureItem icon="✅" text="One-tap logging in under 5 seconds" />
+										<FeatureItem icon="🔥" text="Build streaks with positive reinforcement" />
 									</Stack>
 								</Box>
 

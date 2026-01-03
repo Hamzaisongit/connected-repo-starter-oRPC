@@ -34,7 +34,7 @@ If after 60 days:
 **ALREADY IMPLEMENTED ✅ (From Template)**
 - Better Auth with Google OAuth
 - Database setup with OrchidORM + PostgreSQL
-- User, JournalEntry, Prompt, Subscription, Team tables (will be repurposed)
+- User, UserStack, UserAdherenceLog, Subscription, Team tables
 - Basic oRPC endpoints and routing structure
 - Frontend with React 19, React Router 7, Material UI
 - Biome linting & formatting configured
@@ -211,13 +211,13 @@ If after 60 days:
 - **Acceptance Criteria:**
   - Vitest runs successfully
   - OrchidORM testTransaction configured
-  - Test factories created for User, JournalEntry, Prompt
+  - Test factories created for User, UserStack, UserAdherenceLog
   - Test database isolated from development
   - Can run `yarn test` in apps/backend
   - Coverage reports generated
 
 **2.1.2: Write oRPC Endpoint Tests with Database Integration** ✅ COMPLETED
-- Test journal entry endpoints (create, getAll, getById, delete) - includes database constraints
+- Test adherence log endpoints (create, getAll, getById, delete) - includes database constraints
 - Test prompt endpoints (getAllActive, getRandomActive, getById) - includes database queries
 - Test auth context (protected procedures require user)
 - Test database foreign key constraints and cascade deletes
@@ -234,7 +234,7 @@ If after 60 days:
   - Coverage >80% on router files
 
 **2.1.3: Test Factory Setup** ✅ COMPLETED
-- Create factories for User, JournalEntry, Prompt
+- Create factories for User, UserAdherenceLog, UserStack
 - Implement factory methods for creating test data with relationships
 - Add helper methods for common test scenarios
 - **Acceptance Criteria:**
@@ -262,7 +262,7 @@ If after 60 days:
 
 **2.2.2: Write Critical Flow E2E Tests** ✅ COMPLETED
 - Test user registration/login flow
-- Test journal entry creation and viewing
+- Test supplement logging and viewing
 - Test basic navigation and responsiveness
 - Test PWA installation prompt (when implemented)
 - Focus on critical user journeys, not every component
@@ -468,7 +468,7 @@ If after 60 days:
 - **Acceptance Criteria:**
   - Complete stack management workflow (view → detail → edit/delete)
   - Mobile-optimized responsive design
-  - Consistent UI patterns matching journal entries
+  - Consistent UI patterns matching supplement logging
   - Full CRUD operations with proper error handling
   - Navigation properly integrated
 
@@ -637,7 +637,7 @@ If after 60 days:
 - Define core events with **type safety**:
   - `user.created` - New user registered
   - `user.deleted` - User account deleted
-  - `journal_entry.created` - New journal entry created
+  - `adherence_log.created` - New adherence log created
   - `schedule.updated` - User schedule changed
   - `subscription.updated` - Subscription status changed
   - `notification.scheduled` - Notification needs to be sent
@@ -687,7 +687,7 @@ If after 60 days:
 **5.1.5: Implement Event Publishing in Core Modules**
 - Update existing modules to publish events:
   - `auth` module: Publish `user.created` after successful signup
-  - `journal-entries` module: Publish `journal_entry.created` after creation
+  - `adherence-logs` module: Publish `adherence_log.created` after creation
   - `subscriptions` module: Publish `subscription.updated` on status change
 - Events published via event bus interface (database-backed for MVP)
 - Add error handling for event publishing failures
@@ -1490,15 +1490,15 @@ If after 60 days:
 
 **10.1.1: Implement IndexedDB for Offline Storage**
 - Install Dexie.js for IndexedDB management
-- Create IndexedDB schema for journal entries, prompts, user data
-- Implement offline CRUD operations for journal entries
+- Create IndexedDB schema for adherence logs, supplement stacks, user data
+- Implement offline CRUD operations for adherence logs
 - Store entry drafts locally (auto-save as user types)
 - Implement data synchronization queue
 - Handle conflict resolution (local changes take precedence)
 - Show offline/online indicators
 - **Acceptance Criteria:**
   - IndexedDB initialized and working
-  - Journal entries stored offline
+  - Adherence logs stored offline
   - Drafts auto-saved
   - Sync queue implemented
   - Offline/online status indicators
@@ -1552,7 +1552,7 @@ If after 60 days:
 **Issues:**
 
 **12.1.1: Implement pg_textsearch with Trigram & BM25 Search**
-- Create `journalEntries.search` oRPC endpoint
+- Create `adherenceLogs.search` oRPC endpoint
 - Use pg_textsearch library (open-sourced) for advanced text search with trigram similarity and BM25 ranking
 - Combine trigram similarity for fuzzy matching and BM25 for keyword relevance scoring
 - Accept filters: keyword, dateFrom, dateTo, limit, offset
@@ -1671,7 +1671,7 @@ If after 60 days:
 **14.1.1: Implement Cloud Backup (Premium)**
 - Set up S3 or Cloudflare R2 for storage
 - Create backup API endpoint (premium users only)
-- Encrypt journal data before upload (AES-256)
+- Encrypt supplement data before upload (AES-256)
 - Schedule automatic backups (daily)
 - Add manual backup trigger
 - Implement restore functionality
@@ -1783,7 +1783,7 @@ If after 60 days:
 **16.1.1: Add Database Indexes**
 - Analyze slow queries (use pg_stat_statements)
 - Add indexes on:
-  - journal_entries(authorUserId, createdAt)
+  - user_adherence_logs(userId, scheduledFor)
   - users(email)
   - subscriptions(userId, status)
   - user_schedules(userId, isActive)
@@ -2051,7 +2051,7 @@ For MVP, use **pg-tbus** library for transactional event publishing:
 - `tbus_subscriptions` - Event subscriptions
 
 **Components:**
-- **Event Publishers**: Core modules (auth, journal-entries, subscriptions) publish events using `tbus.publish()`
+- **Event Publishers**: Core modules (auth, adherence-logs, subscriptions) publish events using `tbus.publish()`
 - **Event Subscribers**: Services (notifications, analytics) subscribe using `tbus.subscribe()`
 - **Outbox Relay**: pg-tbus auto-polls outbox and delivers events to subscribers
 - **Type Safety**: Zod schemas for event payload validation
@@ -2063,7 +2063,7 @@ For MVP, use **pg-tbus** library for transactional event publishing:
 |------------|---------|-------------|
 | `user.created` | `{ userId, email, createdAt }` | notifications (welcome email) |
 | `user.deleted` | `{ userId, deletedAt }` | notifications, cleanup services |
-| `journal_entry.created` | `{ entryId, userId, createdAt }` | gamification (streak tracking) |
+| `adherence_log.created` | `{ logId, userId, supplementId, createdAt }` | gamification (streak tracking) |
 | `schedule.updated` | `{ userId, schedule }` | notification scheduler |
 | `subscription.updated` | `{ userId, tier, status }` | notifications (confirmation), access control |
 | `notification.scheduled` | `{ userId, type, channel, payload }` | notifications (email/push sender) |
