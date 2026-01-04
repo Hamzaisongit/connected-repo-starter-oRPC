@@ -1,6 +1,7 @@
 import { journalEntriesRouter } from '@backend/modules/journal-entries/journal-entries.router'
 import { promptsRouter } from '@backend/modules/prompts/prompts.router'
 import { supplementsRouter } from '@backend/modules/supplements/supplements.router'
+import { usersStatsRouter } from '@backend/modules/users/users-stats.router'
 import { rpcPublicProcedure } from '@backend/procedures/public.procedure'
 import { usersRouter } from '@backend/routers/user_app/users.user_app.router'
 import type { InferRouterInputs, InferRouterOutputs, RouterClient } from '@orpc/server'
@@ -26,6 +27,7 @@ export const userAppRouter = {
 	journalEntries: journalEntriesRouter,
 	prompts: promptsRouter,
 	supplements: supplementsRouter,
+	userStats: usersStatsRouter
 };
 
 export type UserAppRouter = RouterClient<typeof userAppRouter>;

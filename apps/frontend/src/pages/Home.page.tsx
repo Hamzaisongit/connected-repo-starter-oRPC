@@ -9,6 +9,7 @@ import { StreakCard } from "@frontend/components/home/StreakCard";
 import { SupplementActionDialog } from "@frontend/components/home/SupplementActionDialog";
 import { SupplementScheduleList } from "@frontend/components/home/SupplementScheduleList";
 import { orpc } from "@frontend/utils/orpc.client";
+import { queryClient } from "@frontend/utils/queryClient";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -22,41 +23,39 @@ const HomePage = () => {
 	} | null>(null);
 
 	const { data: schedule, isLoading: scheduleLoading, error: scheduleError } = useQuery(
-		orpc.supplements.getDailySchedule.queryOptions(),
+		orpc.supplements.getDailySchedule.queryOptions({
+			input: {
+				userTimezoneOffset: new Date().getTimezoneOffset()
+			}
+		}),
 	);
 
 	const { data: dailyProgress, isLoading: progressLoading, error: progressError } = useQuery(
-		orpc.supplements.getDailyProgress.queryOptions(),
+		orpc.supplements.getDailyProgress.queryOptions({
+			input: {
+				userTimezoneOffset: new Date().getTimezoneOffset()
+			}
+		}),
 	);
 
-	const { data: streak, isLoading: streakLoading, error: streakError } = useQuery(
-		orpc.supplements.getStreak.queryOptions(),
+	const { data: userStats, isLoading: streakLoading, error: streakError } = useQuery(
+		orpc.userStats.getUserStats.queryOptions(),
 	);
-
-	console.log("STREAK DATA,.....",streak)
 
 	const recordMutation = useMutation({
 		...orpc.supplements.recordAdherence.mutationOptions(),
 		onSuccess: () => {
+			console.log("[Home] Mutation successful, invalidating queries");
 			setSelectedSupplement(null);
+			queryClient.invalidateQueries({
+				predicate: (query) => {
+					const key = query.queryKey;
+					return Array.isArray(key) && key[0] === 'supplements';
+				},
+				refetchType: 'all',
+			});
 		},
 	});
-
-	const handleSupplementClick = (supplementId: string, scheduledTime: number) => {
-		if (!schedule) return;
-		const supplement = schedule.find(
-			(item) => item.supplement.id === supplementId && item.scheduledTime === scheduledTime,
-		);
-		if (supplement) {
-			setSelectedSupplement({
-				id: supplement.supplement.id,
-				name: supplement.supplement.name,
-				dosage: `${supplement.supplement.dosage} ${supplement.supplement.unit}`,
-				instructions: supplement.supplement.instructions,
-				scheduledTime: supplement.scheduledTime,
-			});
-		}
-	};
 
 	const handleCloseDialog = () => {
 		setSelectedSupplement(null);
@@ -64,6 +63,7 @@ const HomePage = () => {
 
 	const handleTaken = () => {
 		if (!selectedSupplement) return;
+		console.log("[Home] Recording as Taken:", selectedSupplement.name, "scheduledTime:", selectedSupplement.scheduledTime);
 		recordMutation.mutate({
 			supplementId: selectedSupplement.id,
 			scheduledFor: selectedSupplement.scheduledTime,
@@ -74,12 +74,30 @@ const HomePage = () => {
 
 	const handleSkip = () => {
 		if (!selectedSupplement) return;
+		console.log("[Home] Recording as Skipped:", selectedSupplement.name, "scheduledTime:", selectedSupplement.scheduledTime);
 		recordMutation.mutate({
 			supplementId: selectedSupplement.id,
 			scheduledFor: selectedSupplement.scheduledTime,
 			status: "Skipped",
 			reason: null,
 		});
+	};
+
+	const handleSupplementClick = (supplementId: string, scheduledTime: number) => {
+		if (!schedule) return;
+		const supplement = schedule.find(
+			(item) => item.supplement.id === supplementId && item.scheduledTime === scheduledTime,
+		);
+		if (supplement) {
+			console.log("[Home] Selected supplement:", supplement.supplement.name, "status:", supplement.status);
+			setSelectedSupplement({
+				id: supplement.supplement.id,
+				name: supplement.supplement.name,
+				dosage: `${supplement.supplement.dosage} ${supplement.supplement.unit}`,
+				instructions: supplement.supplement.instructions,
+				scheduledTime: supplement.scheduledTime,
+			});
+		}
 	};
 
 	if (scheduleLoading || progressLoading || streakLoading) {
@@ -131,10 +149,10 @@ const HomePage = () => {
 						)}
 					</Box>
 					<Box sx={{ flex: 1 }}>
-						{streak && (
+						{userStats && (
 							<StreakCard
-								currentStreak={streak.currentStreak}
-								bestStreak={streak.bestStreak}
+								currentStreak={userStats.currentStreak}
+								bestStreak={userStats.longestStreak}
 							/>
 						)}
 					</Box>
