@@ -3,183 +3,204 @@ import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { Card } from "@connected-repo/ui-mui/layout/Card";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
+import ErrorIcon from "@mui/icons-material/Error";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import { Divider, useTheme, alpha } from "@mui/material";
 import type { SupplementSchedule } from "@connected-repo/zod-schemas/user_adherence_log.zod";
 
 interface SupplementScheduleCardProps {
-	schedule: SupplementSchedule;
-	onClick: (schedule: SupplementSchedule) => void;
-	isNext?: boolean;
+    schedule: SupplementSchedule;
+    onClick: (schedule: SupplementSchedule) => void;
+    isNext?: boolean;
 }
 
-const getStatusColor = (status: string, isOverdue: boolean) => {
-	if (status === "taken") {
-		return "success";
-	}
-	if (status === "skipped") {
-		return "default";
-	}
-	if (status === "missed") {
-		return "error";
-	}
-	if (isOverdue) {
-		return "warning";
-	}
-	return "primary";
-};
-
-const getStatusLabel = (status: string) => {
-	if (status === "taken") return "✓ Taken";
-	if (status === "skipped") return "⏭️ Skipped";
-	if (status === "missed") return "❌ Missed";
-	return "⏳ Pending";
-};
-
-const formatTime = (timestamp: number) => {
-	const date = new Date(timestamp);
-	const hours = date.getHours();
-	const minutes = date.getMinutes().toString().padStart(2, "0");
-	const suffix = hours >= 12 ? "PM" : "AM";
-	const displayHour = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
-	return `${displayHour}:${minutes} ${suffix}`;
+const getStatusStyles = (status: string, isOverdue: boolean, theme: any) => {
+    if (status === "taken") {
+        return { 
+            color: theme.palette.success.main, 
+            bg: alpha(theme.palette.success.main, 0.1),
+            border: alpha(theme.palette.success.main, 0.2),
+            label: "Taken",
+            icon: <CheckCircleIcon fontSize="small" />
+        };
+    }
+    if (status === "skipped") {
+        return { 
+            color: theme.palette.text.secondary, 
+            bg: alpha(theme.palette.action.disabled, 0.1),
+            border: theme.palette.divider,
+            label: "Skipped",
+            icon: <ErrorIcon fontSize="small" />
+        };
+    }
+    if (status === "missed") {
+        return { 
+            color: theme.palette.error.main, 
+            bg: alpha(theme.palette.error.main, 0.1),
+            border: alpha(theme.palette.error.main, 0.2),
+            label: "Missed",
+            icon: <ErrorIcon fontSize="small" />
+        };
+    }
+    if (isOverdue) {
+        return { 
+            color: theme.palette.warning.main, 
+            bg: alpha(theme.palette.warning.main, 0.1),
+            border: alpha(theme.palette.warning.main, 0.5),
+            label: "Overdue",
+            icon: <ErrorIcon fontSize="small" />
+        };
+    }
+    // Pending / Default
+    return { 
+        color: theme.palette.primary.main, 
+        bg: alpha(theme.palette.primary.main, 0.08),
+        border: alpha(theme.palette.primary.main, 0.3),
+        label: "Pending",
+        icon: <RadioButtonUncheckedIcon fontSize="small" />
+    };
 };
 
 export const SupplementScheduleCard = ({
-	schedule,
-	onClick,
-	isNext = false,
+    schedule,
+    onClick,
+    isNext = false,
 }: SupplementScheduleCardProps) => {
-	const { supplement, scheduledTime, status, isOverdue } = schedule;
-	const canInteract = status === "pending" || status === "missed";
+    const theme = useTheme();
+    const { supplement, scheduledTime, status, isOverdue } = schedule;
+    const canInteract = status === "pending" || status === "missed";
+    
+    const styles = getStatusStyles(status, isOverdue, theme);
+    
+    // Split time into HH:MM and AM/PM for vertical stacking
+    const date = new Date(scheduledTime);
+    const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    const [time, period] = timeString.split(' ');
 
-	return (
-		<Card
-			onClick={canInteract ? () => onClick(schedule) : undefined}
-			sx={{
-				p: 2.5,
-				transition: "all 0.2s ease-in-out",
-				border: isNext ? "2px solid" : "1px solid",
-				borderColor: isNext ? "primary.main" : "divider",
-				boxShadow: isNext ? 3 : 1,
-				cursor: canInteract ? "pointer" : "default",
-				position: "relative",
-				overflow: "visible",
-				bgcolor: isOverdue && status === "pending" ? "warning.lighter" : "background.paper",
-				"&:hover": canInteract
-					? {
-							transform: "translateY(-2px)",
-							boxShadow: 4,
-					  }
-					: {},
-			}}
-		>
-			{isNext && (
-				<Box
-					sx={{
-						position: "absolute",
-						top: -10,
-						right: -10,
-						bgcolor: "primary.main",
-						color: "white",
-						fontSize: 12,
-						fontWeight: 700,
-						padding: "4px 10px",
-						borderRadius: 20,
-						textTransform: "uppercase",
-						zIndex: 1,
-					}}
-				>
-					Next
-				</Box>
-			)}
+    return (
+        <Card
+            onClick={canInteract ? () => onClick(schedule) : undefined}
+            sx={{
+                p: 0, // Reset padding for custom layout
+                borderRadius: 4,
+                border: "1px solid",
+                borderColor: isNext ? "primary.main" : "divider",
+                boxShadow: isNext ? `0 4px 20px ${alpha(theme.palette.primary.main, 0.15)}` : "none",
+                transition: "all 0.2s ease-in-out",
+                cursor: canInteract ? "pointer" : "default",
+                position: 'relative',
+                bgcolor: 'background.paper',
+                "&:hover": canInteract ? {
+                    borderColor: styles.color,
+                    transform: "translateY(-2px)",
+                    boxShadow: 3
+                } : {},
+            }}
+        >
+            {/* "Up Next" Floating Label */}
+            {isNext && (
+                <Box
+                    sx={{
+                        position: "absolute",
+                        top: 0,
+                        right: 0,
+                        bgcolor: "primary.main",
+                        color: "primary.contrastText",
+                        fontSize: "0.65rem",
+                        fontWeight: 800,
+                        px: 1.5,
+                        py: 0.25,
+                        borderBottomLeftRadius: 8,
+                        letterSpacing: 0.5,
+                        textTransform: 'uppercase'
+                    }}
+                >
+                    Up Next
+                </Box>
+            )}
 
-			<Stack spacing={2}>
-				<Box
-					sx={{
-						display: "flex",
-						justifyContent: "space-between",
-						alignItems: "flex-start",
-					}}
-				>
-					<Stack spacing={0.5} flex={1}>
-						<Typography variant="h6" fontWeight={600} gutterBottom>
-							{supplement.name}
-						</Typography>
-						<Typography
-							variant="body2"
-							color="text.secondary"
-							sx={{
-								display: "flex",
-								alignItems: "center",
-								gap: 0.5,
-							}}
-						>
-							📦 {supplement.dosage} {supplement.unit}
-						</Typography>
-					</Stack>
+            <Box sx={{ display: 'flex', alignItems: 'stretch', height: 80 }}>
+                {/* 1. Time Column (Left) */}
+                <Box sx={{ 
+                    width: 80, 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    bgcolor: isNext ? alpha(theme.palette.primary.main, 0.04) : 'transparent',
+                    borderRight: '1px solid',
+                    borderColor: 'divider'
+                }}>
+                    <Typography variant="h6" fontWeight={700} lineHeight={1} color="text.primary">
+                        {time}
+                    </Typography>
+                    <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ mt: 0.5 }}>
+                        {period}
+                    </Typography>
+                </Box>
 
-					<Chip
-						label={getStatusLabel(status)}
-						color={getStatusColor(status, isOverdue)}
-						size="small"
-						variant="outlined"
-						sx={{
-							fontWeight: 600,
-							minWidth: 90,
-							ml: 1,
-						}}
-					/>
-				</Box>
+                {/* 2. Content Column (Middle) */}
+                <Box sx={{ flex: 1, p: 2, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <Stack direction="row" alignItems="center" spacing={1} mb={0.5}>
+                        <Typography variant="subtitle1" fontWeight={700} noWrap>
+                            {supplement.name}
+                        </Typography>
+                        {isOverdue && status === 'pending' && (
+                            <Chip 
+                                label="Late" 
+                                size="small" 
+                                color="warning" 
+                                sx={{ height: 20, fontSize: '0.65rem', fontWeight: 700 }} 
+                            />
+                        )}
+                    </Stack>
+                    
+                    <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        {supplement.dosage} {supplement.unit}
+                        {supplement.instructions?.length > 0 && (
+                             <span style={{ opacity: 0.5 }}>• {supplement.instructions[0]}</span>
+                        )}
+                    </Typography>
+                </Box>
 
-				{supplement.instructions && supplement.instructions.length > 0 && (
-					<Box
-						sx={{
-							bgcolor: "background.default",
-							p: 1.5,
-							borderRadius: 1.5,
-							borderLeft: "3px solid",
-							borderLeftColor: "divider",
-						}}
-					>
-						<Typography variant="caption" color="text.secondary">
-							{supplement.instructions[0]}
-						</Typography>
-					</Box>
-				)}
-
-				<Box
-					sx={{
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "space-between",
-						pt: 0.5,
-					}}
-				>
-					<Typography
-						variant="body2"
-						fontWeight={500}
-						sx={{
-							display: "flex",
-							alignItems: "center",
-							gap: 0.5,
-						}}
-					>
-						🕐 {formatTime(scheduledTime)}
-					</Typography>
-
-					{canInteract && (
-						<Typography
-							variant="caption"
-							color="primary"
-							fontWeight={600}
-							sx={{
-								ml: "auto",
-							}}
-						>
-							{status === "pending" ? "Tap to log →" : "Tap to update →"}
-						</Typography>
-					)}
-				</Box>
-			</Stack>
-		</Card>
-	);
+                {/* 3. Action Column (Right) */}
+                <Box sx={{ pr: 2, display: 'flex', alignItems: 'center' }}>
+                    {canInteract ? (
+                        <Box
+                            sx={{
+                                height: 36,
+                                pl: 1.5,
+                                pr: 1,
+                                borderRadius: 10,
+                                bgcolor: styles.bg,
+                                color: styles.color,
+                                border: '1px solid',
+                                borderColor: styles.border,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 0.5,
+                                transition: 'all 0.2s',
+                            }}
+                        >
+                            <Typography variant="caption" fontWeight={700}>
+                                {status === 'missed' ? 'Log' : 'Take'}
+                            </Typography>
+                            <ChevronRightIcon fontSize="small" />
+                        </Box>
+                    ) : (
+                        // If already taken/skipped, just show the icon status
+                        <Stack alignItems="center" spacing={0.5}>
+                            <Box sx={{ color: styles.color }}>{styles.icon}</Box>
+                            <Typography variant="caption" fontWeight={600} color={styles.color}>
+                                {styles.label}
+                            </Typography>
+                        </Stack>
+                    )}
+                </Box>
+            </Box>
+        </Card>
+    );
 };

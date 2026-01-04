@@ -1,7 +1,8 @@
 import { db } from "@backend/db/db";
 import type { RpcAuthenticatedContext } from "@backend/procedures/protected.procedure";
 import { rpcProtectedProcedure } from "@backend/procedures/protected.procedure";
-import { type DAYS_OF_WEEK_ENUM, type DaysOfWeek, USER_ADHERENCE_STATUS_ENUM, userAdherenceStatusZod, daysOfWeekZod } from "@connected-repo/zod-schemas/enums.zod";
+import { getUserTimeframe } from "@backend/utils/getUserTimeframe.utils";
+import { type DAYS_OF_WEEK_ENUM, type DaysOfWeek, daysOfWeekZod, USER_ADHERENCE_STATUS_ENUM, userAdherenceStatusZod } from "@connected-repo/zod-schemas/enums.zod";
 import type { createSupplementZod, updateSupplementZod } from "@connected-repo/zod-schemas/supplement.zod";
 import type { QueryBase, QueryBuilder, Selectable } from "orchid-orm";
 import { z } from "zod";
@@ -33,14 +34,10 @@ const getEndOfDay = (): Date => {
 	return date;
 };
 
-const parseTimeToTimestamp = (timeStr: string, targetDate: Date): number => {
-	const [hours, minutes] = timeStr.split(":").map(Number);
-	if (hours === undefined || minutes === undefined) {
-		return targetDate.getTime();
-	}
-	const date = new Date(targetDate);
-	date.setHours(hours, minutes, 0, 0);
-	return date.getTime();
+const parseTimeToTimestamp = (timeStr: string, UTCTimeWhenUserTodayStarts: number): number => {
+	const [hours = 0, minutes = 0] = timeStr.split(":").map(Number);
+	const millisToAdd = ((hours * 60) + minutes) * 60 * 1000;
+	return UTCTimeWhenUserTodayStarts + millisToAdd;
 };
 
 const getDailySchedule = rpcProtectedProcedure.input(z.object({
@@ -51,20 +48,17 @@ const getDailySchedule = rpcProtectedProcedure.input(z.object({
 	const { user } = context;
     const { userTimezoneOffset } = input;
 
-    // Step 1: Calculate "today" midnight in user's timezone
-    const now = new Date();
-    const serverNowMs = now.getTime()
-    const userNowMs = serverNowMs + userTimezoneOffset * 60000;
+	const userTimeframe = getUserTimeframe(userTimezoneOffset);
 
-    const userTodayStart = new Date(userNowMs);
-    userTodayStart.setUTCHours(0, 0, 0, 0); // Midnight in user timezone
-
-    const userTodayEnd = new Date(userTodayStart);
-    userTodayEnd.setUTCDate(userTodayEnd.getUTCDate() + 1); // Next day midnight
-
-    const nowInUserTimeMs = userNowMs;
-
-	const todayDayName = getDayName();
+	const todayDayName = [
+		"Sunday",
+		"Monday",
+		"Tuesday",
+		"Wednesday",
+		"Thursday",
+		"Friday",
+		"Saturday"
+	][userTimeframe.userDayOfWeek] ?? "Monday";
 
 	const scheduleItems : Array<{
 		supplement: any;
@@ -86,7 +80,10 @@ const getDailySchedule = rpcProtectedProcedure.input(z.object({
 		adherenceLogs = await db.userAdherenceLogs
 			.where({
 				userId: user.id,
-				scheduledFor: { gte: userTodayStart, lt: userTodayEnd },
+				scheduledFor: { 
+					gte: new Date(userTimeframe.UTCTimeWhenUserTodayStarts), 
+					lt: new Date(userTimeframe.UTCTimeWhenUserTodayStarts) 
+				},
 			})
 			.selectAll();
 	} catch (err) {
@@ -97,7 +94,7 @@ const getDailySchedule = rpcProtectedProcedure.input(z.object({
 	supplements.forEach((supplement) => {
 
 		supplement.timesOfDay.forEach((timeStr) => {
-			const scheduledFor = parseTimeToTimestamp(timeStr, userTodayStart);
+			const scheduledFor = parseTimeToTimestamp(timeStr, userTimeframe.UTCTimeWhenUserTodayStarts);
 
 			const adherenceLog = adherenceLogs.find(
 				(alog) => alog.supplementId === supplement.id && new Date(alog.scheduledFor).getTime() === scheduledFor
@@ -112,7 +109,7 @@ const getDailySchedule = rpcProtectedProcedure.input(z.object({
 							? "skipped"
 							: "pending"
 				: "pending";
-			const isOverdue = scheduledFor < nowInUserTimeMs && status === "pending";
+			const isOverdue = scheduledFor < Date.now() && status === "pending";
 
 			scheduleItems.push({
 				supplement: {
@@ -144,13 +141,13 @@ const recordAdherence = rpcProtectedProcedure
 			scheduledFor: z.number(),
 			status: userAdherenceStatusZod,
 			reason: z.string().nullable().optional(),
+			userTimezoneOffset: z.number(),
 		}),
 	)
 	.handler(async ({ context, input }: { context: RpcAuthenticatedContext; input: any }) => {
 		const { user } = context;
 		const { supplementId, scheduledFor, status, reason } = input;
 
-		const scheduledForDate = new Date(scheduledFor);
 
 		let existingLogs;
 		try {
@@ -158,7 +155,7 @@ const recordAdherence = rpcProtectedProcedure
 				.where({
 					userId: user.id,
 					supplementId,
-					scheduledFor: scheduledForDate,
+					scheduledFor:  new Date(scheduledFor),
 				})
 				.selectAll();
 		} catch (err) {
@@ -166,7 +163,6 @@ const recordAdherence = rpcProtectedProcedure
 		}
 
 		const existingLog = existingLogs[0] ?? null;
-		const timeZoneOffset = -new Date().getTimezoneOffset();
 
 		if (existingLog) {
 			try {
@@ -174,7 +170,7 @@ const recordAdherence = rpcProtectedProcedure
 					status,
 					reason: reason ?? null,
 					actualAt: new Date().toISOString(),
-					timeZoneOffset,
+					timeZoneOffset: input.userTimezoneOffset,
 				});
 			} catch (err) {
 				throw err;
@@ -184,11 +180,11 @@ const recordAdherence = rpcProtectedProcedure
 				await db.userAdherenceLogs.create({
 					userId: user.id,
 					supplementId,
-					scheduledFor: scheduledForDate,
+					scheduledFor:  new Date(scheduledFor),
 					actualAt: new Date().toISOString(),
 					status,
 					reason: reason ?? null,
-					timeZoneOffset,
+					timeZoneOffset: input.userTimezoneOffset,
 				});
 			} catch (err) {
 				throw err;
@@ -206,34 +202,32 @@ const getDailyProgress = rpcProtectedProcedure
 	  const { user } = context;
 	  const { userTimezoneOffset } = input;
   
-	  // Calculate start of today in user's timezone (midnight)
-	  const now = new Date();
-	  const utc = now.getTime() + now.getTimezoneOffset() * 60000; // convert to UTC ms
-	  const userTodayStart = new Date(utc + userTimezoneOffset * 60000);
-	  userTodayStart.setUTCHours(0, 0, 0, 0); // midnight in user timezone
-  
-	  const userTodayEnd = new Date(userTodayStart);
-	  userTodayEnd.setUTCDate(userTodayEnd.getUTCDate() + 1); // next day midnight
-  
-	  const startOfDayMs = userTodayStart.getTime();
-	  const endOfDayMs = userTodayEnd.getTime();
+	  const userTimeframe = getUserTimeframe(userTimezoneOffset)
   
 	  // Fetch ONLY today's adherence logs directly from DB (much better than fetching all)
 	  const todaysAdherenceLogs = await db.userAdherenceLogs
 		.where({
 		  userId: user.id,
-		  scheduledFor: { gte: new Date(startOfDayMs), lt: new Date(endOfDayMs) }, 
+		  scheduledFor: { gte: new Date(userTimeframe.UTCTimeWhenUserTodayStarts), lt: new Date(userTimeframe.UTCTimeWhenUserTodayEnds) }, 
 		})
 		.selectAll();
 	  console.log("[getDailyProgress] todaysAdherenceLogs:", todaysAdherenceLogs);
   
 	  //Active supplements of the day
-	  const todayDayName = userTodayStart.toLocaleString("en-us", { weekday: "long" }) as DaysOfWeek;
+	  const todayDayName = [
+		"Sunday",
+		"Monday",
+		"Tuesday",
+		"Wednesday",
+		"Thursday",
+		"Friday",
+		"Saturday"
+	][userTimeframe.userDayOfWeek] ?? "Monday";
 	  const activeSupplements = await db.supplements
 		.where({
 			userId: user.id,
 			isActive: true,
-			days: { has: todayDayName },
+			days: { has: todayDayName as DaysOfWeek },
 		})
 		.selectAll();
 	  console.log("[getDailyProgress] activeSupplements:", activeSupplements);
@@ -265,7 +259,7 @@ const getDailyProgress = rpcProtectedProcedure
 		: 0;
   
 	  const result = {
-		date: userTodayStart.toISOString().split("T")[0], // YYYY-MM-DD in user timezone
+		date: `${userTimeframe.userYear}-${String(userTimeframe.userMonth).padStart(2, "0")}-${String(userTimeframe.userDay).padStart(2, "0")}`, // YYYY-MM-DD in user timezone
 		totalScheduled,
 		takenOnTime: counters.takenOnTime,
 		takenLate: counters.takenLate,
