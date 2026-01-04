@@ -3,36 +3,13 @@ import type { RpcAuthenticatedContext } from "@backend/procedures/protected.proc
 import { rpcProtectedProcedure } from "@backend/procedures/protected.procedure";
 import { getUserTimeframe } from "@backend/utils/getUserTimeframe.utils";
 import { type DAYS_OF_WEEK_ENUM, type DaysOfWeek, daysOfWeekZod, USER_ADHERENCE_STATUS_ENUM, userAdherenceStatusZod } from "@connected-repo/zod-schemas/enums.zod";
-import type { createSupplementZod, updateSupplementZod } from "@connected-repo/zod-schemas/supplement.zod";
-import type { QueryBase, QueryBuilder, Selectable } from "orchid-orm";
+import type { Selectable } from "orchid-orm";
 import { z } from "zod";
 import type { UserAdherenceLogTable } from "../logs/tables/user_adherence_logs.table";
 
-const getDayName = (): (typeof DAYS_OF_WEEK_ENUM)[number] => {
-	const days: (typeof DAYS_OF_WEEK_ENUM)[number][] = [
-		"Sunday",
-		"Monday",
-		"Tuesday",
-		"Wednesday",
-		"Thursday",
-		"Friday",
-		"Saturday",
-	];
-	const dayIndex = new Date().getDay();
-	return days[dayIndex] ?? "Monday";
-};
+console.log("[supplements.router] Module loaded, procedures exported");
 
-const getStartOfDay = (): Date => {
-	const date = new Date();
-	date.setHours(0, 0, 0, 0);
-	return date;
-};
 
-const getEndOfDay = (): Date => {
-	const date = new Date();
-	date.setHours(23, 59, 59, 999);
-	return date;
-};
 
 const parseTimeToTimestamp = (timeStr: string, UTCTimeWhenUserTodayStarts: number): number => {
 	const [hours = 0, minutes = 0] = timeStr.split(":").map(Number);
@@ -71,21 +48,24 @@ const getDailySchedule = rpcProtectedProcedure.input(z.object({
 
 	// Get all active supplements for user
 	const supplements = await db.supplements
-		.where({ userId: user.id, isActive: true, days: {has: todayDayName} })
+		.where({ userId: user.id, isActive: true, days: {has: todayDayName as DaysOfWeek} })
 		.selectAll();
 
 	// Get all adherence logs for today (scheduledFor >= start of today)
 	let adherenceLogs: Selectable<UserAdherenceLogTable>[];
 	try {
+		console.log("[getDailySchedule] Fetching adherence logs for user:", user.id);
+		console.log("[getDailySchedule] Timeframe - Start:", new Date(userTimeframe.UTCTimeWhenUserTodayStarts).toISOString(), "End:", new Date(userTimeframe.UTCTimeWhenUserTodayEnds).toISOString());
 		adherenceLogs = await db.userAdherenceLogs
 			.where({
 				userId: user.id,
-				scheduledFor: { 
-					gte: new Date(userTimeframe.UTCTimeWhenUserTodayStarts), 
-					lt: new Date(userTimeframe.UTCTimeWhenUserTodayStarts) 
+				scheduledFor: {
+					gte: new Date(userTimeframe.UTCTimeWhenUserTodayStarts),
+					lt: new Date(userTimeframe.UTCTimeWhenUserTodayEnds)
 				},
 			})
 			.selectAll();
+		console.log("[getDailySchedule] Fetched adherence logs:", adherenceLogs.length, adherenceLogs);
 	} catch (err) {
 		throw err;
 	}
@@ -99,6 +79,8 @@ const getDailySchedule = rpcProtectedProcedure.input(z.object({
 			const adherenceLog = adherenceLogs.find(
 				(alog) => alog.supplementId === supplement.id && new Date(alog.scheduledFor).getTime() === scheduledFor
 			) ?? null;
+
+			console.log("[getDailySchedule] Checking supplement:", supplement.name, "timeStr:", timeStr, "scheduledFor:", new Date(scheduledFor).toISOString(), "found log:", adherenceLog ? adherenceLog.id : null);
 
 			const status = adherenceLog
 				? adherenceLog.status === "Taken on-time" || adherenceLog.status === "Taken late"
@@ -130,7 +112,7 @@ const getDailySchedule = rpcProtectedProcedure.input(z.object({
 
 	scheduleItems.sort((a, b) => a.scheduledTime - b.scheduledTime);
 
-	console.log("[getDailySchedule] scheduleItems:", scheduleItems);
+	console.log("SCHEDULEEEEE", scheduleItems)
 	return scheduleItems;
 });
 
@@ -148,6 +130,7 @@ const recordAdherence = rpcProtectedProcedure
 		const { user } = context;
 		const { supplementId, scheduledFor, status, reason } = input;
 
+		console.log("[recordAdherence] Input:", { userId: user.id, supplementId, scheduledFor: new Date(scheduledFor).toISOString(), status, userTimezoneOffset: input.userTimezoneOffset });
 
 		let existingLogs;
 		try {
@@ -172,12 +155,13 @@ const recordAdherence = rpcProtectedProcedure
 					actualAt: new Date().toISOString(),
 					timeZoneOffset: input.userTimezoneOffset,
 				});
+				console.log("[recordAdherence] Updated log:", existingLog.id, "with status:", status);
 			} catch (err) {
 				throw err;
 			}
 		} else {
 			try {
-				await db.userAdherenceLogs.create({
+				const newLog = await db.userAdherenceLogs.create({
 					userId: user.id,
 					supplementId,
 					scheduledFor:  new Date(scheduledFor),
@@ -186,6 +170,7 @@ const recordAdherence = rpcProtectedProcedure
 					reason: reason ?? null,
 					timeZoneOffset: input.userTimezoneOffset,
 				});
+				console.log("[recordAdherence] Created log:", newLog.id, "with status:", status);
 			} catch (err) {
 				throw err;
 			}
@@ -211,7 +196,6 @@ const getDailyProgress = rpcProtectedProcedure
 		  scheduledFor: { gte: new Date(userTimeframe.UTCTimeWhenUserTodayStarts), lt: new Date(userTimeframe.UTCTimeWhenUserTodayEnds) }, 
 		})
 		.selectAll();
-	  console.log("[getDailyProgress] todaysAdherenceLogs:", todaysAdherenceLogs);
   
 	  //Active supplements of the day
 	  const todayDayName = [
@@ -230,7 +214,6 @@ const getDailyProgress = rpcProtectedProcedure
 			days: { has: todayDayName as DaysOfWeek },
 		})
 		.selectAll();
-	  console.log("[getDailyProgress] activeSupplements:", activeSupplements);
 
   
 	  // Calculate total scheduled doses for today
@@ -363,11 +346,13 @@ const getStreak = rpcProtectedProcedure.handler(async ({ context }: { context: R
 });
 
 const getAllSupplements = rpcProtectedProcedure.handler(async ({ context }: { context: RpcAuthenticatedContext }) => {
+	console.log("[getAllSupplements] ===== STARTED =====");
 	const { user } = context;
 	const supplements = await db.supplements
 		.where({ userId: user.id })
 		.order({ createdAt: "DESC" })
 		.selectAll();
+	console.log("[getAllSupplements] Fetched supplements:", supplements.length);
 	return supplements;
 });
 
@@ -385,22 +370,31 @@ const createSupplement = rpcProtectedProcedure
 		}),
 	)
 	.handler(async ({ context, input }) => {
+		console.log("[createSupplement] ===== STARTED =====");
 		const { user } = context;
 		const { name, dosage, unit, instructions, days, timesOfDay, isActive, imageUrl } = input;
 
-		const supplement = await db.supplements.create({
-			userId: user.id,
-			name,
-			dosage,
-			unit,
-			instructions,
-			days,
-			timesOfDay,
-			isActive: isActive ?? true,
-			imageUrl,
-		});
+		console.log("[createSupplement] Creating supplement:", { userId: user.id, name, dosage, unit, instructions, days, timesOfDay, isActive, imageUrl });
 
-		return supplement;
+		try {
+			const supplement = await db.supplements.create({
+				userId: user.id,
+				name,
+				dosage,
+				unit,
+				instructions,
+				days,
+				timesOfDay,
+				isActive: isActive ?? true,
+				imageUrl,
+			});
+
+			console.log("[createSupplement] Created supplement:", supplement);
+			return supplement;
+		} catch (err) {
+			console.error("[createSupplement] Error creating supplement:", err);
+			throw err;
+		}
 	});
 
 const updateSupplement = rpcProtectedProcedure
@@ -421,20 +415,28 @@ const updateSupplement = rpcProtectedProcedure
 		const { user } = context;
 		const { id, name, dosage, unit, instructions, days, timesOfDay, isActive, imageUrl } = input;
 
-		const supplement = await db.supplements
-			.where({ id, userId: user.id })
-			.update({
-				name,
-				dosage,
-				unit,
-				instructions,
-				days,
-				timesOfDay,
-				isActive,
-				imageUrl,
-			});
+		console.log("[updateSupplement] Updating supplement:", { id, userId: user.id, name, dosage, unit, instructions, days, timesOfDay, isActive, imageUrl });
 
-		return supplement;
+		try {
+			const supplement = await db.supplements
+				.where({ id, userId: user.id })
+				.update({
+					name,
+					dosage,
+					unit,
+					instructions,
+					days,
+					timesOfDay,
+					isActive,
+					imageUrl,
+				});
+
+			console.log("[updateSupplement] Updated supplement:", supplement);
+			return supplement;
+		} catch (err) {
+			console.error("[updateSupplement] Error updating supplement:", err);
+			throw err;
+		}
 	});
 
 const deleteSupplement = rpcProtectedProcedure
@@ -462,11 +464,19 @@ const toggleActive = rpcProtectedProcedure
 		const { user } = context;
 		const { id, isActive } = input;
 
-		const supplement = await db.supplements
-			.where({ id, userId: user.id })
-			.update({ isActive });
+		console.log("[toggleActive] Toggling supplement:", { id, userId: user.id, isActive });
 
-		return supplement;
+		try {
+			const supplement = await db.supplements
+				.where({ id, userId: user.id })
+				.update({ isActive });
+
+			console.log("[toggleActive] Toggled supplement:", supplement);
+			return supplement;
+		} catch (err) {
+			console.error("[toggleActive] Error toggling supplement:", err);
+			throw err;
+		}
 	});
 
 export const supplementsRouter = {
@@ -480,3 +490,5 @@ export const supplementsRouter = {
 	deleteSupplement,
 	toggleActive,
 };
+
+console.log("[supplements.router] Router exported:", Object.keys(supplementsRouter));

@@ -3,10 +3,10 @@ import type { SessionInfo } from "@frontend/contexts/UserContext";
 import { useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Outlet, useLoaderData } from "react-router";
-import { DesktopNavbar } from "./DesktopNavbar";
-import { MobileNavbar } from "./MobileNavbar";
 import { PwaInstallPrompt } from "../pwa/PwaInstallPrompt.pwa";
 import { PwaUpdatePrompt } from "../pwa/PwaUpdatePrompt.pwa";
+import { DesktopNavbar } from "./DesktopNavbar";
+import { MobileNavbar } from "./MobileNavbar";
 
 /**
  * AppLayout - Main layout wrapper for authenticated pages
@@ -42,7 +42,7 @@ export const AppLayout = () => {
 				sx={{
 					flexGrow: 1,
 					pt: { xs: 2, md: 3 },
-					pb: { xs: 10, md: 3 }, // Extra padding bottom on mobile for bottom nav
+					pb: { xs: 15, md: 3 }, // Extra padding bottom on mobile for bottom nav
 					px: { xs: 2, sm: 3, md: 4 },
 				}}
 			>

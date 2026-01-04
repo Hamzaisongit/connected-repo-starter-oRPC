@@ -1,5 +1,7 @@
 import { db } from "@backend/db/db";
 import { rpcProtectedProcedure } from "@backend/procedures/protected.procedure";
+import { getUserTimeframe } from "@backend/utils/getUserTimeframe.utils";
+import { z } from "zod";
 
 const getUserStats = rpcProtectedProcedure.handler(async ({ context }) => {
 	const { user } = context;
@@ -10,8 +12,17 @@ const getUserStats = rpcProtectedProcedure.handler(async ({ context }) => {
 	return userStats[0];
 });
 
-const getInsights = rpcProtectedProcedure.handler(async ({ context }) => {
+const getInsights = rpcProtectedProcedure
+	.input(z.object({
+		userTimezoneOffset: z.number(),
+	}))
+	.handler(async ({ context, input }) => {
 	const { user } = context;
+	const { userTimezoneOffset } = input;
+
+	console.log("[getInsights] Starting with timezoneOffset:", userTimezoneOffset);
+
+	const userTimeframe = getUserTimeframe(userTimezoneOffset);
 
 	const userStats = await db.userStats.where({ userId: user.id });
 
@@ -27,12 +38,17 @@ const getInsights = rpcProtectedProcedure.handler(async ({ context }) => {
 		.order({ actualAt: "DESC" })
 		.limit(100);
 
-	const now = new Date();
-	const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-	const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+	console.log("[getInsights] Fetched:", {
+		dailyCompliance: dailyCompliance.length,
+		adherenceLogs: adherenceLogs.length,
+		supplements: supplements.length
+	});
 
-	const weeklyCompliance = dailyCompliance.filter((dc) => dc.date >= sevenDaysAgo.getTime());
-	const monthlyCompliance = dailyCompliance.filter((dc) => dc.date >= thirtyDaysAgo.getTime());
+	const sevenDaysAgoMs = Date.now() - 7 * 24 * 60 * 60 * 1000;
+	const thirtyDaysAgoMs = Date.now() - 30 * 24 * 60 * 60 * 1000;
+
+	const weeklyCompliance = dailyCompliance.filter((dc) => dc.date >= sevenDaysAgoMs);
+	const monthlyCompliance = dailyCompliance.filter((dc) => dc.date >= thirtyDaysAgoMs);
 
 	const weeklyAvgCompliance = weeklyCompliance.length > 0
 		? weeklyCompliance.reduce((acc, dc) => acc + Number(dc.adherencePercentage), 0) / weeklyCompliance.length
@@ -47,7 +63,7 @@ const getInsights = rpcProtectedProcedure.handler(async ({ context }) => {
 	).length;
 
 	const weeklySupplementsTaken = adherenceLogs.filter(
-		(log) => (log.status === "Taken on-time" || log.status === "Taken late") && log.actualAt >= sevenDaysAgo.getTime()
+		(log) => (log.status === "Taken on-time" || log.status === "Taken late") && log.actualAt >= sevenDaysAgoMs
 	).length;
 
 	const missedCount = adherenceLogs.filter((log) => log.status === "Missed").length;
@@ -59,7 +75,7 @@ const getInsights = rpcProtectedProcedure.handler(async ({ context }) => {
 		? Math.round(((takenOnTimeCount + takenLateCount) / adherenceLogs.length) * 100)
 		: 0;
 
-	return {
+	const result = {
 		userStats: userStats[0] || null,
 		weeklyCompliance: weeklyCompliance.reverse(),
 		monthlyCompliance: monthlyCompliance.reverse(),
@@ -76,6 +92,9 @@ const getInsights = rpcProtectedProcedure.handler(async ({ context }) => {
 			skipped: skippedCount,
 		},
 	};
+
+	console.log("[getInsights] Result:", result);
+	return result;
 });
 
 export const usersStatsRouter = {

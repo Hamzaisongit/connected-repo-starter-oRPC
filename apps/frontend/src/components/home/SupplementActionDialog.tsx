@@ -3,10 +3,10 @@ import { Dialog, DialogActions, DialogContent, DialogTitle } from "@connected-re
 import { Button } from "@connected-repo/ui-mui/form/Button";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
-import { IconButton } from "@mui/material"; // Assuming standard MUI for base components not in repo
 import CloseIcon from "@mui/icons-material/Close";
-import MedicationLiquidIcon from "@mui/icons-material/MedicationLiquid"; // Or any pill icon
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import MedicationLiquidIcon from "@mui/icons-material/MedicationLiquid"; // Or any pill icon
+import { IconButton } from "@mui/material"; // Assuming standard MUI for base components not in repo
 
 interface SupplementActionDialogProps {
     open: boolean;
