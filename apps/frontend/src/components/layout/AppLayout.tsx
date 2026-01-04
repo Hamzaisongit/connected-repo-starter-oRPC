@@ -10,7 +10,7 @@ import { MobileNavbar } from "./MobileNavbar";
  * AppLayout - Main layout wrapper for authenticated pages
  *
  * Responsive behavior:
- * - Mobile (< md): Bottom navigation + minimal top bar
+ * - Mobile (< md): Bottom navigation with profile button
  * - Desktop (>= md): Top navigation bar with links
  *
  * Session data is loaded by authLoader and passed to children via Outlet context

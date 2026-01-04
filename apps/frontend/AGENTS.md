@@ -130,6 +130,16 @@ The app must feel like a premium wellness space, not a medical tool. We follow a
 - **Success:** Use "Sage Green" (#4F6F52).
 - **Interactive:** Every button must be "one-thumb" height (min 56px).
 
+## Interaction Design: "The One-Fold Rule"
+- **Compactness:** Every form must fit on a standard mobile screen (approx. 800px height) without scrolling. Use horizontal layouts for related fields (e.g., Dosage + Unit).
+- **Dynamic Fields:** Use `react-hook-form`'s `useFieldArray` for list-based inputs (Instructions, Times). Use a '+' icon button that is accessible for one-thumb operation.
+- **Visual Cues:** Use a modern `Switch` or a custom `Toggle` for binary states (Active/Inactive) instead of checkboxes.
+
+## Flavor & Personalization
+- **Dynamic Address:** Always use the user's name (e.g., "Good evening, [Name] 👋").
+- **Visual Fillers:** If a supplement has no user-uploaded image, fallback to a category-specific stock illustration (e.g., a sun for Vitamin D, a fish for Omega-3).
+- **Status Hierarchy:** Follow a 3-line detail rule for list items: 1. Name, 2. Dosage/Time, 3. Status (Overdue/Taken/Upcoming).
+
 **Color**:
 ```tsx
 <Box sx={{

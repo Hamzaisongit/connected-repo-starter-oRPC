@@ -1,9 +1,7 @@
-import { Card, CardContent } from "@connected-repo/ui-mui/layout/Card";
+import { Avatar } from "@connected-repo/ui-mui/data-display/Avatar";
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Button } from "@connected-repo/ui-mui/form/Button";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
-import { Chip } from "@connected-repo/ui-mui/data-display/Chip";
-import { Avatar } from "@connected-repo/ui-mui/data-display/Avatar";
 
 import type { TodaysPlanSupplement } from "@connected-repo/zod-schemas/user_stack.zod";
 import { useState } from "react";
@@ -14,199 +12,192 @@ interface SupplementCardProps {
 	isLogging?: boolean;
 }
 
-const getStatusConfig = (status: TodaysPlanSupplement["status"]) => {
-	switch (status) {
-		case "taken":
-			return {
-				icon: "✅",
-				label: "Taken",
-				color: "success" as const,
-				variant: "filled" as const,
-				buttonText: "✓ Logged",
-				buttonDisabled: true,
-			};
-		case "pending":
-			return {
-				icon: "⏳",
-				label: "Pending",
-				color: "default" as const,
-				variant: "outlined" as const,
-				buttonText: "Log Now",
-				buttonDisabled: false,
-			};
-		case "overdue":
-			return {
-				icon: "⏰",
-				label: "Overdue",
-				color: "warning" as const,
-				variant: "filled" as const,
-				buttonText: "Log Now",
-				buttonDisabled: false,
-			};
-		case "missed":
-			return {
-				icon: "❌",
-				label: "Missed",
-				color: "error" as const,
-				variant: "filled" as const,
-				buttonText: "Log Now",
-				buttonDisabled: false,
-			};
-		default:
-			return {
-				icon: "❓",
-				label: "Unknown",
-				color: "default" as const,
-				variant: "outlined" as const,
-				buttonText: "Log Now",
-				buttonDisabled: false,
-			};
-	}
-};
+// Status config is now handled directly in the component
 
 export function SupplementCard({ supplement, onLogTaken, isLogging }: SupplementCardProps) {
-	const [isLoading, setIsLoading] = useState(false);
-	const statusConfig = getStatusConfig(supplement.status);
+ 	const [isLoading, setIsLoading] = useState(false);
 
-	const handleLogClick = async () => {
-		if (statusConfig.buttonDisabled) return;
-
-		setIsLoading(true);
-		try {
-			await onLogTaken(supplement.id, supplement.scheduledTime);
-		} finally {
-			setIsLoading(false);
-		}
-	};
+ 	const handleLogClick = async () => {
+ 		setIsLoading(true);
+ 		try {
+ 			await onLogTaken(supplement.id, supplement.scheduledTime);
+ 		} finally {
+ 			setIsLoading(false);
+ 		}
+ 	};
 
 	const formatTime = (time: string) => {
 		// Convert HH:MM to readable format
 		const [hours, minutes] = time.split(":");
-		const hour = parseInt(hours || "0");
+		const hour = parseInt(hours || "0", 10);
 		const ampm = hour >= 12 ? "PM" : "AM";
 		const displayHour = hour % 12 || 12;
 		return `${displayHour}:${minutes || "00"} ${ampm}`;
 	};
 
-	return (
-		<Card
-			sx={{
-				backgroundColor: "#FFFFFF !important",
-				borderRadius: "32px",
-				boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.2) !important",
-				transition: "all 0.2s ease-in-out",
-				border: "2px solid #000000 !important",
-				minHeight: "150px",
-				"&:hover": {
-					borderColor: statusConfig.color === "success" ? "success.main" :
-					             statusConfig.color === "warning" ? "warning.main" :
-					             statusConfig.color === "error" ? "error.main" : "primary.main",
-					boxShadow: "0px 8px 30px rgba(0, 0, 0, 0.3) !important",
-					transform: "translateY(-2px)",
-				},
-			}}
-		>
-			<CardContent sx={{ p: 3, backgroundColor: "#FFFFFF !important" }}>
-				<Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-					{/* Supplement Avatar/Icon */}
-					<Avatar
-						sx={{
-							width: 48,
-							height: 48,
-							backgroundColor: supplement.imageUrl ? "transparent" : "primary.light",
-							color: supplement.imageUrl ? "transparent" : "primary.contrastText",
-						}}
-						{...(supplement.imageUrl ? { src: supplement.imageUrl } : {})}
-					>
-						{!supplement.imageUrl && "💊"}
-					</Avatar>
+  const isTaken = supplement.status === "taken";
+  const isOverdue = supplement.status === "overdue";
 
-					{/* Supplement Info */}
-					<Box sx={{ flex: 1, minWidth: 0 }}>
-						<Typography
-							variant="h6"
-							sx={{
-								fontWeight: 700,
-								fontSize: "1.2rem",
-								lineHeight: 1.3,
-								mb: 0.5,
-								color: "#000000 !important",
-							}}
-						>
-							{supplement.name}
-						</Typography>
-						<Typography
-							variant="body2"
-							sx={{ 
-								fontSize: "0.95rem",
-								color: "#333333 !important",
-								fontWeight: 500,
-							}}
-						>
-							{supplement.dosage} {supplement.unit} • {formatTime(supplement.scheduledTime)}
-						</Typography>
-					</Box>
+  // Get themed stock icon and background color based on supplement name
+  const getStockIconAndColor = (name: string) => {
+  	const lowerName = name.toLowerCase();
+  	if (lowerName.includes("vitamin d") || lowerName.includes("d3")) {
+  		return { icon: "☀️", bgColor: "#FFF8DC" }; // Light yellow for sun
+  	}
+  	if (lowerName.includes("vitamin c")) {
+  		return { icon: "🍊", bgColor: "#FFE4B5" }; // Light orange
+  	}
+  	if (lowerName.includes("omega") || lowerName.includes("fish")) {
+  		return { icon: "🐟", bgColor: "#E0F2FE" }; // Light blue for fish
+  	}
+  	if (lowerName.includes("protein") || lowerName.includes("collagen")) {
+  		return { icon: "🥩", bgColor: "#FFE6E6" }; // Light pink for meat
+  	}
+  	if (lowerName.includes("magnesium") || lowerName.includes("calcium")) {
+  		return { icon: "🪨", bgColor: "#F5F5DC" }; // Light beige for rock
+  	}
+  	if (lowerName.includes("probiotic")) {
+  		return { icon: "🦠", bgColor: "#E8F5E8" }; // Light green
+  	}
+  	if (lowerName.includes("herb") || lowerName.includes("ashwagandha") || lowerName.includes("ginseng")) {
+  		return { icon: "🌿", bgColor: "#F0FFF0" }; // Light mint
+  	}
+  	if (lowerName.includes("oil") || lowerName.includes("cbd")) {
+  		return { icon: "💧", bgColor: "#F0F8FF" }; // Light blue for oil
+  	}
+  	return { icon: "💊", bgColor: "#F8F9FA" }; // Default light grey
+  };
 
-					{/* Status Chip */}
-					<Chip
-						label={`${statusConfig.icon} ${statusConfig.label}`}
-						color={statusConfig.color}
-						variant={statusConfig.variant}
-						size="small"
-						sx={{
-							fontWeight: 500,
-							fontSize: "0.75rem",
-							minWidth: 70,
-						}}
-					/>
-				</Box>
+  // Calculate status text and color
+  const getStatusInfo = () => {
+  	if (isTaken) {
+  		return { text: `✅ Taken`, color: "#4CAF50" };
+  	}
+  	if (isOverdue) {
+  		const scheduledTime = new Date(supplement.scheduledTime);
+  		const now = new Date();
+  		const timeDiff = now.getTime() - scheduledTime.getTime();
 
-				{/* Instructions */}
-				{supplement.instructions.length > 0 && (
-					<Box sx={{ mb: 2 }}>
-						<Typography
-							variant="body2"
-							sx={{
-								fontSize: "0.85rem",
-								lineHeight: 1.4,
-								color: "#444444 !important",
-								fontWeight: 500,
-								display: "-webkit-box",
-								WebkitLineClamp: 2,
-								WebkitBoxOrient: "vertical",
-								overflow: "hidden",
-							}}
-						>
-							• {supplement.instructions.join(" • ")}
-						</Typography>
-					</Box>
-				)}
+  		if (timeDiff < 0) {
+  			return { text: `🕒 Due Now`, color: "#666666" };
+  		}
 
-				{/* Action Button */}
-				<Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-					<Button
-						variant={statusConfig.buttonDisabled ? "text" : "contained"}
-						color={statusConfig.color === "success" ? "success" :
-						       statusConfig.color === "warning" ? "warning" :
-						       statusConfig.color === "error" ? "error" : "primary"}
-						size="small"
-						onClick={handleLogClick}
-						disabled={statusConfig.buttonDisabled || isLogging || isLoading}
-						sx={{
-							minWidth: 100,
-							fontSize: "0.8rem",
-							fontWeight: 600,
-							textTransform: "none",
-							...(statusConfig.buttonDisabled && {
-								color: "success.main",
-								fontWeight: 500,
-							}),
-						}}
-					>
-						{isLoading ? "Logging..." : statusConfig.buttonText}
-					</Button>
-				</Box>
-			</CardContent>
-		</Card>
-	);
+  		const minutesOverdue = Math.floor(timeDiff / (1000 * 60));
+  		if (minutesOverdue < 60) {
+  			return { text: `⚠️ Overdue by ${minutesOverdue} mins`, color: "#FA8072" };
+  		}
+  		const hoursOverdue = Math.floor(minutesOverdue / 60);
+  		return { text: `⚠️ Overdue by ${hoursOverdue}h`, color: "#FA8072" };
+  	}
+
+  	const scheduledTime = new Date(supplement.scheduledTime);
+  	const now = new Date();
+  	const timeDiff = scheduledTime.getTime() - now.getTime();
+
+  	if (timeDiff <= 0) {
+  		return { text: `🕒 Due Now`, color: "#666666" };
+  	}
+
+  	const minutesLeft = Math.floor(timeDiff / (1000 * 60));
+  	if (minutesLeft <= 60) {
+  		return { text: `🕒 Due in ${minutesLeft}m`, color: "#666666" };
+  	}
+  	const hoursLeft = Math.floor(minutesLeft / 60);
+  	return { text: `🕒 Due in ${hoursLeft}h`, color: "#666666" };
+  };
+
+  const statusInfo = getStatusInfo();
+  const stockIconData = getStockIconAndColor(supplement.name);
+
+  return (
+ 		<Box sx={{ display: "flex", alignItems: "center", gap: 2, py: 3, px: 1 }}>
+ 			{/* Left: Circular Thumbnail - 40px with themed background */}
+ 			<Avatar
+ 				sx={{
+ 					width: 40,
+ 					height: 40,
+ 					backgroundColor: supplement.imageUrl ? "transparent" : stockIconData.bgColor,
+ 					color: supplement.imageUrl ? "transparent" : "#666666",
+ 					borderRadius: "50%",
+ 					border: "1px solid #e0e0e0",
+ 				}}
+ 				{...(supplement.imageUrl ? { src: supplement.imageUrl } : {})}
+ 			>
+ 				{!supplement.imageUrl && (
+ 					<span style={{ fontSize: "1.2rem" }}>
+ 						{stockIconData.icon}
+ 					</span>
+ 				)}
+ 			</Avatar>
+
+ 			{/* Center: 3-Line Info */}
+ 			<Box sx={{ flex: 1, minWidth: 0 }}>
+ 				{/* Line 1: Name - Serif font */}
+ 				<Typography
+ 					sx={{
+ 						fontFamily: '"Playfair Display", Georgia, serif',
+ 						fontWeight: 600,
+ 						fontSize: "1rem",
+ 						lineHeight: 1.3,
+ 						color: "#000000",
+ 						mb: 0.5,
+ 					}}
+ 				>
+ 					{supplement.name}
+ 				</Typography>
+
+ 				{/* Line 2: Dosage + Time */}
+ 				<Typography
+ 					sx={{
+ 						fontSize: "0.875rem",
+ 						color: "#666666",
+ 						fontWeight: 500,
+ 						mb: 0.5,
+ 					}}
+ 				>
+ 					{supplement.dosage} {supplement.unit} • {formatTime(supplement.scheduledTime)}
+ 				</Typography>
+
+ 				{/* Line 3: Status */}
+ 				<Typography
+ 					sx={{
+ 						fontSize: "0.8rem",
+ 						color: statusInfo.color,
+ 						fontWeight: 500,
+ 					}}
+ 				>
+ 					{statusInfo.text}
+ 				</Typography>
+ 			</Box>
+
+ 			{/* Right: Circular Outline Button */}
+ 			<Button
+ 				variant="outlined"
+ 				onClick={handleLogClick}
+ 				disabled={isTaken || isLogging || isLoading}
+ 				sx={{
+ 					minWidth: 48,
+ 					width: 48,
+ 					height: 48,
+ 					borderRadius: "50%",
+ 					border: `2px solid ${isTaken ? "#9CAF88" : "#000000"}`, // Sage green when taken
+ 					color: isTaken ? "#9CAF88" : "#000000",
+ 					fontSize: "1.4rem",
+ 					fontWeight: 600,
+ 					backgroundColor: isTaken ? "#9CAF88" : "transparent",
+ 					"&:hover": {
+ 						backgroundColor: isTaken ? "#8BAF77" : "rgba(0, 0, 0, 0.04)",
+ 						borderColor: isTaken ? "#8BAF77" : "#333333",
+ 					},
+ 					"&:disabled": {
+ 						backgroundColor: "#9CAF88",
+ 						borderColor: "#9CAF88",
+ 						color: "#ffffff",
+ 					},
+ 				}}
+ 			>
+ 				{isLoading ? "..." : isTaken ? "✓" : "+"}
+ 			</Button>
+ 		</Box>
+ 	);
 }

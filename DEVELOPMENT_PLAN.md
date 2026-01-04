@@ -91,11 +91,18 @@ If after 60 days:
     - Source citations
 
 **Phase 4: Progress & Engagement (Minimal)**
-13. **Progress Visualization**
-    - Current streak display
-    - Longest streak
+13. **Progress Visualization** ✅ COMPLETED
+    - Current streak display (implemented in home page flavor text)
+    - Longest streak (via user stats endpoint)
     - Days completed this month
-    - Compliance % (rolling 30-day)
+    - Compliance % (rolling 30-day) (implemented as progress bar on home page)
+
+**UI Redesign Implementation (One-Fold Rule):**
+- Adopted compact mobile-first design with horizontal layouts for related fields
+- Implemented themed stock icons for supplements with category-specific colors
+- Redesigned supplement cards as horizontal list items with circular buttons
+- Simplified compliance calendar to compact dots-only view
+- Added personalized flavor text and progress bars for engagement
 
 **EXPLICITLY EXCLUDED FROM V1:**
 - ❌ Leagues, points, challenges

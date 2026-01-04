@@ -1,13 +1,9 @@
-import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
-import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { Paper } from "@connected-repo/ui-mui/layout/Paper";
-import { AppBar } from "@connected-repo/ui-mui/navigation/AppBar";
 import { BottomNavigation } from "@connected-repo/ui-mui/navigation/BottomNavigation";
 import { BottomNavigationAction } from "@connected-repo/ui-mui/navigation/BottomNavigationAction";
-import { Toolbar } from "@connected-repo/ui-mui/navigation/Toolbar";
+import { AccountCircleIcon } from "@connected-repo/ui-mui/icons/AccountCircleIcon";
 import { navItems } from "@frontend/config/nav.config";
 import { useLocation, useNavigate } from "react-router";
-import { UserProfileMenu } from "./UserProfileMenu";
 
 export const MobileNavbar = () => {
 	const navigate = useNavigate();
@@ -39,54 +35,8 @@ export const MobileNavbar = () => {
 		}
 	};
 
-	return (
+  return (
 		<>
-			{/* Top AppBar */}
-			<AppBar
-				position="sticky"
-				elevation={0}
-				sx={{
-					background: "transparent",
-					backdropFilter: "blur(10px)",
-					WebkitBackdropFilter: "blur(10px)", // Safari support
-					borderBottom: "none",
-				}}
-			>
-				<Toolbar
-					sx={{
-						minHeight: 56,
-						px: 3,
-						justifyContent: "space-between",
-					}}
-				>
-					{/* Logo */}
-					<Box
-						onClick={() => navigate("/dashboard")}
-						sx={{
-							display: "flex",
-							alignItems: "center",
-							cursor: "pointer",
-						}}
-					>
-						<Typography
-							variant="h6"
-							component="div"
-							sx={{
-								fontFamily: '"Playfair Display", Georgia, serif',
-								fontWeight: 600,
-								color: "primary.main",
-								letterSpacing: "0.02em",
-							}}
-						>
-							HelioCoach
-						</Typography>
-					</Box>
-
-					{/* User Avatar - triggers menu */}
-					<UserProfileMenu />
-				</Toolbar>
-			</AppBar>
-
 			{/* Floating Glass Bottom Navigation - Pill Style */}
 			<Paper
 				sx={{
@@ -141,6 +91,8 @@ export const MobileNavbar = () => {
 							icon={item.mobileIcon || item.desktopIcon}
 						/>
 					))}
+					{/* Profile button */}
+					<BottomNavigationAction icon={<AccountCircleIcon />} />
 				</BottomNavigation>
 			</Paper>
 		</>
