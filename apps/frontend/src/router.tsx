@@ -70,7 +70,7 @@ const routerObjectWithNavbar: ReactRouterWithNavbar[] = [
 
 					{
 						path: "profile",
-						Component: lazy(() => import("@frontend/pages/Home.page")), // TODO: Create Profile page
+						Component: lazy(() => import("@frontend/pages/Profile.page")),
 					},
 				],
 			},

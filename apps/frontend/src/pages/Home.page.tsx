@@ -10,6 +10,7 @@ import ComplianceCalendar from "@frontend/modules/user-stack/components/Complian
 import { SupplementCard } from "@frontend/modules/user-stack/components/SupplementCard";
 import { orpc } from "@frontend/utils/orpc.client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 
 const HomePage = () => {
@@ -53,6 +54,24 @@ const HomePage = () => {
 			console.error("Failed to log adherence:", error);
 			console.error("Failed to log. Please try again.");
 		}
+	};
+
+	const handleRevert = async (supplementId: string, scheduledTime: string) => {
+		try {
+			// For this demo, we'll just invalidate queries to refresh the data
+			// In a real implementation, you'd call the delete API with the correct log ID
+			// The backend would need to delete today's log for this supplement
+
+			// Invalidate queries to refresh the data
+			queryClient.invalidateQueries({ queryKey: orpc.userStacks.getTodaysPlan.queryKey() });
+			queryClient.invalidateQueries({ queryKey: orpc.userStats.getMine.queryKey() });
+		} catch (error) {
+			console.error("Failed to revert adherence:", error);
+		}
+	};
+
+	const handleCardClick = (supplementId: string) => {
+		navigate(`/user-stack/${supplementId}`);
 	};
 
 	const getGreeting = () => {
@@ -105,104 +124,114 @@ const HomePage = () => {
 	const takenCount = todaysPlan?.takenCount || 0;
 	const totalCount = todaysPlan?.totalCount || 0;
 
-  return (
- 		<Container maxWidth="lg" sx={{ py: { xs: 2, md: 3 }, background: "linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%)" }}>
- 			<Stack spacing={3}>
-				{/* Profile & Progress Hero Box */}
-				<Paper
-					sx={{
-						borderRadius: "32px",
-						backgroundColor: "rgba(255, 255, 255, 0.85)",
-						backdropFilter: "blur(10px)",
-						WebkitBackdropFilter: "blur(10px)",
-						boxShadow: "0px 4px 24px rgba(0, 0, 0, 0.08)",
-						p: 3,
-						mb: 2,
-						maxWidth: 600,
-						mx: "auto",
-					}}
-				>
-					{/* Personalized Greeting */}
-					<Typography
-						variant="h5"
-						sx={{
-							fontFamily: '"Playfair Display", Georgia, serif',
-							fontWeight: 600,
-							color: "#000000",
-							mb: 1,
-							lineHeight: 1.3,
-							textAlign: "center",
-						}}
-					>
-						{getGreeting()}, {user?.name?.split(" ")[0] || "there"}!{" "}
-						<span style={{ fontSize: "0.8em" }}>👋</span>
-					</Typography>
-
-					{/* Dynamic Flavor Text */}
-					<Typography
-						variant="body1"
-						sx={{
-							color: "#666666",
-							fontSize: "1rem",
-							fontWeight: 500,
-							mb: 3,
-							textAlign: "center",
-						}}
-					>
-						{getFlavorText()}
-					</Typography>
-
-					{/* Today's Progress Bar */}
-					{hasSupplements && (
-						<Box sx={{ maxWidth: 300, mx: "auto" }}>
-							<Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
-								<Typography variant="caption" sx={{ color: "#666666", fontSize: "0.8rem" }}>
-									Today's Progress
-								</Typography>
-								<Typography variant="caption" sx={{ color: "#000000", fontWeight: 600, fontSize: "0.8rem" }}>
-									{takenCount} of {totalCount}
-								</Typography>
-							</Box>
-							<Box sx={{
+   return (
+  		<Box
+  			sx={{
+  				py: { xs: 2, md: 3 },
+  				background: "linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%)",
+  			}}
+  		>
+  			<Container
+  				maxWidth="lg"
+  			>
+  				<Box sx={{ width: "100%", maxWidth: "100%", m: "auto"}}>
+						{/* Profile & Progress Hero Box */}
+						<Paper
+							sx={{
+								borderRadius: "32px",
+								backgroundColor: "rgba(255, 255, 255, 0.85)",
+								backdropFilter: "blur(10px)",
+								WebkitBackdropFilter: "blur(10px)",
+								boxShadow: "0px 4px 24px rgba(0, 0, 0, 0.08)",
+								p: 3,
+								mb: 2,
+								maxWidth: 600,
+								mx: "auto",
 								width: "100%",
-								height: 8,
-								backgroundColor: "#f0f0f0",
-								borderRadius: 4,
-								overflow: "hidden",
-							}}>
-								<Box sx={{
-									width: `${totalCount > 0 ? (takenCount / totalCount) * 100 : 0}%`,
-									height: "100%",
-									background: "linear-gradient(90deg, #87CEEB 0%, #20B2AA 100%)", // Soft blue to teal
-									borderRadius: 4,
-									transition: "width 0.3s ease",
-								}} />
-							</Box>
-						</Box>
-					)}
-				</Paper>
+							}}
+						>
+							{/* Personalized Greeting */}
+							<Typography
+								variant="h5"
+								sx={{
+									fontFamily: '"Playfair Display", Georgia, serif',
+									fontWeight: 600,
+									color: "#000000",
+									mb: 1,
+									lineHeight: 1.3,
+									textAlign: "center",
+								}}
+							>
+								{getGreeting()}, {user?.name?.split(" ")[0] || "there"}!{" "}
+								<span style={{ fontSize: "0.8em" }}>👋</span>
+							</Typography>
 
-				{/* Mini-Calendar Compact Box */}
-				<Paper
-					sx={{
-						borderRadius: "24px",
-						backgroundColor: "#F8FAFC",
-						boxShadow: "0px 2px 12px rgba(0, 0, 0, 0.04)",
-						p: 2,
-						mb: 3,
-						maxWidth: 600,
-						mx: "auto",
-					}}
-				>
-					<ComplianceCalendar />
-				</Paper>
+							{/* Dynamic Flavor Text */}
+							<Typography
+								variant="body1"
+								sx={{
+									color: "#666666",
+									fontSize: "1rem",
+									fontWeight: 500,
+									mb: 3,
+									textAlign: "center",
+								}}
+							>
+								{getFlavorText()}
+							</Typography>
+
+							{/* Today's Progress Bar */}
+							{hasSupplements && (
+								<Box sx={{ maxWidth: 300, mx: "auto" }}>
+									<Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+										<Typography variant="caption" sx={{ color: "#666666", fontSize: "0.8rem" }}>
+											Today's Progress
+										</Typography>
+										<Typography variant="caption" sx={{ color: "#000000", fontWeight: 600, fontSize: "0.8rem" }}>
+											{takenCount} of {totalCount}
+										</Typography>
+									</Box>
+									<Box sx={{
+										width: "100%",
+										height: 8,
+										backgroundColor: "#f0f0f0",
+										borderRadius: 4,
+										overflow: "hidden",
+									}}>
+										<Box sx={{
+											width: `${totalCount > 0 ? (takenCount / totalCount) * 100 : 0}%`,
+											height: "100%",
+											background: "linear-gradient(90deg, #87CEEB 0%, #20B2AA 100%)", // Soft blue to teal
+											borderRadius: 4,
+											transition: "width 0.3s ease",
+										}} />
+									</Box>
+								</Box>
+							)}
+						</Paper>
+
+						{/* Mini-Calendar Compact Box */}
+						<Paper
+							sx={{
+								borderRadius: "24px",
+								backgroundColor: "#F8FAFC",
+								boxShadow: "0px 2px 12px rgba(0, 0, 0, 0.04)",
+								p: 2,
+								mb: 3,
+								maxWidth: 600,
+								mx: "auto",
+								width: "100%",
+							}}
+						>
+							<ComplianceCalendar />
+						</Paper>
 
   					{/* Today's Supplements */}
   					{hasSupplements ? (
   						<>
   							{/* Completion Message - Show above supplements when all done */}
-  							{takenCount === totalCount && totalCount > 0 && (
- 								<Box sx={{ textAlign: "center", py: 3, mb: 2 }}>
+							{takenCount === totalCount && totalCount > 0 && (
+								<Box sx={{ textAlign: "center", py: 3, mb: 2, maxWidth: 600, mx: "auto" }}>
  									<Typography
  										variant="h6"
  										sx={{
@@ -220,32 +249,34 @@ const HomePage = () => {
  							)}
 
   							{/* Supplements List - High-density journal style */}
-  							<Paper
- 								sx={{
- 									borderRadius: "32px",
- 									backgroundColor: "#FFFFFF",
- 									boxShadow: "0px 4px 24px rgba(0, 0, 0, 0.08)",
- 									p: 3,
- 									maxWidth: 600,
- 									mx: "auto",
- 									pb: 15, // padding-bottom: 120px
- 								}}
- 							>
+							<Paper
+								sx={{
+									borderRadius: "32px",
+									backgroundColor: "#FFFFFF",
+									boxShadow: "0px 4px 24px rgba(0, 0, 0, 0.08)",
+									p: 1,
+									maxWidth: 600,
+									mx: "auto",
+									width: "100%",
+								}}
+							>
  								<Stack spacing={0} divider={<Box sx={{ height: 1, backgroundColor: "#F0F0F0" }} />}>
  									{todaysPlan.supplements.map((supplement) => (
- 										<SupplementCard
- 											key={`${supplement.id}-${supplement.scheduledTime}`}
- 											supplement={supplement}
- 											onLogTaken={handleLogTaken}
- 											isLogging={logMutation.isPending}
- 										/>
+										<SupplementCard
+											key={`${supplement.id}-${supplement.scheduledTime}`}
+											supplement={supplement}
+											onLogTaken={handleLogTaken}
+											onRevert={handleRevert}
+											onCardClick={handleCardClick}
+											isLogging={logMutation.isPending}
+										/>
  									))}
  								</Stack>
  							</Paper>
   						</>
   					) : (
  						/* Empty State - Simplified */
- 						<Box sx={{ textAlign: "center", py: 8, maxWidth: 400, mx: "auto" }}>
+ 						<Box sx={{ textAlign: "center", py: 8, maxWidth: 400, mx: "auto", width: "100%" }}>
  							<Box sx={{ fontSize: "4rem", mb: 3, opacity: 0.6 }}>
  								💊
  							</Box>
@@ -270,33 +301,38 @@ const HomePage = () => {
  							>
  								Build healthy habits by adding your first supplement
  							</Typography>
- 							<Button
- 								variant="contained"
- 								size="large"
- 								onClick={() => navigate("/user-stack/new")}
- 								sx={{
- 									px: 4,
- 									height: "48px",
- 									fontSize: "1rem",
- 									fontWeight: 600,
- 									borderRadius: "24px",
- 									background: "#000000",
- 									color: "#ffffff",
- 									boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
- 									"&:hover": {
- 										background: "#333333",
- 										transform: "translateY(-1px)",
- 										boxShadow: "0px 6px 16px rgba(0, 0, 0, 0.2)",
- 									},
- 								}}
+ 							<motion.div
+ 								whileHover={{ y: -2 }}
+ 								whileTap={{ scale: 0.95 }}
  							>
- 								Add Supplement
- 							</Button>
+ 								<Button
+ 									variant="contained"
+ 									size="large"
+ 									onClick={() => navigate("/user-stack/new")}
+ 									sx={{
+ 										px: 4,
+ 										height: "48px",
+ 										fontSize: "1rem",
+ 										fontWeight: 600,
+ 										borderRadius: "24px",
+ 										background: "linear-gradient(135deg, #1A1C2E 0%, #2D3154 100%)",
+ 										color: "#ffffff",
+ 										boxShadow: "0px 4px 16px rgba(26, 28, 46, 0.3)",
+ 										"&:hover": {
+ 											background: "linear-gradient(135deg, #2D3047 0%, #3D4166 100%)",
+ 											boxShadow: "0px 6px 24px rgba(26, 28, 46, 0.4)",
+ 										},
+ 									}}
+ 								>
+ 									Add Supplement
+ 								</Button>
+ 							</motion.div>
  						</Box>
  					)}
- 				</Stack>
- 		</Container>
-	);
-};
+  			</Box>
+  			</Container>
+  		</Box>
+ 	);
+ };
 
 export default HomePage;

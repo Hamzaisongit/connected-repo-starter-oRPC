@@ -16,7 +16,7 @@ export async function seedUserStacks(userId: string) {
       unit: "IU",
       days: [...DAYS_OF_WEEK_ENUM] as DaysOfWeek[],
       timesOfDay: ["08:00"],
-      imageUrl: "https://example.com/vitamin-d.jpg",
+       imageUrl: null,
     },
     {
       userId,
@@ -27,7 +27,7 @@ export async function seedUserStacks(userId: string) {
       unit: "mg",
       days: [...DAYS_OF_WEEK_ENUM] as DaysOfWeek[],
       timesOfDay: ["12:00", "18:00"],
-      imageUrl: "https://example.com/omega3.jpg",
+       imageUrl: null,
     },
     {
       userId,

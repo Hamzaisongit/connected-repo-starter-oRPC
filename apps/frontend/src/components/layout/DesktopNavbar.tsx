@@ -1,11 +1,55 @@
+import { Avatar } from "@connected-repo/ui-mui/data-display/Avatar";
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Button } from "@connected-repo/ui-mui/form/Button";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { AppBar } from "@connected-repo/ui-mui/navigation/AppBar";
+import { IconButton } from "@connected-repo/ui-mui/navigation/IconButton";
 import { Toolbar } from "@connected-repo/ui-mui/navigation/Toolbar";
+import type { SessionInfo } from "@frontend/contexts/UserContext";
 import { navItems } from "@frontend/config/nav.config";
-import { useLocation, useNavigate } from "react-router";
-import { UserProfileMenu } from "./UserProfileMenu";
+import { useLoaderData, useLocation, useNavigate } from "react-router";
+
+/**
+ * ProfileAvatar - Simple clickable avatar that navigates to profile
+ */
+const ProfileAvatar = () => {
+	const navigate = useNavigate();
+	const sessionInfo = useLoaderData() as SessionInfo | undefined;
+	const user = sessionInfo?.user;
+
+	return (
+		<IconButton
+			onClick={() => navigate("/profile")}
+			size="small"
+			sx={{
+				transition: "transform 0.2s ease-in-out",
+				"&:hover": {
+					transform: "scale(1.05)",
+				},
+			}}
+			aria-label="Go to profile"
+		>
+			<Avatar
+				src={user?.image || undefined}
+				alt={user?.name || user?.email || "User"}
+				sx={{
+					width: 40,
+					height: 40,
+					border: "2px solid",
+					borderColor: "#ffffff",
+					background: user?.image ? "transparent" : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+					boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
+					transition: "all 0.2s ease-in-out",
+					"&:hover": {
+						boxShadow: "0px 6px 16px rgba(0, 0, 0, 0.12)",
+					},
+				}}
+			>
+				{!user?.image && (user?.name?.[0] || user?.email?.[0] || "U")}
+			</Avatar>
+		</IconButton>
+	);
+};
 
 /**
  * DesktopNavbar - Top navigation bar for desktop layout
@@ -13,7 +57,7 @@ import { UserProfileMenu } from "./UserProfileMenu";
  * Features:
  * - App logo/brand
  * - Navigation links (Dashboard, Posts, Create Post)
- * - User profile menu on right
+ * - User profile avatar on right
  * - Sticky position
  */
 export const DesktopNavbar = () => {
@@ -97,8 +141,8 @@ export const DesktopNavbar = () => {
 					))}
 				</Box>
 
-				{/* User Profile Menu */}
-				<UserProfileMenu />
+				{/* User Profile Avatar */}
+				<ProfileAvatar />
 			</Toolbar>
 		</AppBar>
 	);

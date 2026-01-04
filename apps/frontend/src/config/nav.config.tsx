@@ -1,7 +1,6 @@
 import { DashboardIcon } from "@connected-repo/ui-mui/icons/DashboardIcon";
 import { GridViewIcon } from "@connected-repo/ui-mui/icons/GridViewIcon";
 import { HomeIcon } from "@connected-repo/ui-mui/icons/HomeIcon";
-import { PostAddIcon } from "@connected-repo/ui-mui/icons/PostAddIcon";
 import { SettingsIcon } from "@connected-repo/ui-mui/icons/SettingsIcon";
 
 interface NavItem {
@@ -37,11 +36,5 @@ export const navItems: NavItem[] = [
 		path: "/stats",
 		desktopIcon: <SettingsIcon fontSize="small" />,
 		mobileIcon: <SettingsIcon />,
-	},
-	{
-		label: "Add",
-		path: "/user-stack/new",
-		desktopIcon: <PostAddIcon fontSize="small" />,
-		mobileIcon: <PostAddIcon />,
 	},
 ];

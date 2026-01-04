@@ -1,15 +1,17 @@
+import { LoadingSpinner } from "@connected-repo/ui-mui/components/LoadingSpinner";
 import { SuccessAlert } from "@connected-repo/ui-mui/components/SuccessAlert";
 import { useRhfForm } from "@connected-repo/ui-mui/rhf-form/useRhfForm";
 import type { DaysOfWeek } from "@connected-repo/zod-schemas/enums.zod";
-import type { UserStackCreateInput } from "@connected-repo/zod-schemas/user_stack.zod";
-import { orpcFetch } from "@frontend/utils/orpc.client";
+import { orpc, orpcFetch } from "@frontend/utils/orpc.client";
 import { SUPPLEMENT_UNITS } from "@frontend/utils/supplement.constants";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import z from "zod";
 import { UserStackFormFields } from "./UserStackFormFields";
 
-const createUserStackFormSchema = z.object({
+const editUserStackFormSchema = z.object({
 	name: z.string().min(1, "Name is required"),
 	instructions: z.array(z.object({ value: z.string() })),
 	isActive: z.boolean(),
@@ -39,14 +41,23 @@ const createUserStackFormSchema = z.object({
 	path: ["customUnit"],
 });
 
-type CreateUserStackFormData = z.infer<typeof createUserStackFormSchema>;
+type EditUserStackFormData = z.infer<typeof editUserStackFormSchema>;
 
-export function CreateUserStackForm() {
+interface EditUserStackFormProps {
+	stackId: string;
+}
+
+export function EditUserStackForm({ stackId }: EditUserStackFormProps) {
+	const navigate = useNavigate();
 	const [success, setSuccess] = useState("");
 	
+	const { data: userStack, isLoading } = useQuery(
+		orpc.userStacks.getById.queryOptions({ input: { id: stackId } })
+	);
+
 	// Wrap onSubmit in useCallback to prevent recreating the function on every render
 	// This is critical because the function is passed to useRhfForm which memoizes the provider
-	const onSubmit = useCallback(async (data: CreateUserStackFormData) => {
+	const onSubmit = useCallback(async (data: EditUserStackFormData) => {
 			const instructions: string[] = data.instructions
 				.map((i) => i.value.trim())
 				.filter((i) => i);
@@ -69,7 +80,8 @@ export function CreateUserStackForm() {
 
 			const finalUnit = data.unit === "Other" ? data.customUnit : data.unit;
 
-			const submitData: UserStackCreateInput = {
+			const submitData = {
+				id: stackId,
 				name: data.name,
 				isActive: data.isActive,
 				dosage: Number(data.dosage),
@@ -79,15 +91,18 @@ export function CreateUserStackForm() {
 				days: data.days as DaysOfWeek[],
 				imageUrl: data.imageUrl || null,
 			};
-			await orpcFetch.userStacks.create(submitData);
-			setSuccess("User stack item added successfully!");
-			setTimeout(() => setSuccess(""), 3000);
-		}, []);
+			await orpcFetch.userStacks.update(submitData);
+			setSuccess("Supplement updated successfully!");
+			setTimeout(() => {
+				setSuccess("");
+				navigate(`/user-stack/${stackId}`);
+			}, 1500);
+		}, [stackId, navigate]);
 
-	const { formMethods, RhfFormProvider } = useRhfForm<CreateUserStackFormData>({
+	const { formMethods, RhfFormProvider } = useRhfForm<EditUserStackFormData>({
 		onSubmit,
 		formConfig: {
-			resolver: zodResolver(createUserStackFormSchema),
+			resolver: zodResolver(editUserStackFormSchema),
 			defaultValues: {
 				name: "",
 				instructions: [{ value: "" }],
@@ -102,12 +117,63 @@ export function CreateUserStackForm() {
 		},
 	});
 
+	// Update form values when userStack data is loaded
+	useEffect(() => {
+		if (userStack) {
+			// Convert times from 24-hour format (HH:MM) to 12-hour format with period
+			const convertedTimes = userStack.timesOfDay.map(time => {
+				const [hours, minutes] = time.split(":");
+				const hour24 = Number.parseInt(hours || "0", 10);
+				const minute = minutes || "00";
+				
+				let period: "AM" | "PM" = "AM";
+				let hour12 = hour24;
+				
+				if (hour24 >= 12) {
+					period = "PM";
+					if (hour24 > 12) {
+						hour12 = hour24 - 12;
+					}
+				} else if (hour24 === 0) {
+					hour12 = 12;
+				}
+				
+				return {
+					hour: hour12.toString().padStart(2, "0"),
+					minute,
+					period,
+				};
+			});
+
+			// Check if unit is a standard one or custom
+			const isStandardUnit = SUPPLEMENT_UNITS.includes(userStack.unit as typeof SUPPLEMENT_UNITS[number]);
+			
+			formMethods.reset({
+				name: userStack.name,
+				instructions: userStack.instructions.length > 0 
+					? userStack.instructions.map(i => ({ value: i }))
+					: [{ value: "" }],
+				isActive: userStack.isActive,
+				dosage: userStack.dosage.toString(),
+				unit: isStandardUnit ? userStack.unit as typeof SUPPLEMENT_UNITS[number] : "Other",
+				customUnit: isStandardUnit ? "" : userStack.unit,
+				days: userStack.days,
+				timesOfDay: convertedTimes,
+				imageUrl: userStack.imageUrl || undefined,
+			});
+		}
+	}, [userStack, formMethods]);
+
+	if (isLoading) {
+		return <LoadingSpinner text="Loading supplement..." />;
+	}
+
 	return (
 		<RhfFormProvider>
 			<UserStackFormFields 
 				formMethods={formMethods}
-				submitButtonText="Confirm & Activate"
-				submittingText="Adding..."
+				submitButtonText="Update Supplement"
+				submittingText="Updating..."
 			/>
 			<SuccessAlert message={success} />
 		</RhfFormProvider>

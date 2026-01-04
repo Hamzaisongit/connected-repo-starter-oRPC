@@ -1,14 +1,22 @@
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { Container } from "@connected-repo/ui-mui/layout/Container";
+import { BackButton } from "@frontend/components/BackButton";
 import { CreateUserStackForm } from "@frontend/modules/user-stack/components/CreateUserStackForm";
 
 export default function CreateUserStackPage() {
 	return (
 		<Container maxWidth="sm" sx={{ pb: 12 }}>
-
 			{/* Header */}
-			<Box sx={{ mb: 2, textAlign: "center" }}>
+			<Box sx={{ mb: 2, textAlign: "center", position: "relative" }}>
+				<BackButton
+					sx={{
+						position: "absolute",
+						left: 0,
+						top: "50%",
+						transform: "translateY(-50%)",
+					}}
+				/>
 				<Typography
 					variant="h4"
 					component="h1"

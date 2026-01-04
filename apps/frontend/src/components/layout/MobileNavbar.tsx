@@ -1,39 +1,56 @@
+import { Avatar } from "@connected-repo/ui-mui/data-display/Avatar";
 import { Paper } from "@connected-repo/ui-mui/layout/Paper";
-import { BottomNavigation } from "@connected-repo/ui-mui/navigation/BottomNavigation";
-import { BottomNavigationAction } from "@connected-repo/ui-mui/navigation/BottomNavigationAction";
-import { AccountCircleIcon } from "@connected-repo/ui-mui/icons/AccountCircleIcon";
+import { Box } from "@connected-repo/ui-mui/layout/Box";
+import { IconButton } from "@connected-repo/ui-mui/navigation/IconButton";
+import type { SessionInfo } from "@frontend/contexts/UserContext";
 import { navItems } from "@frontend/config/nav.config";
-import { useLocation, useNavigate } from "react-router";
+import { useLoaderData, useLocation, useNavigate } from "react-router";
+
+/**
+ * ProfileAvatar - Simple clickable avatar that navigates to profile
+ */
+const ProfileAvatar = () => {
+	const navigate = useNavigate();
+	const sessionInfo = useLoaderData() as SessionInfo | undefined;
+	const user = sessionInfo?.user;
+
+	return (
+		<IconButton
+			onClick={() => navigate("/profile")}
+			size="small"
+			sx={{
+				transition: "transform 0.2s ease-in-out",
+				"&:hover": {
+					transform: "scale(1.05)",
+				},
+			}}
+			aria-label="Go to profile"
+		>
+			<Avatar
+				src={user?.image || undefined}
+				alt={user?.name || user?.email || "User"}
+				sx={{
+					width: 40,
+					height: 40,
+					border: "2px solid",
+					borderColor: "#ffffff",
+					background: user?.image ? "transparent" : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+					boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
+					transition: "all 0.2s ease-in-out",
+					"&:hover": {
+						boxShadow: "0px 6px 16px rgba(0, 0, 0, 0.12)",
+					},
+				}}
+			>
+				{!user?.image && (user?.name?.[0] || user?.email?.[0] || "U")}
+			</Avatar>
+		</IconButton>
+	);
+};
 
 export const MobileNavbar = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
-
-	// Map paths to bottom nav indices
-	const getBottomNavValue = () => {
-		// Check navigation items first
-		const navIndex = navItems.findIndex(item => item.path === location.pathname);
-		if (navIndex !== -1) return navIndex;
-
-		// Profile is the last item
-		if (location.pathname === "/profile") return navItems.length;
-
-		return 0; // Default to first nav item (Dashboard)
-	};
-
-	const handleBottomNavChange = (_event: React.SyntheticEvent, newValue: number) => {
-		// If profile is clicked (last item), navigate to profile
-		if (newValue === navItems.length) {
-			navigate("/profile");
-			return;
-		}
-
-		// Navigate to the selected nav item
-		const item = navItems[newValue];
-		if (item) {
-			navigate(item.path);
-		}
-	};
 
   return (
 		<>
@@ -55,45 +72,50 @@ export const MobileNavbar = () => {
 				}}
 				elevation={0}
 			>
-				<BottomNavigation
-					value={getBottomNavValue()}
-					onChange={handleBottomNavChange}
-					showLabels={false}
-					sx={{
-						height: 64,
-						background: "transparent",
-						borderRadius: "100px",
-						"& .MuiBottomNavigationAction-root": {
-							minWidth: 60,
-							px: 0,
-							color: "#CBD5E1", // Inactive: light grey
-							transition: "all 0.3s ease-in-out",
-							"&.Mui-selected": {
-								color: "#1A1C2E", // Active: deep navy
-								"& .MuiSvgIcon-root": {
-									transform: "scale(1.2)",
-								},
-							},
-							"&:active": {
-								transform: "scale(0.95)",
-							},
-							"& .MuiSvgIcon-root": {
-								fontSize: "1.5rem",
-								transition: "transform 0.3s ease-in-out",
-							},
-						},
-					}}
-				>
+				<Box sx={{ 
+					display: "flex", 
+					alignItems: "center", 
+					justifyContent: "space-between",
+					height: 64,
+					px: 2,
+				}}>
 					{/* Navigation items from config */}
-					{navItems.map((item) => (
-						<BottomNavigationAction
+					{navItems.map((item, index) => (
+						<Box
 							key={item.path}
-							icon={item.mobileIcon || item.desktopIcon}
-						/>
+							onClick={() => navigate(item.path)}
+							sx={{
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+								flex: 1,
+								height: "100%",
+								cursor: "pointer",
+								color: location.pathname === item.path ? "#1A1C2E" : "#CBD5E1",
+								transition: "all 0.3s ease-in-out",
+								"&:active": {
+									transform: "scale(0.95)",
+								},
+								"& .MuiSvgIcon-root": {
+									fontSize: "1.5rem",
+									transition: "transform 0.3s ease-in-out",
+									transform: location.pathname === item.path ? "scale(1.2)" : "scale(1)",
+								},
+							}}
+						>
+							{item.mobileIcon || item.desktopIcon}
+						</Box>
 					))}
-					{/* Profile button */}
-					<BottomNavigationAction icon={<AccountCircleIcon />} />
-				</BottomNavigation>
+					{/* Profile Avatar */}
+					<Box sx={{ 
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "center",
+						flex: 1,
+					}}>
+						<ProfileAvatar />
+					</Box>
+				</Box>
 			</Paper>
 		</>
 	);

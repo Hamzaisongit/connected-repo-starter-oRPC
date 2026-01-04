@@ -42,9 +42,10 @@ export const AppLayout = () => {
 					flexGrow: 1,
 					pt: { xs: 2, md: 3 },
 					pb: { xs: 10, md: 3 }, // Extra padding bottom on mobile for bottom nav
-					px: { xs: 2, sm: 3, md: 4 },
 					position: "relative",
 					zIndex: 1,
+					// Remove horizontal padding to allow full-width centering
+					px: 0,
 				}}
 			>
 				<Outlet context={sessionInfo} />
