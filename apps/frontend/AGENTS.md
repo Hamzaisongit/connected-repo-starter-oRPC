@@ -82,8 +82,9 @@ const { data, isLoading } = orpc.adherenceLog.getAll.useQuery()
 const createLog = orpc.adherenceLog.create.useMutation()
 await createLog.mutateAsync({ supplementId: 'uuid', status: 'Taken on-time', scheduledFor: new Date() })
 ```
+# Visual & UX Identity System
 
-## Design Principles (CRITICAL)
+### Design Principles (CRITICAL)
 
 **Beautiful, Smooth, Delightful**:
 - Tasteful colors, generous spacing, clear typography
@@ -91,6 +92,43 @@ await createLog.mutateAsync({ supplementId: 'uuid', status: 'Taken on-time', sch
 - Immediate feedback on actions
 - Elegant loading (skeleton > spinner)
 - Friendly errors, inviting empty states
+
+### Design Language: "Airy Compliance"
+The app must feel like a premium wellness space, not a medical tool. We follow a **Glassmorphism/Neo-minimalist** approach with soft shadows, high-contrast typography, and generous whitespace.
+
+**Key Aesthetic Principles**:
+- **Glassmorphism** (where applicable): Semi-transparent backgrounds with backdrop blur for depth
+- **High border radii**: 32px for cards/buttons, creating a modern, friendly feel
+- **Soft gradients**: Subtle transitions instead of flat colors
+- **Airy layouts**: Generous spacing, breathing room between elements
+- **Don't overdo it**: Apply glass effects selectively for impact, not everywhere
+
+### Core UI Specs (MUI Overrides)
+- **Border Radius:** Global `32px` for main cards and buttons (Neo-minimalist style). Smaller components (chips) use `100px`.
+- **Backgrounds:** Use subtle linear gradients instead of flat colors. 
+  - Light Mode: `linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%)`
+  - Cards: Semi-transparent white (#FFFFFFCC) with `backdrop-filter: blur(10px)` for glassmorphism effect
+- **Typography:** - Headings: Serif font (e.g., 'Playfair Display' or 'Georgia') for "Oops, missed a dose?" to feel personal.
+  - Body: San-serif (System UI) for legibility.
+- **Buttons:**
+  - Primary: Deep Navy (#1A1C2E) with white text.
+  - Secondary: Soft Tint (#E0F2FE) with primary-colored text.
+- **Shadows:** Use "Soft Depth" — `box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.05)`.
+
+**Glassmorphism Usage** (selective, not everywhere):
+```tsx
+// Hero sections, feature cards, modals - places that benefit from depth
+<Box sx={{
+  background: 'rgba(255, 255, 255, 0.8)',
+  backdropFilter: 'blur(10px)',
+  borderRadius: '32px',
+}} />
+```
+
+### Component States
+- **Overdue/Missed:** Use a soft "Muted Salmon" (#FEE2E2 text on white) rather than harsh red.
+- **Success:** Use "Sage Green" (#4F6F52).
+- **Interactive:** Every button must be "one-thumb" height (min 56px).
 
 **Color**:
 ```tsx

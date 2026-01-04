@@ -1,4 +1,5 @@
 import { db } from "@backend/db/db";
+import { DAYS_OF_WEEK_ENUM, type DaysOfWeek } from "@connected-repo/zod-schemas/enums.zod";
 
 export async function seedUserStacks(userId: string) {
   console.info("Seeding user stacks...");
@@ -13,8 +14,8 @@ export async function seedUserStacks(userId: string) {
       isActive: true,
       dosage: 5000,
       unit: "IU",
-      days: "Monday" as const,
-      timesOfDay: ["morning"],
+      days: [...DAYS_OF_WEEK_ENUM] as DaysOfWeek[],
+      timesOfDay: ["08:00"],
       imageUrl: "https://example.com/vitamin-d.jpg",
     },
     {
@@ -24,8 +25,8 @@ export async function seedUserStacks(userId: string) {
       isActive: true,
       dosage: 1000,
       unit: "mg",
-      days: "Tuesday" as const,
-      timesOfDay: ["evening"],
+      days: [...DAYS_OF_WEEK_ENUM] as DaysOfWeek[],
+      timesOfDay: ["12:00", "18:00"],
       imageUrl: "https://example.com/omega3.jpg",
     },
     {
@@ -35,8 +36,8 @@ export async function seedUserStacks(userId: string) {
       isActive: false,
       dosage: 400,
       unit: "mg",
-      days: "Sunday" as const,
-      timesOfDay: ["night"],
+      days: ["Sunday"] as DaysOfWeek[],
+      timesOfDay: ["21:00"],
       imageUrl: null,
     },
   ];

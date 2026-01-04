@@ -43,7 +43,7 @@ export const RhfSelect = ({
           error={!!error}
           sx={{
             // Base styling
-            mb: { xs: 2, md: 2.5 },
+            mb: 0,
             // Custom styling override
             ...sx,
           }}

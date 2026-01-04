@@ -5,15 +5,34 @@ import { CreateUserStackForm } from "@frontend/modules/user-stack/components/Cre
 
 export default function CreateUserStackPage() {
 	return (
-		<Container maxWidth="md" sx={{ py: 4 }}>
-			<Box sx={{ mb: 4 }}>
-				<Typography variant="h4" component="h1" gutterBottom>
-					Add to Your Stack
+		<Container maxWidth="sm" sx={{ pb: 12 }}>
+
+			{/* Header */}
+			<Box sx={{ mb: 2, textAlign: "center" }}>
+				<Typography
+					variant="h4"
+					component="h1"
+					sx={{
+						fontFamily: '"Playfair Display", Georgia, serif',
+						fontSize: "1.75rem",
+						fontWeight: 700,
+						color: "#1A1C2E",
+						mb: 0.5,
+					}}
+				>
+					Build Your Stack
 				</Typography>
-				<Typography variant="body1" color="text.secondary">
-					Create a new supplement or medication in your health stack
+				<Typography
+					sx={{
+						fontSize: "0.875rem",
+						color: "#64748B",
+						lineHeight: 1.5,
+					}}
+				>
+					Add your supplements here.
 				</Typography>
 			</Box>
+
 			<CreateUserStackForm />
 		</Container>
 	);

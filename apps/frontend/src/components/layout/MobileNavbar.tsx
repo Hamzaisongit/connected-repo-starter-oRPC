@@ -46,15 +46,16 @@ export const MobileNavbar = () => {
 				position="sticky"
 				elevation={0}
 				sx={{
-					bgcolor: "background.paper",
-					borderBottom: "1px solid",
-					borderColor: "divider",
+					background: "transparent",
+					backdropFilter: "blur(10px)",
+					WebkitBackdropFilter: "blur(10px)", // Safari support
+					borderBottom: "none",
 				}}
 			>
 				<Toolbar
 					sx={{
 						minHeight: 56,
-						px: 2,
+						px: 3,
 						justifyContent: "space-between",
 					}}
 				>
@@ -71,9 +72,10 @@ export const MobileNavbar = () => {
 							variant="h6"
 							component="div"
 							sx={{
-								fontWeight: 700,
+								fontFamily: '"Playfair Display", Georgia, serif',
+								fontWeight: 600,
 								color: "primary.main",
-								letterSpacing: -0.5,
+								letterSpacing: "0.02em",
 							}}
 						>
 							HelioCoach
@@ -85,37 +87,49 @@ export const MobileNavbar = () => {
 				</Toolbar>
 			</AppBar>
 
-			{/* Bottom Navigation */}
+			{/* Floating Glass Bottom Navigation - Pill Style */}
 			<Paper
 				sx={{
 					position: "fixed",
-					bottom: 0,
-					left: 0,
-					right: 0,
+					bottom: 24,
+					left: 16,
+					right: 16,
 					zIndex: 1000,
-					borderTop: "1px solid",
-					borderColor: "divider",
+					borderRadius: "100px",
+					background: "rgba(255, 255, 255, 0.7)",
+					backdropFilter: "blur(20px)",
+					WebkitBackdropFilter: "blur(20px)", // Safari support
+					boxShadow: "0px 10px 40px rgba(0, 0, 0, 0.06)",
+					border: "1px solid rgba(255, 255, 255, 0.3)",
+					overflow: "hidden",
 				}}
-				elevation={3}
+				elevation={0}
 			>
 				<BottomNavigation
 					value={getBottomNavValue()}
 					onChange={handleBottomNavChange}
-					showLabels
+					showLabels={false}
 					sx={{
 						height: 64,
+						background: "transparent",
+						borderRadius: "100px",
 						"& .MuiBottomNavigationAction-root": {
 							minWidth: 60,
 							px: 0,
-							transition: "all 0.2s ease-in-out",
+							color: "#CBD5E1", // Inactive: light grey
+							transition: "all 0.3s ease-in-out",
 							"&.Mui-selected": {
-								color: "primary.main",
+								color: "#1A1C2E", // Active: deep navy
 								"& .MuiSvgIcon-root": {
-									transform: "scale(1.1)",
+									transform: "scale(1.2)",
 								},
 							},
 							"&:active": {
 								transform: "scale(0.95)",
+							},
+							"& .MuiSvgIcon-root": {
+								fontSize: "1.5rem",
+								transition: "transform 0.3s ease-in-out",
 							},
 						},
 					}}
@@ -124,13 +138,7 @@ export const MobileNavbar = () => {
 					{navItems.map((item) => (
 						<BottomNavigationAction
 							key={item.path}
-							label={item.label}
 							icon={item.mobileIcon || item.desktopIcon}
-							sx={{
-								"&:hover": {
-									bgcolor: "action.hover",
-								},
-							}}
 						/>
 					))}
 				</BottomNavigation>

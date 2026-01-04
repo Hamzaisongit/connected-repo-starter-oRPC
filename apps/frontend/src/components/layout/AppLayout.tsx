@@ -29,7 +29,8 @@ export const AppLayout = () => {
 				display: "flex",
 				flexDirection: "column",
 				minHeight: "100vh",
-				bgcolor: "background.default",
+				background: "linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%)",
+				position: "relative",
 			}}
 		>
 			{isMobile ? <MobileNavbar /> : <DesktopNavbar />}
@@ -42,6 +43,8 @@ export const AppLayout = () => {
 					pt: { xs: 2, md: 3 },
 					pb: { xs: 10, md: 3 }, // Extra padding bottom on mobile for bottom nav
 					px: { xs: 2, sm: 3, md: 4 },
+					position: "relative",
+					zIndex: 1,
 				}}
 			>
 				<Outlet context={sessionInfo} />

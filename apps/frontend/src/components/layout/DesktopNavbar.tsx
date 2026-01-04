@@ -27,12 +27,13 @@ export const DesktopNavbar = () => {
 			position="sticky"
 			elevation={0}
 			sx={{
-				bgcolor: "background.paper",
-				borderBottom: "1px solid",
-				borderColor: "divider",
+				background: "transparent",
+				backdropFilter: "blur(10px)",
+				WebkitBackdropFilter: "blur(10px)", // Safari support
+				borderBottom: "none",
 			}}
 		>
-			<Toolbar sx={{ gap: 2 }}>
+			<Toolbar sx={{ gap: 2, px: 3, justifyContent: "space-between" }}>
 				{/* Logo/Brand */}
 				<Box
 					onClick={() => navigate("/dashboard")}
@@ -40,7 +41,6 @@ export const DesktopNavbar = () => {
 						display: "flex",
 						alignItems: "center",
 						cursor: "pointer",
-						mr: 4,
 						transition: "transform 0.2s ease-in-out",
 						"&:hover": {
 							transform: "scale(1.02)",
@@ -51,9 +51,10 @@ export const DesktopNavbar = () => {
 						variant="h6"
 						component="div"
 						sx={{
-							fontWeight: 700,
+							fontFamily: '"Playfair Display", Georgia, serif',
+							fontWeight: 600,
 							color: "primary.main",
-							letterSpacing: -0.5,
+							letterSpacing: "0.02em",
 						}}
 					>
 						HelioCoach
@@ -61,7 +62,7 @@ export const DesktopNavbar = () => {
 				</Box>
 
 				{/* Navigation Links */}
-				<Box sx={{ flexGrow: 1, display: "flex", gap: 1 }}>
+				<Box sx={{ display: "flex", gap: 1 }}>
 					{navItems.map((item) => (
 						<Button
 							key={item.path}
@@ -70,7 +71,7 @@ export const DesktopNavbar = () => {
 							sx={{
 								px: 2,
 								py: 1,
-								borderRadius: 2,
+								borderRadius: "32px",
 								color: isActive(item.path)
 									? "primary.main"
 									: "text.secondary",
@@ -79,6 +80,7 @@ export const DesktopNavbar = () => {
 									: "transparent",
 								fontWeight: isActive(item.path) ? 600 : 500,
 								transition: "all 0.2s ease-in-out",
+								minHeight: "auto",
 								"&:hover": {
 									bgcolor: isActive(item.path)
 										? "primary.light"

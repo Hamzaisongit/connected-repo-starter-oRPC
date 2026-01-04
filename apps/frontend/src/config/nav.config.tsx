@@ -2,6 +2,7 @@ import { DashboardIcon } from "@connected-repo/ui-mui/icons/DashboardIcon";
 import { GridViewIcon } from "@connected-repo/ui-mui/icons/GridViewIcon";
 import { HomeIcon } from "@connected-repo/ui-mui/icons/HomeIcon";
 import { PostAddIcon } from "@connected-repo/ui-mui/icons/PostAddIcon";
+import { SettingsIcon } from "@connected-repo/ui-mui/icons/SettingsIcon";
 
 interface NavItem {
 	/** Display label for the nav item */
@@ -20,7 +21,7 @@ interface NavItem {
  */
 export const navItems: NavItem[] = [
 	{
-		label: "Dashboard",
+		label: "Home",
 		path: "/dashboard",
 		desktopIcon: <DashboardIcon fontSize="small" />,
 		mobileIcon: <HomeIcon />, // Different icon for mobile
@@ -32,7 +33,13 @@ export const navItems: NavItem[] = [
 		mobileIcon: <GridViewIcon />,
 	},
 	{
-		label: "Add to Stack",
+		label: "Stats",
+		path: "/stats",
+		desktopIcon: <SettingsIcon fontSize="small" />,
+		mobileIcon: <SettingsIcon />,
+	},
+	{
+		label: "Add",
 		path: "/user-stack/new",
 		desktopIcon: <PostAddIcon fontSize="small" />,
 		mobileIcon: <PostAddIcon />,

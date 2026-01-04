@@ -23,7 +23,7 @@ export const RhfTextField = ({ name, sx, ...props }: RhfTextFieldProps) => {
           helperText={error?.message || props.helperText}
           sx={{
             // Base styling
-            mb: { xs: 2, md: 2.5 },
+            mb: 0,
             "& .MuiInputBase-input": {
               fontSize: { xs: "16px", md: "14px" }, // Prevent iOS zoom on focus
             },

@@ -9,7 +9,7 @@ const getMine = rpcProtectedProcedure
 		const userStats = await db.userStats
 			.selectAll()
 			.where({ userId: user.id })
-			.take();
+			.takeOptional();
 
 		return userStats || null;
 	});
@@ -28,7 +28,7 @@ const getCurrentStreak = rpcProtectedProcedure
 		const userStats = await db.userStats
 			.select("currentStreak", "currentStreakShieldsUsed")
 			.where({ userId: user.id })
-			.take();
+			.takeOptional();
 
 		return userStats || null;
 	});
@@ -47,7 +47,7 @@ const getLongestStreak = rpcProtectedProcedure
 		const userStats = await db.userStats
 			.select("longestStreak", "longestStreakShieldsUsed")
 			.where({ userId: user.id })
-			.take();
+			.takeOptional();
 
 		return userStats || null;
 	});

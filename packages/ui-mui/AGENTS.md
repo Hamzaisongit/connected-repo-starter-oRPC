@@ -101,30 +101,76 @@ return (
 import { ThemeProvider } from '@connected-repo/ui-mui/theme/ThemeProvider'
 ```
 
-**Colors**: Primary (#007bff), Secondary (#6c757d), Success (#28a745), Error (#dc3545)
-**Spacing**: 8px base unit
-**Border Radius**: 5px
-**Defaults**: Buttons (no elevation, font-weight 500), TextFields (outlined, small), Cards (subtle shadow)
+### Design Style: Glassmorphism/Neo-minimalist "Airy Compliance"
+
+**Aesthetic Approach**:
+- Premium wellness space aesthetic (not medical/clinical)
+- Glassmorphism effects applied selectively for depth and impact
+- High border radii for modern, friendly feel
+- Soft gradients over flat colors
+- Generous spacing and "airy" layouts
+
+**Colors**:
+- Primary: Deep Navy (#1A1C2E) - primary buttons with white text
+- Secondary: Soft Tint (#E0F2FE) - secondary buttons with primary-colored text
+- Success: Sage Green (#4F6F52)
+- Error: Muted Salmon (#FEE2E2) - soft error states, not harsh red
+- Warning: Soft yellow tints
+- Info: Light blue tints
+
+**Spacing**: 8px base unit (generous spacing for airy feel)
+
+**Border Radius**: 
+- 32px for cards/buttons (Neo-minimalist style)
+- 100px for chips and smaller components
+
+**Shadows**: Soft Depth - `box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.05)` (avoid harsh shadows)
+
+**Backgrounds**:
+- Semi-transparent papers: `rgba(255, 255, 255, 0.8)` for glassmorphism
+- Apply `backdrop-filter: blur(10px)` where glass effect enhances UX
+- Subtle gradients for page backgrounds
+
+**Component Defaults**:
+- Buttons: 56px min height ("one-thumb"), soft shadows, 32px border radius
+- TextFields: Outlined, small, 32px border radius
+- Cards: 32px border radius, soft depth shadows, hover lift effect
+- Smooth transitions: 200-300ms ease-in-out
 
 ## Design Principles (CRITICAL)
 
 **Beautiful, Smooth, Delightful**: Tasteful colors, generous spacing, clear typography, smooth transitions, immediate feedback
 
+**When to Apply Glassmorphism** (selective, not everywhere):
+- Hero sections, feature cards, modals - places that benefit from depth
+- Use semi-transparent backgrounds with backdrop blur
+- Don't overdo it - apply where it enhances UX
+
+```tsx
+// Glassmorphism example for feature cards
+<Box sx={{
+  background: 'rgba(255, 255, 255, 0.8)',
+  backdropFilter: 'blur(10px)',
+  borderRadius: '32px',
+  boxShadow: '0px 10px 30px rgba(0, 0, 0, 0.05)',
+}} />
+```
+
 **Color Usage**:
 ```tsx
 <Box sx={{
-  bgcolor: 'background.paper',
+  bgcolor: 'background.paper',  // Semi-transparent for glass effect
   color: 'text.primary',
   borderColor: 'divider',
 }} />
 ```
 
-**Spacing** (theme.spacing = 8px):
+**Spacing** (theme.spacing = 8px, use generously):
 ```tsx
 sx={{ p: 2, mb: 3, gap: 1.5 }}  // 16px, 24px, 12px
 ```
 
-**Transitions** (200-300ms):
+**Transitions** (200-300ms smooth):
 ```tsx
 sx={{
   transition: 'all 0.2s ease-in-out',
@@ -132,9 +178,15 @@ sx={{
 }}
 ```
 
-**Typography**:
+**Typography** (high contrast, readable):
 ```tsx
 <Typography variant="h5" fontWeight={600} lineHeight={1.7} color="text.primary" />
+```
+
+**Border Radius** (Neo-minimalist):
+```tsx
+sx={{ borderRadius: '32px' }}  // Cards, buttons
+sx={{ borderRadius: '100px' }} // Chips, pills
 ```
 
 **Loading**: Use skeleton > spinner
@@ -201,14 +253,21 @@ Rebuild: `yarn build`
 ```tsx
 <Box sx={{
   p: 2,                    // Padding: 16px
-  bgcolor: 'primary.main', // Theme color
-  borderRadius: 1,         // 5px
-  '&:hover': { bgcolor: 'primary.dark' }
+  bgcolor: 'background.paper', // Semi-transparent for glassmorphism
+  backdropFilter: 'blur(10px)', // Apply where glass effect desired
+  borderRadius: '32px',    // Neo-minimalist high radius
+  boxShadow: '0px 10px 30px rgba(0, 0, 0, 0.05)', // Soft depth
+  transition: 'all 0.2s ease-in-out',
+  '&:hover': { 
+    transform: 'translateY(-2px)',
+    boxShadow: '0px 15px 40px rgba(0, 0, 0, 0.08)'
+  }
 }} />
 ```
 
-**Theme Spacing**: `p: 1` (8px), `p: 2` (16px), `p: 3` (24px)
-**Theme Colors**: `primary.main`, `error.light`, `divider`
+**Theme Spacing**: `p: 1` (8px), `p: 2` (16px), `p: 3` (24px) - use generously
+**Theme Colors**: `primary.main` (#1A1C2E), `secondary.main` (#E0F2FE), `success.main` (#4F6F52), `error.main` (#FEE2E2)
+**Border Radius**: Use `'32px'` string for main components, `'100px'` for chips/pills
 
 ## Peer Dependencies
 ```json
@@ -235,9 +294,13 @@ import { Button } from '@connected-repo/ui-mui'
 2. ✅ Export types alongside components
 3. ✅ Use theme spacing/colors (not hardcoded)
 4. ✅ Extend MUI props for custom components
-5. ✅ Smooth transitions (200-300ms)
-6. ✅ Generous spacing
-7. ✅ Responsive (xs, sm, md, lg)
-8. ✅ Touch targets 44x44px min
-9. ❌ NO package root imports
-10. ❌ NO inline styles when sx available
+5. ✅ Smooth transitions (200-300ms ease-in-out)
+6. ✅ Generous spacing (airy layouts)
+7. ✅ High border radii (32px cards/buttons, 100px chips)
+8. ✅ Glassmorphism where applicable (selective, not everywhere)
+9. ✅ Soft depth shadows (avoid harsh shadows)
+10. ✅ Responsive (xs, sm, md, lg)
+11. ✅ Touch targets 44x44px min (56px for buttons)
+12. ❌ NO package root imports
+13. ❌ NO inline styles when sx available
+14. ❌ NO overdone glass effects (apply selectively)

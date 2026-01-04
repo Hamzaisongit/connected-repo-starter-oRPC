@@ -45,6 +45,10 @@ const routerObjectWithNavbar: ReactRouterWithNavbar[] = [
 				path: "auth/*",
 				Component: lazy(() => import("@frontend/modules/auth/auth.router")),
 			},
+			{
+				path: "welcome",
+				Component: lazy(() => import("@frontend/pages/Welcome.page")),
+			},
 			// Authenticated routes with AppLayout
 			{
 				element: <AppLayout />,
@@ -52,15 +56,21 @@ const routerObjectWithNavbar: ReactRouterWithNavbar[] = [
 				children: [
 					{
 						path: "dashboard",
-						Component: lazy(() => import("@frontend/pages/Dashboard.page")),
+						Component: lazy(() => import("@frontend/pages/Home.page")),
 					},
 					{
 						path: "user-stack/*",
 						Component: lazy(() => import("@frontend/modules/user-stack/user-stack.router")),
 					},
+
+					{
+						path: "stats",
+						Component: lazy(() => import("@frontend/pages/Stats.page")),
+					},
+
 					{
 						path: "profile",
-						Component: lazy(() => import("@frontend/pages/Dashboard.page")), // TODO: Create Profile page
+						Component: lazy(() => import("@frontend/pages/Home.page")), // TODO: Create Profile page
 					},
 				],
 			},

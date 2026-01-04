@@ -483,14 +483,16 @@ If after 60 days:
   - Users can add custom supplements
   - Fast autocomplete (< 100ms)
 
-**5.0.5: Add New Database Enums** ✅ COMPLETED
-- Added DAYS_OF_WEEK_ENUM: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+**5.0.5: Add New Database Enums** ✅ COMPLETED (UPDATED)
+- Initially added DAYS_OF_WEEK_ENUM, but later refactored to use flexible string arrays for days field
 - Added USER_ADHERENCE_STATUS_ENUM: ['Taken on-time', 'Taken late', 'Missed', 'Skipped']
-- Updated base_table.ts with new enum helpers
+- Updated base_table.ts with enum helpers (removed daysOfWeekEnum after refactoring)
+- **Deviation:** Days field changed from enum to array(t.string()) for better flexibility (multiple days per stack, custom day names)
 - **Acceptance Criteria:**
   - Enums added to database schema
   - Zod schemas created
   - Available in base table definitions
+  - Days field now supports flexible scheduling
 
 ---
 
@@ -903,6 +905,16 @@ If after 60 days:
   - One-tap actions work
   - Swipe gestures smooth
   - Mobile-optimized layout
+
+**8.1.6: Implement Today's Plan Endpoint** ✅ COMPLETED
+- Added getTodaysPlan oRPC endpoint for daily supplement overview
+- Calculates compliance percentage and overdue counts
+- Filters supplements by today's day and time, determines status from logs
+- **Acceptance Criteria:**
+  - Endpoint returns today's supplements with status
+  - Compliance stats calculated accurately
+  - Status includes pending, taken, overdue, missed
+  - Timezone-aware calculations
 
 ---
 

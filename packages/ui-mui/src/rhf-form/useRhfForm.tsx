@@ -16,11 +16,12 @@ export interface UseRhfFormProps<T extends FieldValues> {
   formConfig?: UseFormProps<T>;
 }
 
+// Stable default objects to prevent unnecessary re-renders
+const DEFAULT_ERROR_DISPLAYER = { show: true };
+
 export const useRhfForm = <T extends FieldValues>({
   onSubmit,
-  errorDisplayer = {
-    show: true,
-  },
+  errorDisplayer = DEFAULT_ERROR_DISPLAYER,
   numLockAlert = true,
   onInvalid,
   onError,

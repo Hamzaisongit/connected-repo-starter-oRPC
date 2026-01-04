@@ -1,5 +1,6 @@
 import { BaseTable } from "@backend/db/base_table";
 import { UserTable } from "@backend/modules/users/tables/users.table";
+import { DaysOfWeek } from "@connected-repo/zod-schemas/enums.zod";
 
 export class UserStackTable extends BaseTable {
   readonly table = "user_stacks";
@@ -15,7 +16,7 @@ export class UserStackTable extends BaseTable {
     isActive: t.boolean(),
     dosage: t.smallint(),
     unit: t.string(),
-    days: t.daysOfWeekEnum(),
+    days: t.array(t.string().narrowType((t) => t<DaysOfWeek>())),
     timesOfDay: t.array(t.string()),
     imageUrl: t.string().nullable(),
     ...t.timestamps(),

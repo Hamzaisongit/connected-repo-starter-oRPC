@@ -9,8 +9,6 @@ change(async (db) => {
 
   await db.createEnum('user_adherence_status_enum', ['Taken on-time', 'Taken late', 'Missed', 'Skipped']);
 
-  await db.createEnum('days_of_week_enum', ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']);
-
   await db.createEnum('webhook_status_enum', ['Pending', 'Sent', 'Failed']);
 
   await db.createTable(
@@ -183,7 +181,7 @@ change(async (db) => {
     isActive: t.boolean(),
     dosage: t.smallint(),
     unit: t.string(),
-    days: t.enum('days_of_week_enum'),
+    days: t.array(t.string()),
     timesOfDay: t.array(t.string()),
     imageUrl: t.string().nullable(),
     createdAt: t.timestamps().createdAt,

@@ -92,8 +92,13 @@ export const UserProfileMenu = ({
 					width: 40,
 					height: 40,
 					border: "2px solid",
-					borderColor: open ? "primary.main" : "divider",
+					borderColor: "#ffffff",
+					background: user?.image ? "transparent" : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+					boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
 					transition: "all 0.2s ease-in-out",
+					"&:hover": {
+						boxShadow: "0px 6px 16px rgba(0, 0, 0, 0.12)",
+					},
 				}}
 			>
 				{!user?.image && (user?.name?.[0] || user?.email?.[0] || "U")}

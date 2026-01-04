@@ -23,10 +23,10 @@ Sentry.init({
     Sentry.browserProfilingIntegration(),
     Sentry.browserTracingIntegration(),
     Sentry.replayIntegration(),
-    Sentry.feedbackIntegration({
-      // Additional SDK configuration goes in here, for example:
-      colorScheme: "system",
-    }),
+    // Sentry.feedbackIntegration({
+    //   // Additional SDK configuration goes in here, for example:
+    //   colorScheme: "system",
+    // }),
     Sentry.reactRouterV7BrowserTracingIntegration({
       useEffect,
       useLocation,

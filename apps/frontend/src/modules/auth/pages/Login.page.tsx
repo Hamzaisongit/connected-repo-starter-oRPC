@@ -77,7 +77,7 @@ export const LoginPage = () => {
 					provider: 'google',
 					callbackURL,
 					errorCallbackURL: `${env.VITE_USER_APP_URL}/auth/error`,
-					// newUserCallbackURL: "/welcome",
+					newUserCallbackURL: `${env.VITE_USER_APP_URL}/welcome`,
 				}, {
 					throw: true,
 				});
