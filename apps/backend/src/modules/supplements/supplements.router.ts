@@ -1,7 +1,8 @@
 import { db } from "@backend/db/db";
 import type { RpcAuthenticatedContext } from "@backend/procedures/protected.procedure";
 import { rpcProtectedProcedure } from "@backend/procedures/protected.procedure";
-import { type DAYS_OF_WEEK_ENUM, type DaysOfWeek, USER_ADHERENCE_STATUS_ENUM, userAdherenceStatusZod } from "@connected-repo/zod-schemas/enums.zod";
+import { type DAYS_OF_WEEK_ENUM, type DaysOfWeek, USER_ADHERENCE_STATUS_ENUM, userAdherenceStatusZod, daysOfWeekZod } from "@connected-repo/zod-schemas/enums.zod";
+import type { createSupplementZod, updateSupplementZod } from "@connected-repo/zod-schemas/supplement.zod";
 import type { QueryBase, QueryBuilder, Selectable } from "orchid-orm";
 import { z } from "zod";
 import type { UserAdherenceLogTable } from "../logs/tables/user_adherence_logs.table";
@@ -367,9 +368,121 @@ const getStreak = rpcProtectedProcedure.handler(async ({ context }: { context: R
 	return streakResult;
 });
 
+const getAllSupplements = rpcProtectedProcedure.handler(async ({ context }: { context: RpcAuthenticatedContext }) => {
+	const { user } = context;
+	const supplements = await db.supplements
+		.where({ userId: user.id })
+		.order({ createdAt: "DESC" })
+		.selectAll();
+	return supplements;
+});
+
+const createSupplement = rpcProtectedProcedure
+	.input(
+		z.object({
+			name: z.string().min(1).max(100),
+			dosage: z.number().min(0),
+			unit: z.string().min(1).max(50),
+			instructions: z.array(z.string().min(1).max(200)).min(1),
+			days: z.array(daysOfWeekZod).min(1),
+			timesOfDay: z.array(z.string().regex(/^\d{2}:\d{2}$/)).min(1),
+			isActive: z.boolean().default(true),
+			imageUrl: z.string().nullable().optional(),
+		}),
+	)
+	.handler(async ({ context, input }) => {
+		const { user } = context;
+		const { name, dosage, unit, instructions, days, timesOfDay, isActive, imageUrl } = input;
+
+		const supplement = await db.supplements.create({
+			userId: user.id,
+			name,
+			dosage,
+			unit,
+			instructions,
+			days,
+			timesOfDay,
+			isActive: isActive ?? true,
+			imageUrl,
+		});
+
+		return supplement;
+	});
+
+const updateSupplement = rpcProtectedProcedure
+	.input(
+		z.object({
+			id: z.string().uuid(),
+			name: z.string().min(1).max(100),
+			dosage: z.number().min(0),
+			unit: z.string().min(1).max(50),
+			instructions: z.array(z.string().min(1).max(200)).min(1),
+			days: z.array(daysOfWeekZod).min(1),
+			timesOfDay: z.array(z.string().regex(/^\d{2}:\d{2}$/)).min(1),
+			isActive: z.boolean(),
+			imageUrl: z.string().nullable().optional(),
+		}),
+	)
+	.handler(async ({ context, input }) => {
+		const { user } = context;
+		const { id, name, dosage, unit, instructions, days, timesOfDay, isActive, imageUrl } = input;
+
+		const supplement = await db.supplements
+			.where({ id, userId: user.id })
+			.update({
+				name,
+				dosage,
+				unit,
+				instructions,
+				days,
+				timesOfDay,
+				isActive,
+				imageUrl,
+			});
+
+		return supplement;
+	});
+
+const deleteSupplement = rpcProtectedProcedure
+	.input(
+		z.object({
+			id: z.string().uuid(),
+		}),
+	)
+	.handler(async ({ context, input }) => {
+		const { user } = context;
+		const { id } = input;
+
+		const deletedSupplement = await db.supplements.where({ id, userId: user.id }).delete();
+		return { success: true };
+	});
+
+const toggleActive = rpcProtectedProcedure
+	.input(
+		z.object({
+			id: z.string().uuid(),
+			isActive: z.boolean(),
+		}),
+	)
+	.handler(async ({ context, input }) => {
+		const { user } = context;
+		const { id, isActive } = input;
+
+		const supplement = await db.supplements
+			.where({ id, userId: user.id })
+			.update({ isActive });
+
+		return supplement;
+	});
+
 export const supplementsRouter = {
 	getDailySchedule,
 	recordAdherence,
 	getDailyProgress,
 	getStreak,
+	getAllSupplements,
+	createSupplement,
+	updateSupplement,
+	deleteSupplement,
+	toggleActive,
 };
