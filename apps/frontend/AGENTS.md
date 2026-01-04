@@ -82,7 +82,7 @@ const { data, isLoading } = orpc.adherenceLog.getAll.useQuery()
 const createLog = orpc.adherenceLog.create.useMutation()
 await createLog.mutateAsync({ supplementId: 'uuid', status: 'Taken on-time', scheduledFor: new Date() })
 ```
-# Visual & UX Identity System
+## Visual & UX Identity System
 
 ### Design Principles (CRITICAL)
 

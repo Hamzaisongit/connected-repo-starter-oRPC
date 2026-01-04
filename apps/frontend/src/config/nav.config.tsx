@@ -1,7 +1,7 @@
+import { CalendarTodayIcon } from "@connected-repo/ui-mui/icons/CalendarTodayIcon";
 import { DashboardIcon } from "@connected-repo/ui-mui/icons/DashboardIcon";
 import { GridViewIcon } from "@connected-repo/ui-mui/icons/GridViewIcon";
 import { HomeIcon } from "@connected-repo/ui-mui/icons/HomeIcon";
-import { SettingsIcon } from "@connected-repo/ui-mui/icons/SettingsIcon";
 
 interface NavItem {
 	/** Display label for the nav item */
@@ -34,7 +34,7 @@ export const navItems: NavItem[] = [
 	{
 		label: "Stats",
 		path: "/stats",
-		desktopIcon: <SettingsIcon fontSize="small" />,
-		mobileIcon: <SettingsIcon />,
+		desktopIcon: <CalendarTodayIcon fontSize="small" />,
+		mobileIcon: <CalendarTodayIcon />,
 	},
 ];
