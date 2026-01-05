@@ -14,6 +14,7 @@
 		"@sentry/react": "^10.32.1",
 		"@tanstack/react-query": "^5.90.5",
 		"better-auth": "^1.4.6",
+		"date-fns": "^4.1.0",
 		"material-react-table": "^3.2.1",
 		"react": "^19.2.0",
 		"react-dom": "^19.2.0",
@@ -41,7 +42,7 @@
 	"private": true,
 	"repository": "git@github.com:teziapp/connected-repo-starter-oRPC.git",
 	"scripts": {
-		"build": "tsc -b && npx vite build",
+		"build": "tsc -b && vite build",
 		"build:debug": "tsc -b tsconfig.app.json && vite build --debug",
 		"check-types": "tsc --noEmit",
 		"clean": "rm -rf node_modules && rm -rf dist",

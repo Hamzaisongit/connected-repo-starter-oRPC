@@ -166,7 +166,7 @@ export const UserProfileMenu = ({
 
 				{/* Dashboard */}
 				<MenuItem
-					onClick={() => handleNavigation("/dashboard")}
+					onClick={() => handleNavigation("/Home")}
 					sx={{
 						py: 1.5,
 						gap: 1.5,

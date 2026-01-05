@@ -116,7 +116,9 @@ const getInsights = rpcProtectedProcedure
 			};
 			for (const s of suppLogs) {
 				if (s.status === "Taken on-time" || s.status === "Taken late") compliantCount++;
-				if (s.status && typeof breakdown[s.status] === "number") breakdown[s.status] += 1;
+				if (s.status && s.status in breakdown) {
+					breakdown[s.status] = (breakdown[s.status] as number) + 1;
+				}
 			}
 			supplementCompliance[supp.id] = {
 				supplementId: supp.id,

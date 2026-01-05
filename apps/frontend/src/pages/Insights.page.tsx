@@ -12,7 +12,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
-import { alpha, Divider, Grid, LinearProgress, MenuItem, Select, Tooltip, useTheme } from "@mui/material";
+import { alpha, Divider, LinearProgress, MenuItem, Select, Tooltip, useTheme, Grid } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -218,11 +218,11 @@ const PeriodInsightsCard = ({
             {/* Dynamic Content Body */}
             <Box sx={{ minHeight: 180 }}>
                 {viewMode === 'split' ? (
-                    <Grid container spacing={2} alignItems="center">
-                        <Grid item xs={5} sx={{ display: 'flex', justifyContent: 'center' }}>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexDirection: { xs: 'column', md: 'row' } }}>
+                        <Box sx={{ flex: { xs: '1 0 auto', md: '0 0 42%' }, display: 'flex', justifyContent: 'center' }}>
                             <SimpleDonutChart data={breakdownData} />
-                        </Grid>
-                        <Grid item xs={7}>
+                        </Box>
+                        <Box sx={{ flex: { xs: '1 0 auto', md: '0 0 58%' } }}>
                             <Stack spacing={1.5}>
                                 {breakdownData.map((item, idx) => (
                                     <Box key={idx} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -240,8 +240,8 @@ const PeriodInsightsCard = ({
                                     </Box>
                                 ))}
                             </Stack>
-                        </Grid>
-                    </Grid>
+                        </Box>
+                    </Box>
                 ) : (
                     <SupplementPerformanceList data={supplementData} />
                 )}
@@ -288,10 +288,10 @@ const InsightsPage = () => {
     if (!insights) return <ErrorAlert message="No insights data available" />;
 
     // Prepare Data for Charts
-    const weeklyHistory = insights.weeklyCompliance.map(dc => Number(dc.adherencePercentage) || 0);
-    const monthlyHistory = insights.monthlyCompliance.map(dc => Number(dc.adherencePercentage) || 0);
+    const weeklyHistory = (insights as any).weeklyCompliance.map((dc: any) => Number(dc.adherencePercentage) || 0);
+    const monthlyHistory = (insights as any).monthlyCompliance.map((dc: any) => Number(dc.adherencePercentage) || 0);
 
-    const getBreakdownData = (breakdown: typeof insights.weeklyAdherenceBreakdown) => [
+    const getBreakdownData = (breakdown: any) => [
         { label: 'On Time', value: breakdown.takenOnTime, color: '#10b981', icon: <CheckCircleIcon fontSize="small" sx={{ color: '#10b981' }} /> },
         { label: 'Late', value: breakdown.takenLate, color: '#f59e0b', icon: <AccessTimeIcon fontSize="small" sx={{ color: '#f59e0b' }} /> },
         { label: 'Missed', value: breakdown.missed, color: '#ef4444', icon: <CancelIcon fontSize="small" sx={{ color: '#ef4444' }} /> },
@@ -329,40 +329,40 @@ const InsightsPage = () => {
 
                     {/* Summary Stats */}
                     <Card sx={{ p: 3, borderRadius: 4, width: '100%', boxShadow: '0px 2px 12px rgba(0,0,0,0.04)' }}>
-                        <Grid container justifyContent={'space-around'} alignItems='center'>
-                            <Grid item xs={6} sm={3}>
-                                <StatItem label="Streak" value={insights.userStats?.currentStreak ?? 0} subLabel={`Best: ${insights.userStats?.longestStreak ?? 0}`} color="#f59e0b" />
-                            </Grid>
-                        <Grid item xs={6} sm={3}>
-                            <StatItem
-                                label="Shields Left"
-                                value={todayCompliance?.dailyShieldOpeningBalance ?? 0}
-                                subLabel="Available today"
-                                color="#10b981"
-                            />
-                        </Grid>
-                        </Grid>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+                            <Box sx={{ flex: { xs: '1 0 100%', sm: '0 0 43%' } }}>
+                                <StatItem label="Streak" value={(insights as any).userStats?.currentStreak ?? 0} subLabel={`Best: ${(insights as any).userStats?.longestStreak ?? 0}`} color="#f59e0b" />
+                            </Box>
+                            <Box sx={{ flex: { xs: '1 0 100%', sm: '0 0 43%' } }}>
+                                <StatItem
+                                    label="Shields Left"
+                                    value={(todayCompliance as any)?.dailyShieldOpeningBalance ?? 0}
+                                    subLabel="Available today"
+                                    color="#10b981"
+                                />
+                            </Box>
+                        </Box>
                     </Card>
 
                     {/* Weekly Insights Card */}
-                    <PeriodInsightsCard 
+                    <PeriodInsightsCard
                         title="Weekly Trend"
                         subTitle="Last 7 Days"
-                        avgCompliance={insights.weeklyAvgCompliance}
+                        avgCompliance={(insights as any).weeklyAvgCompliance}
                         historyData={weeklyHistory}
-                        breakdownData={getBreakdownData(insights.weeklyAdherenceBreakdown)}
-                        supplementData={Object.values(insights.weeklySupplementCompliance)}
+                        breakdownData={getBreakdownData((insights as any).weeklyAdherenceBreakdown)}
+                        supplementData={Object.values((insights as any).weeklySupplementCompliance)}
                         chartColor="#3b82f6" // Blue
                     />
 
                     {/* Monthly Insights Card */}
-                    <PeriodInsightsCard 
+                    <PeriodInsightsCard
                         title="Monthly Overview"
                         subTitle="Last 30 Days"
-                        avgCompliance={insights.monthlyAvgCompliance}
+                        avgCompliance={(insights as any).monthlyAvgCompliance}
                         historyData={monthlyHistory}
-                        breakdownData={getBreakdownData(insights.monthlyAdherenceBreakdown)}
-                        supplementData={Object.values(insights.monthlySupplementCompliance)}
+                        breakdownData={getBreakdownData((insights as any).monthlyAdherenceBreakdown)}
+                        supplementData={Object.values((insights as any).monthlySupplementCompliance)}
                         chartColor="#8b5cf6" // Violet
                     />
 

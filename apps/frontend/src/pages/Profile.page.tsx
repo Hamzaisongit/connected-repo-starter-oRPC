@@ -23,7 +23,7 @@ import {
     CircularProgress,
     Divider,
     Drawer,
-    Fab, // Added Fab
+    Fab,
     Grid,
     IconButton,
     InputAdornment,
@@ -31,7 +31,7 @@ import {
     TextField,
     TextFieldProps,
     Tooltip,
-    Zoom, // Added Zoom for animation
+    Zoom,
     useTheme
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
@@ -57,7 +57,7 @@ interface SupplementWithId extends SupplementFormData {
     id: string;
 }
 
-const DAYS_OF_WEEK = DAYS_OF_WEEK_ENUM as readonly [string, ...string[]];
+const DAYS_OF_WEEK: (typeof DAYS_OF_WEEK_ENUM[number])[] = [...DAYS_OF_WEEK_ENUM];
 
 // --- Custom Components ---
 
@@ -153,7 +153,7 @@ const ProfilePage = () => {
             dosage: 1,
             unit: "tablet",
             instructions: ["Take with food"],
-            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+            days: [DAYS_OF_WEEK[1], DAYS_OF_WEEK[2], DAYS_OF_WEEK[3], DAYS_OF_WEEK[4], DAYS_OF_WEEK[5]],
             timesOfDay: ["08:00"],
             isActive: true,
         },
@@ -173,7 +173,7 @@ const ProfilePage = () => {
                 dosage: 1,
                 unit: "tablet",
                 instructions: ["Take with food"],
-                days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                days: [DAYS_OF_WEEK[1], DAYS_OF_WEEK[2], DAYS_OF_WEEK[3], DAYS_OF_WEEK[4], DAYS_OF_WEEK[5]],
                 timesOfDay: ["08:00"],
                 isActive: true,
             });
@@ -390,8 +390,8 @@ const ProfilePage = () => {
                                     />
                                 )}
                             />
-                            <Grid container spacing={2}>
-                                <Grid item xs={6}>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                                <Box sx={{ flex: { xs: '1 0 100%', md: '0 0 50%' } }}>
                                     <Controller
                                         name="dosage"
                                         control={control}
@@ -411,8 +411,8 @@ const ProfilePage = () => {
                                             />
                                         )}
                                     />
-                                </Grid>
-                                <Grid item xs={6}>
+                                </Box>
+                                <Box sx={{ flex: { xs: '1 0 100%', md: '0 0 50%' } }}>
                                     <Controller
                                         name="unit"
                                         control={control}
@@ -424,8 +424,8 @@ const ProfilePage = () => {
                                             </StyledTextField>
                                         )}
                                     />
-                                </Grid>
-                            </Grid>
+                                </Box>
+                            </Box>
                         </Stack>
                     </Box>
 
@@ -477,9 +477,9 @@ const ProfilePage = () => {
                             <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ mb: 1.5, display: 'block', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                                 Reminder Times
                             </Typography>
-                            <Grid container spacing={1.5}>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
                                 {currentTimes.map((time, idx) => (
-                                    <Grid item xs={6} sm={4} key={idx}>
+                                    <Box key={idx} sx={{ flex: { xs: '1 0 100%', sm: '0 0 66%' } }}>
                                         <Controller
                                             name={`timesOfDay.${idx}`}
                                             control={control}
@@ -500,9 +500,9 @@ const ProfilePage = () => {
                                                 />
                                             )}
                                         />
-                                    </Grid>
+                                    </Box>
                                 ))}
-                                <Grid item xs={6} sm={4}>
+                                <Box sx={{ flex: { xs: '1 0 100%', sm: '0 0 66%' } }}>
                                     <Button
                                         variant="outlined"
                                         fullWidth
@@ -520,8 +520,8 @@ const ProfilePage = () => {
                                     >
                                         Add Time
                                     </Button>
-                                </Grid>
-                            </Grid>
+                                </Box>
+                            </Box>
                         </Box>
                     </Box>
 
@@ -732,7 +732,7 @@ const ProfilePage = () => {
 														: "primary.main",
 													bgcolor: isActive
 														? "primary.main"
-														: theme => theme.palette.primary.lighter,
+														: theme => theme.palette.primary.light,
 												}
 											}}
 										>
@@ -752,9 +752,9 @@ const ProfilePage = () => {
                             ) : (
                                 <Stack direction="column" spacing={3}>
                                     {activeSupplements.map((supplement) => (
-                                        <Grid item xs={12} md={6} lg={4} key={supplement.id} sx={{ display: 'flex' }}>
+                                        <Box key={supplement.id} sx={{ display: 'flex', flex: { xs: '1 0 100%', md: '0 0 50%', lg: '0 0 33%' } }}>
                                             <SupplementCard supplement={supplement} />
-                                        </Grid>
+                                        </Box>
                                     ))}
                                 </Stack>
                             )
@@ -764,9 +764,9 @@ const ProfilePage = () => {
                             ) : (
                                 <Stack direction="column" spacing={3}>
                                     {inactiveSupplements.map((supplement) => (
-                                        <Grid item xs={12} md={6} lg={4} key={supplement.id} sx={{ display: 'flex' }}>
+                                        <Box key={supplement.id} sx={{ display: 'flex', flex: { xs: '1 0 100%', md: '0 0 50%', lg: '0 0 33%' } }}>
                                             <SupplementCard supplement={supplement} showActions={false} />
-                                        </Grid>
+                                        </Box>
                                     ))}
                                 </Stack>
                             )
