@@ -5,22 +5,20 @@ import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { Card } from "@connected-repo/ui-mui/layout/Card";
 import { Container } from "@connected-repo/ui-mui/layout/Container";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
-import { orpc } from "@frontend/utils/orpc.client";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
-import { alpha, Divider, LinearProgress, MenuItem, Select, Tooltip, useTheme, Grid } from "@mui/material";
-import { useQuery } from "@tanstack/react-query";
+import { alpha, Divider, Grid, LinearProgress, MenuItem, Select, Tooltip, useTheme } from "@mui/material";
 import { useState } from "react";
+// Import your mock context
+import { useMockData } from "@frontend/contexts/MockDataContext";
 
 // --- 1. VISUALIZATION COMPONENTS ---
 
 const CustomBarChart = ({ data, color }: { data: number[]; color: string }) => {
-    // Ensure we have at least some height even if data is 0
-    const maxVal = 100;
     return (
         <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: 100, gap: 0.5, pt: 2, width: '100%' }}>
             {data.map((value, index) => (
@@ -42,7 +40,7 @@ const CustomBarChart = ({ data, color }: { data: number[]; color: string }) => {
                                 bottom: 0,
                                 left: 0,
                                 right: 0,
-                                height: `${Math.max(value, 5)}%`, // Min height for visibility
+                                height: `${Math.max(value, 5)}%`,
                                 bgcolor: value > 0 ? color : alpha(color, 0.3),
                                 borderRadius: 1,
                                 transition: 'height 0.5s ease-out'
@@ -218,11 +216,11 @@ const PeriodInsightsCard = ({
             {/* Dynamic Content Body */}
             <Box sx={{ minHeight: 180 }}>
                 {viewMode === 'split' ? (
-                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexDirection: { xs: 'column', md: 'row' } }}>
-                        <Box sx={{ flex: { xs: '1 0 auto', md: '0 0 42%' }, display: 'flex', justifyContent: 'center' }}>
+                    <Grid container spacing={2} alignItems="center">
+                        <Grid item xs={5} sx={{ display: 'flex', justifyContent: 'center' }}>
                             <SimpleDonutChart data={breakdownData} />
-                        </Box>
-                        <Box sx={{ flex: { xs: '1 0 auto', md: '0 0 58%' } }}>
+                        </Grid>
+                        <Grid item xs={7}>
                             <Stack spacing={1.5}>
                                 {breakdownData.map((item, idx) => (
                                     <Box key={idx} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -240,8 +238,8 @@ const PeriodInsightsCard = ({
                                     </Box>
                                 ))}
                             </Stack>
-                        </Box>
-                    </Box>
+                        </Grid>
+                    </Grid>
                 ) : (
                     <SupplementPerformanceList data={supplementData} />
                 )}
@@ -271,25 +269,14 @@ const StatItem = ({ label, value, subLabel, color }: { label: string, value: str
 // --- MAIN PAGE COMPONENT ---
 
 const InsightsPage = () => {
-    const { data: insights, isLoading, error } = useQuery(
-        orpc.userCompliance.getInsights.queryOptions({
-            input: { userTimezoneOffset: new Date().getTimezoneOffset() }
-        })
-    );
+    const theme = useTheme();
+    // Using Mock Data Hook as requested
+    const { insights, dailyComplianceForToday } = useMockData();
 
-    const { data: todayCompliance } = useQuery(
-        orpc.userCompliance.getDailyComplianceForToday.queryOptions({
-            input: { userTimezoneOffset: new Date().getTimezoneOffset() }
-        })
-    );
+    if (!insights) return <LoadingSpinner text="Loading insights..." />;
 
-    if (isLoading) return <LoadingSpinner text="Loading insights..." />;
-    if (error) return <ErrorAlert message={`Error loading insights: ${error.message}`} />;
-    if (!insights) return <ErrorAlert message="No insights data available" />;
-
-    // Prepare Data for Charts
-    const weeklyHistory = (insights as any).weeklyCompliance.map((dc: any) => Number(dc.adherencePercentage) || 0);
-    const monthlyHistory = (insights as any).monthlyCompliance.map((dc: any) => Number(dc.adherencePercentage) || 0);
+    const weeklyHistory = insights.weeklyCompliance.map((dc: any) => Number(dc.adherencePercentage) || 0);
+    const monthlyHistory = insights.monthlyCompliance.map((dc: any) => Number(dc.adherencePercentage) || 0);
 
     const getBreakdownData = (breakdown: any) => [
         { label: 'On Time', value: breakdown.takenOnTime, color: '#10b981', icon: <CheckCircleIcon fontSize="small" sx={{ color: '#10b981' }} /> },
@@ -310,59 +297,54 @@ const InsightsPage = () => {
                     </Box>
 
                     {/* Streak Shield Banner */}
-                    {/* <Box sx={{
+                    <Box sx={{
                         width: "100%", borderRadius: 3, display: "flex", alignItems: "center",
-                        bgcolor: theme => alpha(theme.palette.success.light, 0.15),
+                        bgcolor: alpha(theme.palette.success.light, 0.15),
                         py: 2, px: 3, mb: 1, gap: 2, border: "1px solid",
-                        borderColor: theme => alpha(theme.palette.success.main, 0.2)
+                        borderColor: alpha(theme.palette.success.main, 0.2)
                     }}>
                         <CheckCircleIcon fontSize="medium" sx={{ color: "success.main", mr: 1 }} />
                         <Box>
                             <Typography variant="subtitle2" fontWeight={700}>
-                                Streak Shields: {todayCompliance?.dailyShieldOpeningBalance || 0}
+                                Streak Shields: {dailyComplianceForToday?.dailyShieldOpeningBalance || 0}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                                Used today: {todayCompliance?.dailyShieldUsed ? 1 : 0}
+                                Used today: {dailyComplianceForToday?.dailyShieldUsed ? 1 : 0}
                             </Typography>
                         </Box>
-                    </Box> */}
+                    </Box>
 
                     {/* Summary Stats */}
                     <Card sx={{ p: 3, borderRadius: 4, width: '100%', boxShadow: '0px 2px 12px rgba(0,0,0,0.04)' }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-                            <Box sx={{ flex: { xs: '1 0 100%', sm: '0 0 43%' } }}>
-                                <StatItem label="Streak" value={(insights as any).userStats?.currentStreak ?? 0} subLabel={`Best: ${(insights as any).userStats?.longestStreak ?? 0}`} color="#f59e0b" />
-                            </Box>
-                            <Box sx={{ flex: { xs: '1 0 100%', sm: '0 0 43%' } }}>
-                                <StatItem
-                                    label="Shields Left"
-                                    value={(todayCompliance as any)?.dailyShieldOpeningBalance ?? 0}
-                                    subLabel="Available today"
-                                    color="#10b981"
-                                />
-                            </Box>
-                        </Box>
+                        <Grid container justifyContent={'space-around'} alignItems='center'>
+                            <Grid item xs={6} sm={3}>
+                                <StatItem label="Weekly Score" value={`${insights.weeklyComplianceRate}%`} subLabel="Consistency" color="#3b82f6" />
+                            </Grid>
+                            <Grid item xs={6} sm={3}>
+                                <StatItem label="Streak" value={insights.userStats?.currentStreak ?? 0} subLabel={`Best: ${insights.userStats?.longestStreak ?? 0}`} color="#f59e0b" />
+                            </Grid>
+                        </Grid>
                     </Card>
 
                     {/* Weekly Insights Card */}
-                    <PeriodInsightsCard
+                    <PeriodInsightsCard 
                         title="Weekly Trend"
                         subTitle="Last 7 Days"
-                        avgCompliance={(insights as any).weeklyAvgCompliance}
+                        avgCompliance={insights.weeklyAvgCompliance}
                         historyData={weeklyHistory}
-                        breakdownData={getBreakdownData((insights as any).weeklyAdherenceBreakdown)}
-                        supplementData={Object.values((insights as any).weeklySupplementCompliance)}
+                        breakdownData={getBreakdownData(insights.weeklyAdherenceBreakdown)}
+                        supplementData={Object.values(insights.weeklySupplementCompliance)}
                         chartColor="#3b82f6" // Blue
                     />
 
                     {/* Monthly Insights Card */}
-                    <PeriodInsightsCard
+                    <PeriodInsightsCard 
                         title="Monthly Overview"
                         subTitle="Last 30 Days"
-                        avgCompliance={(insights as any).monthlyAvgCompliance}
+                        avgCompliance={insights.monthlyAvgCompliance}
                         historyData={monthlyHistory}
-                        breakdownData={getBreakdownData((insights as any).monthlyAdherenceBreakdown)}
-                        supplementData={Object.values((insights as any).monthlySupplementCompliance)}
+                        breakdownData={getBreakdownData(insights.monthlyAdherenceBreakdown)}
+                        supplementData={Object.values(insights.monthlySupplementCompliance)}
                         chartColor="#8b5cf6" // Violet
                     />
 

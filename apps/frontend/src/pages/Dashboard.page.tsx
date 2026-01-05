@@ -11,7 +11,9 @@ import { useSessionInfo } from "@frontend/contexts/UserContext";
 
 const DashboardPage = () => {
 	// Get user data from session context (provided by AppLayout)
-	const { user, isRegistered } = useSessionInfo();
+	const session = useSessionInfo();
+	const user = session?.user;
+	const isRegistered = session?.isRegistered || false;
 
 	return (
 		<Box

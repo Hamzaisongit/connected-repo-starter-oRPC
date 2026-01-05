@@ -1,36 +1,28 @@
 import { userContext } from "@frontend/contexts/UserContext";
-import { authClient } from "@frontend/utils/auth.client";
 import * as Sentry from "@sentry/react";
 import type { LoaderFunctionArgs } from "react-router";
-import { redirect } from "react-router";
 
 /**
- * Auth loader for protected routes
- * Fetches session, sets React Router context, and redirects based on auth state
+ * Mock auth loader for unauthenticated routes
+ * Returns mock session data for demo purposes
  */
 export async function authLoader({ context }: LoaderFunctionArgs) {
 	try {
-		// Fetch session from better-auth client
-		const { data: session, error } = await authClient.getSession();
-
-		if (error || !session) {
-			throw redirect("/auth/login");
-		}
-
 		const sessionInfo = {
 			hasSession: true,
 			user: {
-				email: session.user.email,
-				name: session.user.name,
-				displayPicture: session.user.image,
+				email: "alex.johnson@example.com",
+				name: "Alex Johnson",
+				image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex&backgroundColor=b6e3f4",
+				id: "mock-user-id-123",
 			},
-			isRegistered: true, // better-auth handles registration
+			isRegistered: true,
 		};
 
 		Sentry.setUser({
-			email: session.user.email,
-			username: session.user.name,
-			id: session.user.id
+			email: sessionInfo.user.email,
+			username: sessionInfo.user.name,
+			id: sessionInfo.user.id
 		})
 
 		// Set user context in React Router context
@@ -41,6 +33,6 @@ export async function authLoader({ context }: LoaderFunctionArgs) {
 
 	} catch (error) {
 		console.error("Auth loader error:", error);
-		throw redirect("/auth/login");
+		throw error;
 	}
 }

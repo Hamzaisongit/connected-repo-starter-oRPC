@@ -9,7 +9,7 @@ import { DesktopNavbar } from "./DesktopNavbar";
 import { MobileNavbar } from "./MobileNavbar";
 
 /**
- * AppLayout - Main layout wrapper for authenticated pages
+ * AppLayout - Main layout wrapper for pages
  *
  * Responsive behavior:
  * - Mobile (< md): Bottom navigation + minimal top bar
@@ -22,8 +22,8 @@ export const AppLayout = () => {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-	// Get session data from authLoader
-	const sessionInfo = useLoaderData() as SessionInfo;
+	// Get session data from authLoader (can be undefined)
+	const sessionInfo = useLoaderData() as SessionInfo | undefined;
 
 	return (
 		<Box
@@ -47,7 +47,7 @@ export const AppLayout = () => {
 					bgcolor: theme.palette.background.default
 				}}
 			>
-				<Outlet context={sessionInfo} />
+				<Outlet context={sessionInfo || null} />
 				<PwaInstallPrompt></PwaInstallPrompt>
 				<PwaUpdatePrompt></PwaUpdatePrompt>
 			</Box>

@@ -2,7 +2,6 @@ import { LoadingSpinner } from "@connected-repo/ui-mui/components/LoadingSpinner
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { CustomErrorBoundary } from "@frontend/components/error_fallback";
 import { AppLayout } from "@frontend/components/layout/AppLayout";
-import { authLoader } from "@frontend/utils/auth.loader";
 import * as Sentry from "@sentry/react";
 import { lazy } from "react";
 import { createBrowserRouter, type RouteObject, redirect } from "react-router";
@@ -45,10 +44,9 @@ const routerObjectWithNavbar: ReactRouterWithNavbar[] = [
 				path: "auth/*",
 				Component: lazy(() => import("@frontend/modules/auth/auth.router")),
 			},
-			// Authenticated routes with AppLayout
+			// All routes accessible without authentication
 			{
 				element: <AppLayout />,
-				loader: authLoader,
 				children: [
 					{
 						path: "home",

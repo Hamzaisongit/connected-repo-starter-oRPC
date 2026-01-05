@@ -6,7 +6,7 @@ import { Card } from "@connected-repo/ui-mui/layout/Card";
 import { Container } from "@connected-repo/ui-mui/layout/Container";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
 import { DAYS_OF_WEEK_ENUM } from "@connected-repo/zod-schemas/enums.zod";
-import { orpc } from "@frontend/utils/orpc.client";
+import { useMockData } from "@frontend/contexts/MockDataContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AddIcon from "@mui/icons-material/Add";
@@ -35,12 +35,10 @@ import {
     useTheme
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-// --- Schema & Types ---
 const supplementSchema = z.object({
     name: z.string().min(1, "Name is required").max(100),
     dosage: z.number().min(0, "Dosage must be positive"),
@@ -55,11 +53,11 @@ type SupplementFormData = z.infer<typeof supplementSchema>;
 
 interface SupplementWithId extends SupplementFormData {
     id: string;
+    imageUrl?: string | null;
+    createdAt?: string;
 }
 
 const DAYS_OF_WEEK: (typeof DAYS_OF_WEEK_ENUM[number])[] = [...DAYS_OF_WEEK_ENUM];
-
-// --- Custom Components ---
 
 const StyledTextField = (props: TextFieldProps) => {
     return (
@@ -131,6 +129,25 @@ const DayToggle = ({ day, selected, onClick }: { day: string; selected: boolean;
     );
 };
 
+const EmptyState = ({ message, subMessage }: { message: string; subMessage: string }) => (
+    <Box sx={{
+        py: 10,
+        textAlign: "center",
+        bgcolor: 'background.paper',
+        borderRadius: 4,
+        border: '1px dashed',
+        borderColor: 'divider'
+    }}>
+        <MedicationIcon sx={{ fontSize: 64, color: "primary.light", mb: 2, opacity: 0.5 }} />
+        <Typography variant="h6" color="primary.main" gutterBottom>
+            {message}
+        </Typography>
+        <Typography variant="body2" color="secondary.main">
+            {subMessage}
+        </Typography>
+    </Box>
+);
+
 const ProfilePage = () => {
     const [tabValue, setTabValue] = useState("active");
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -163,10 +180,20 @@ const ProfilePage = () => {
     const currentTimes = watch("timesOfDay");
     const currentInstructions = watch("instructions");
 
+    const { supplements, addSupplement, updateSupplement, toggleSupplementActive } = useMockData();
+
     const handleOpenDrawer = (supplement: SupplementWithId | null = null) => {
         setEditingSupplement(supplement);
         if (supplement) {
-            reset({ ...supplement });
+            reset({
+                name: supplement.name,
+                dosage: supplement.dosage,
+                unit: supplement.unit,
+                instructions: supplement.instructions,
+                days: supplement.days || [DAYS_OF_WEEK[1], DAYS_OF_WEEK[2], DAYS_OF_WEEK[3], DAYS_OF_WEEK[4], DAYS_OF_WEEK[5]],
+                timesOfDay: supplement.timesOfDay || ["08:00"],
+                isActive: supplement.isActive !== undefined ? supplement.isActive : true,
+            });
         } else {
             reset({
                 name: "",
@@ -189,41 +216,23 @@ const ProfilePage = () => {
         }, 300);
     };
 
-    const { data: supplements = [], refetch: refetchSupplements } = useQuery(
-        orpc.supplements.getAllSupplements.queryOptions()
-    );
-
-    const createMutation = useMutation({
-        ...orpc.supplements.createSupplement.mutationOptions(),
-        onSuccess: () => {
-            handleCloseDrawer();
-            refetchSupplements();
-        },
-    });
-
-    const updateMutation = useMutation({
-        ...orpc.supplements.updateSupplement.mutationOptions(),
-        onSuccess: () => {
-            handleCloseDrawer();
-            refetchSupplements();
-        },
-    });
-
-    const toggleMutation = useMutation({
-        ...orpc.supplements.toggleActive.mutationOptions(),
-        onSuccess: () => {
-            refetchSupplements();
-        },
-    });
-
     const onSubmit = async (data: SupplementFormData) => {
         setIsLoading(true);
         try {
             if (editingSupplement) {
-                await updateMutation.mutateAsync({ ...data, id: editingSupplement.id });
+                updateSupplement(editingSupplement.id, {
+                    ...data,
+                    imageUrl: editingSupplement.imageUrl,
+                    createdAt: editingSupplement.createdAt
+                });
             } else {
-                await createMutation.mutateAsync(data);
+                addSupplement({
+                    ...data,
+                    imageUrl: null,
+                    createdAt: new Date().toISOString()
+                });
             }
+            handleCloseDrawer();
         } catch (error) {
             console.error("[Profile] Error saving supplement:", error);
         } finally {
@@ -232,7 +241,7 @@ const ProfilePage = () => {
     };
 
     const handleToggleActive = async (supplement: SupplementWithId) => {
-        await toggleMutation.mutateAsync({ id: supplement.id, isActive: !supplement.isActive });
+        toggleSupplementActive(supplement.id, !supplement.isActive);
     };
 
     const toggleDay = (day: typeof DAYS_OF_WEEK[number]) => {
@@ -249,8 +258,8 @@ const ProfilePage = () => {
     const addInstruction = () => setValue("instructions", [...getValues("instructions"), ""]);
     const removeInstruction = (idx: number) => setValue("instructions", getValues("instructions").filter((_, i) => i !== idx));
 
-    const activeSupplements = (supplements ?? []).filter((s) => s.isActive);
-    const inactiveSupplements = (supplements ?? []).filter((s) => !s.isActive);
+    const activeSupplements = supplements.filter((s) => s.isActive);
+    const inactiveSupplements = supplements.filter((s) => !s.isActive);
 
     const SupplementCard = ({ supplement, showActions = true }: { supplement: SupplementWithId; showActions?: boolean }) => (
         <Card
@@ -308,10 +317,10 @@ const ProfilePage = () => {
                     )}
                 </Box>
                 <Stack spacing={2}>
-                    <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+                    <Box sx={{ display: 'flex', gap: 1.5, alignItems: "center" }}>
                         <AccessTimeIcon sx={{ fontSize: 18, color: "primary.light" }} />
                         <Typography variant="body2" fontWeight={500} color="primary.main">
-                            {supplement.timesOfDay.join(", ")}
+                            {(supplement.timesOfDay || []).join(", ")}
                         </Typography>
                     </Box>
                     <Box>
@@ -326,10 +335,10 @@ const ProfilePage = () => {
                                         width: 24, height: 24, borderRadius: '50%',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         fontSize: '0.65rem', fontWeight: 700,
-                                        bgcolor: supplement.days.includes(day) ? 'primary.main' : 'background.default',
-                                        color: supplement.days.includes(day) ? 'primary.contrastText' : 'text.disabled',
+                                        bgcolor: supplement.days && supplement.days.includes(day) ? 'primary.main' : 'background.default',
+                                        color: supplement.days && supplement.days.includes(day) ? 'primary.contrastText' : 'text.disabled',
                                         border: '1px solid',
-                                        borderColor: supplement.days.includes(day) ? 'primary.main' : 'divider'
+                                        borderColor: supplement.days && supplement.days.includes(day) ? 'primary.main' : 'divider'
                                     }}
                                 >
                                     {day.charAt(0)}
@@ -354,290 +363,290 @@ const ProfilePage = () => {
         </Card>
     );
 
-    const SupplementForm = () => {
-        return (
-            <Box sx={{ p: 0 }}>
-                <Stack spacing={4} sx={{ p: 1 }}>
-                    {/* --- SECTION 1: ESSENTIALS --- */}
-                    <Box>
-                        <Stack direction="row" alignItems="center" gap={2} mb={3}>
-                            <Box sx={{
-                                p: 1.2,
-                                borderRadius: '12px',
-                                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                color: 'primary.main',
-                                display: 'flex'
-                            }}>
-                                <LocalPharmacyIcon fontSize="small" />
-                            </Box>
-                            <Typography variant="h6" fontWeight={800} color="text.primary">
-                                The Basics
-                            </Typography>
-                        </Stack>
-
-                        <Stack spacing={2.5}>
-                            <Controller
-                                name="name"
-                                control={control}
-                                render={({ field }) => (
-                                    <StyledTextField
-                                        {...field}
-                                        label="Supplement Name"
-                                        placeholder="e.g. Vitamin D3"
-                                        fullWidth
-                                        error={!!errors.name}
-                                        helperText={errors.name?.message}
-                                    />
-                                )}
-                            />
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                                <Box sx={{ flex: { xs: '1 0 100%', md: '0 0 50%' } }}>
-                                    <Controller
-                                        name="dosage"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <StyledTextField
-                                                {...field}
-                                                label="Dosage"
-                                                placeholder="0"
-                                                type="number"
-                                                fullWidth
-                                                onChange={(e) => field.onChange(Number(e.target.value))}
-                                                InputProps={{
-                                                    endAdornment: <OpacityIcon fontSize="small" sx={{ color: 'action.active', opacity: 0.5 }} />
-                                                }}
-                                                error={!!errors.dosage}
-                                                helperText={errors.dosage?.message}
-                                            />
-                                        )}
-                                    />
-                                </Box>
-                                <Box sx={{ flex: { xs: '1 0 100%', md: '0 0 50%' } }}>
-                                    <Controller
-                                        name="unit"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <StyledTextField {...field} select label="Unit" fullWidth error={!!errors.unit}>
-                                                {["tablet", "capsule", "mg", "mcg", "ml", "drops", "g", "IU", "billion CFU"].map((u) => (
-                                                    <MenuItem key={u} value={u} sx={{ fontWeight: 600 }}>{u}</MenuItem>
-                                                ))}
-                                            </StyledTextField>
-                                        )}
-                                    />
-                                </Box>
-                            </Box>
-                        </Stack>
-                    </Box>
-
-                    <Divider sx={{ borderStyle: 'dashed', borderColor: 'divider' }} />
-
-                    {/* --- SECTION 2: SCHEDULE --- */}
-                    <Box>
-                        <Stack direction="row" alignItems="center" gap={2} mb={3}>
-                            <Box sx={{
-                                p: 1.2,
-                                borderRadius: '12px',
-                                bgcolor: alpha(theme.palette.warning.main, 0.1),
-                                color: 'warning.main',
-                                display: 'flex'
-                            }}>
-                                <CalendarTodayIcon fontSize="small" />
-                            </Box>
-                            <Typography variant="h6" fontWeight={800} color="text.primary">
-                                Schedule
-                            </Typography>
-                        </Stack>
-
-                        {/* Days Selector */}
-                        <Box sx={{ mb: 3 }}>
-                            <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ mb: 1.5, display: 'block', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                                Frequency
-                            </Typography>
-                            <Stack direction="row" spacing={0} justifyContent="space-between" sx={{
-                                bgcolor: 'background.paper',
-                                border: '2px solid',
-                                borderColor: 'divider',
-                                p: 1.5,
-                                borderRadius: 4
-                            }}>
-                                {DAYS_OF_WEEK.map((day) => (
-                                    <DayToggle
-                                        key={day}
-                                        day={day}
-                                        selected={currentDays.includes(day)}
-                                        onClick={() => toggleDay(day)}
-                                    />
-                                ))}
-                            </Stack>
-                            {errors.days && <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>{errors.days.message}</Typography>}
+    const SupplementFormContent = () => (
+        <Box sx={{ p: 0 }}>
+            <Stack spacing={4} sx={{ p: 1 }}>
+                <Box>
+                    <Stack direction="row" alignItems="center" gap={2} mb={3}>
+                        <Box sx={{
+                            p: 1.2,
+                            borderRadius: '12px',
+                            bgcolor: alpha(theme.palette.primary.main, 0.1),
+                            color: 'primary.main',
+                            display: 'flex'
+                        }}>
+                            <LocalPharmacyIcon fontSize="small" />
                         </Box>
+                        <Typography variant="h6" fontWeight={800} color="text.primary">
+                            The Basics
+                        </Typography>
+                    </Stack>
 
-                        {/* Times Grid */}
-                        <Box>
-                            <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ mb: 1.5, display: 'block', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                                Reminder Times
-                            </Typography>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-                                {currentTimes.map((time, idx) => (
-                                    <Box key={idx} sx={{ flex: { xs: '1 0 100%', sm: '0 0 66%' } }}>
-                                        <Controller
-                                            name={`timesOfDay.${idx}`}
-                                            control={control}
-                                            render={({ field }) => (
-                                                <StyledTextField
-                                                    {...field}
-                                                    type="time"
-                                                    fullWidth
-                                                    InputProps={{
-                                                        endAdornment: currentTimes.length > 1 && (
-                                                            <InputAdornment position="end">
-                                                                <IconButton size="small" onClick={() => removeTime(idx)} sx={{ color: 'text.disabled', '&:hover': { color: 'error.main' } }}>
-                                                                    <CloseIcon fontSize="small" />
-                                                                </IconButton>
-                                                            </InputAdornment>
-                                                        )
-                                                    }}
-                                                />
-                                            )}
-                                        />
-                                    </Box>
-                                ))}
-                                <Box sx={{ flex: { xs: '1 0 100%', sm: '0 0 66%' } }}>
-                                    <Button
-                                        variant="outlined"
-                                        fullWidth
-                                        startIcon={<AddIcon />}
-                                        onClick={addTime}
-                                        sx={{
-                                            height: 56,
-                                            border: '2px dashed',
-                                            borderColor: 'divider',
-                                            color: 'text.secondary',
-                                            borderRadius: 4,
-                                            fontWeight: 600,
-                                            '&:hover': { borderColor: 'primary.main', color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.04), borderWidth: 2 }
-                                        }}
-                                    >
-                                        Add Time
-                                    </Button>
-                                </Box>
-                            </Box>
-                        </Box>
-                    </Box>
-
-                    <Divider sx={{ borderStyle: 'dashed', borderColor: 'divider' }} />
-
-                    {/* --- SECTION 3: EXTRAS --- */}
-                    <Box>
-                        <Stack direction="row" alignItems="center" gap={2} mb={3}>
-                            <Box sx={{
-                                p: 1.2,
-                                borderRadius: '12px',
-                                bgcolor: alpha(theme.palette.info.main, 0.1),
-                                color: 'info.main',
-                                display: 'flex'
-                            }}>
-                                <StickyNote2Icon fontSize="small" />
-                            </Box>
-                            <Typography variant="h6" fontWeight={800} color="text.primary">
-                                Details
-                            </Typography>
-                        </Stack>
-
-                        <Stack spacing={2}>
-                            {currentInstructions.map((item, idx) => (
+                    <Stack spacing={2.5}>
+                        <Controller
+                            name="name"
+                            control={control}
+                            render={({ field }) => (
+                                <StyledTextField
+                                    {...field}
+                                    label="Supplement Name"
+                                    placeholder="e.g. Vitamin D3"
+                                    fullWidth
+                                    error={!!errors.name}
+                                    helperText={errors.name?.message}
+                                />
+                            )}
+                        />
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                            <Box sx={{ flex: { xs: '1 0 100%', md: '0 0 50%' } }}>
                                 <Controller
-                                    key={idx}
-                                    name={`instructions.${idx}`}
+                                    name="dosage"
                                     control={control}
                                     render={({ field }) => (
                                         <StyledTextField
                                             {...field}
-                                            placeholder="e.g. Take after breakfast"
+                                            label="Dosage"
+                                            placeholder="0"
+                                            type="number"
                                             fullWidth
+                                            onChange={(e) => field.onChange(Number(e.target.value))}
                                             InputProps={{
-                                                startAdornment: <InputAdornment position="start"><Typography color="text.disabled" fontWeight="bold">•</Typography></InputAdornment>,
-                                                endAdornment: currentInstructions.length > 1 && (
-                                                    <InputAdornment position="end">
-                                                        <IconButton size="small" onClick={() => removeInstruction(idx)}>
-                                                            <DeleteIcon fontSize="small" color="action" sx={{ opacity: 0.6 }} />
-                                                        </IconButton>
-                                                    </InputAdornment>
-                                                )
+                                                endAdornment: <OpacityIcon fontSize="small" sx={{ color: 'action.active', opacity: 0.5 }} />
                                             }}
+                                            error={!!errors.dosage}
+                                            helperText={errors.dosage?.message}
                                         />
                                     )}
                                 />
-                            ))}
-                            <Button
-                                size="small"
-                                startIcon={<AddIcon />}
-                                onClick={addInstruction}
-                                sx={{ alignSelf: 'flex-start', color: 'text.secondary', fontWeight: 700 }}
-                            >
-                                Add Instruction
-                            </Button>
-                        </Stack>
-
-                        {/* Styled Switch Card */}
-                        <Card variant="outlined" sx={{ mt: 3, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: alpha(theme.palette.background.default, 0.5), borderColor: 'divider', borderRadius: 4, borderWidth: 2 }}>
-                            <Box>
-                                <Typography variant="body2" fontWeight={700}>Active Tracking</Typography>
-                                <Typography variant="caption" color="text.secondary">Enable daily reminders & stats</Typography>
                             </Box>
-                            <Controller
-                                name="isActive"
-                                control={control}
-                                render={({ field }) => <Switch {...field} checked={field.value} color="success" />}
-                            />
-                        </Card>
+                            <Box sx={{ flex: { xs: '1 0 100%', md: '0 0 50%' } }}>
+                                <Controller
+                                    name="unit"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <StyledTextField {...field} select label="Unit" fullWidth error={!!errors.unit}>
+                                            {["tablet", "capsule", "mg", "mcg", "ml", "drops", "g", "IU", "billion CFU"].map((u) => (
+                                                <MenuItem key={u} value={u} sx={{ fontWeight: 600 }}>{u}</MenuItem>
+                                            ))}
+                                        </StyledTextField>
+                                    )}
+                                />
+                            </Box>
+                        </Box>
+                    </Stack>
+                </Box>
+
+                <Divider sx={{ borderStyle: 'dashed', borderColor: 'divider' }} />
+
+                <Box>
+                    <Stack direction="row" alignItems="center" gap={2} mb={3}>
+                        <Box sx={{
+                            p: 1.2,
+                            borderRadius: '12px',
+                            bgcolor: alpha(theme.palette.warning.main, 0.1),
+                            color: 'warning.main',
+                            display: 'flex'
+                        }}>
+                            <CalendarTodayIcon fontSize="small" />
+                        </Box>
+                        <Typography variant="h6" fontWeight={800} color="text.primary">
+                            Schedule
+                        </Typography>
+                    </Stack>
+
+                    <Box sx={{ mb: 3 }}>
+                        <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ mb: 1.5, display: 'block', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                            Frequency
+                        </Typography>
+                        <Stack direction="row" spacing={0} justifyContent="space-between" sx={{
+                            bgcolor: 'background.paper',
+                            border: '2px solid',
+                            borderColor: 'divider',
+                            p: 1.5,
+                            borderRadius: 4
+                        }}>
+                            {DAYS_OF_WEEK.map((day) => (
+                                <DayToggle
+                                    key={day}
+                                    day={day}
+                                    selected={currentDays.includes(day)}
+                                    onClick={() => toggleDay(day)}
+                                />
+                            ))}
+                        </Stack>
+                        {errors.days && <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>{errors.days.message}</Typography>}
                     </Box>
 
-                    {/* --- FOOTER ACTIONS --- */}
-                    <Stack direction="row" spacing={2} pt={4} pb={2}>
+                    <Box>
+                        <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ mb: 1.5, display: 'block', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                            Reminder Times
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+                            {currentTimes.map((time, idx) => (
+                                <Box key={idx} sx={{ flex: { xs: '1 0 100%', sm: '0 0 66%' } }}>
+                                    <Controller
+                                        name={`timesOfDay.${idx}`}
+                                        control={control}
+                                        render={({ field }) => (
+                                            <StyledTextField
+                                                {...field}
+                                                type="time"
+                                                fullWidth
+                                                InputProps={{
+                                                    endAdornment: currentTimes.length > 1 && (
+                                                        <InputAdornment position="end">
+                                                            <IconButton size="small" onClick={() => removeTime(idx)} sx={{ color: 'text.disabled', '&:hover': { color: 'error.main' } }}>
+                                                                <CloseIcon fontSize="small" />
+                                                            </IconButton>
+                                                        </InputAdornment>
+                                                    )
+                                                }}
+                                            />
+                                        )}
+                                    />
+                                </Box>
+                            ))}
+                            <Box sx={{ flex: { xs: '1 0 100%', sm: '0 0 66%' } }}>
+                                <Button
+                                    variant="outlined"
+                                    fullWidth
+                                    startIcon={<AddIcon />}
+                                    onClick={addTime}
+                                    sx={{
+                                        height: 56,
+                                        border: '2px dashed',
+                                        borderColor: 'divider',
+                                        color: 'text.secondary',
+                                        borderRadius: 4,
+                                        fontWeight: 600,
+                                        '&:hover': { borderColor: 'primary.main', color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.04), borderWidth: 2 }
+                                    }}
+                                >
+                                    Add Time
+                                </Button>
+                            </Box>
+                        </Box>
+                    </Box>
+                </Box>
+
+                <Divider sx={{ borderStyle: 'dashed', borderColor: 'divider' }} />
+
+                <Box>
+                    <Stack direction="row" alignItems="center" gap={2} mb={3}>
+                        <Box sx={{
+                            p: 1.2,
+                            borderRadius: '12px',
+                            bgcolor: alpha(theme.palette.info.main, 0.1),
+                            color: 'info.main',
+                            display: 'flex'
+                        }}>
+                            <StickyNote2Icon fontSize="small" />
+                        </Box>
+                        <Typography variant="h6" fontWeight={800} color="text.primary">
+                            Details
+                        </Typography>
+                    </Stack>
+
+                    <Stack spacing={2}>
+                        {currentInstructions.map((item, idx) => (
+                            <Controller
+                                key={idx}
+                                name={`instructions.${idx}`}
+                                control={control}
+                                render={({ field }) => (
+                                    <StyledTextField
+                                        {...field}
+                                        value={field.value ?? ""}
+                                        onChange={field.onChange}
+                                        inputRef={field.ref}
+                                        onBlur={field.onBlur}
+                                        placeholder="e.g. Take after breakfast"
+                                        fullWidth
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <Typography color="text.disabled" fontWeight="bold">•</Typography>
+                                                </InputAdornment>
+                                            ),
+                                            endAdornment: currentInstructions.length > 1 && (
+                                                <InputAdornment position="end">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => removeInstruction(idx)}
+                                                    >
+                                                        <DeleteIcon fontSize="small" color="action" sx={{ opacity: 0.6 }} />
+                                                    </IconButton>
+                                                </InputAdornment>
+                                            )
+                                        }}
+                                    />
+                                )}
+                            />
+                        ))}
                         <Button
-                            variant="text"
-                            onClick={handleCloseDrawer}
-                            disabled={isLoading}
-                            sx={{
-                                flex: 1,
-                                py: 2,
-                                color: 'text.secondary',
-                                borderRadius: 4,
-                                fontWeight: 700
-                            }}
+                            size="small"
+                            startIcon={<AddIcon />}
+                            onClick={addInstruction}
+                            sx={{ alignSelf: 'flex-start', color: 'text.secondary', fontWeight: 700 }}
                         >
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="contained"
-                            onClick={handleSubmit(onSubmit)}
-                            disabled={isLoading}
-                            sx={{
-                                flex: 2,
-                                py: 2,
-                                boxShadow: theme.shadows[8],
-                                bgcolor: "primary.main",
-                                color: "primary.contrastText",
-                                borderRadius: 4,
-                                fontWeight: 700,
-                                fontSize: '1rem'
-                            }}
-                        >
-                            {isLoading ? <CircularProgress size={24} color="inherit" /> : editingSupplement ? "Save Changes" : "Add to Stack"}
+                            Add Instruction
                         </Button>
                     </Stack>
+
+                    <Card variant="outlined" sx={{ mt: 3, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: alpha(theme.palette.background.default, 0.5), borderColor: 'divider', borderRadius: 4, borderWidth: 2 }}>
+                        <Box>
+                            <Typography variant="body2" fontWeight={700}>Active Tracking</Typography>
+                            <Typography variant="caption" color="text.secondary">Enable daily reminders & stats</Typography>
+                        </Box>
+                        <Controller
+                            name="isActive"
+                            control={control}
+                            render={({ field }) => <Switch {...field} checked={field.value} color="success" />}
+                        />
+                    </Card>
+                </Box>
+
+                <Stack direction="row" spacing={2} pt={4} pb={2}>
+                    <Button
+                        variant="text"
+                        onClick={handleCloseDrawer}
+                        disabled={isLoading}
+                        sx={{
+                            flex: 1,
+                            py: 2,
+                            color: 'text.secondary',
+                            borderRadius: 4,
+                            fontWeight: 700
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="contained"
+                        onClick={handleSubmit(onSubmit)}
+                        disabled={isLoading}
+                        sx={{
+                            flex: 2,
+                            py: 2,
+                            boxShadow: theme.shadows[8],
+                            bgcolor: "primary.main",
+                            color: "primary.contrastText",
+                            borderRadius: 4,
+                            fontWeight: 700,
+                            fontSize: '1rem'
+                        }}
+                    >
+                        {isLoading ? <CircularProgress size={24} color="inherit" /> : editingSupplement ? "Save Changes" : "Add to Stack"}
+                    </Button>
                 </Stack>
-            </Box>
-        );
-    };
+            </Stack>
+        </Box>
+    );
 
     return (
-        // Adjusted padding-bottom to ensure content isn't hidden behind Fab/Nav
-        <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: { xs: 3, md: 6 }}}>
+        <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: { xs: 3, md: 6 } }}>
             <Container maxWidth="lg">
                 <Stack spacing={5}>
-                    {/* Header */}
                     <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} spacing={2}>
                         <Box>
                             <Typography variant="h4" fontWeight={800} >
@@ -647,104 +656,99 @@ const ProfilePage = () => {
                                 Manage your daily stack and schedule
                             </Typography>
                         </Box>
-                        {/* HIDE this button on mobile, show on Desktop */}
                         <Button
                             variant="contained"
                             size="large"
                             onClick={() => handleOpenDrawer(null)}
                             startIcon={<AddIcon />}
-                            sx={{ 
-                                borderRadius: 3, 
-                                px: 3, 
-                                boxShadow: 2, 
-                                bgcolor: "primary.main", 
+                            sx={{
+                                borderRadius: 3,
+                                px: 3,
+                                boxShadow: 2,
+                                bgcolor: "primary.main",
                                 color: "primary.contrastText",
-                                display: { xs: 'none', md: 'flex' } // UI Adjustment 1
+                                display: { xs: 'none', md: 'flex' }
                             }}
                         >
                             Add Supplement
                         </Button>
                     </Stack>
 
-                    {/* Tabs */}
-					{/* Capsule-like animated tabs */}
-					<Box sx={{ width: "100%", display: "flex", justifyContent: "center" }}>
-						<Box
-							sx={{
-								position: "relative",
-								bgcolor: "background.paper",
-								borderRadius: 20,
-								px: 0.5,
-								py: 0.5,
-								display: "inline-flex",
-								boxShadow: theme => `0 2px 8px ${theme.palette.mode === "light"
-									? "rgba(0,0,0,0.06)"
-									: "rgba(0,0,0,0.25)"}`
-							}}
-						>
-							{/* Animated background */}
-							<Box
-								sx={{
-									position: "absolute",
-									top: 4,
-									left: 4,
-									height: "calc(100% - 8px)",
-									width: "calc(50% - 8px)",
-									borderRadius: 16,
-									bgcolor: theme => theme.palette.primary.main,
-									transition: "transform 0.32s cubic-bezier(0.55, 0, 0.1, 1)",
-									transform: tabValue === "active"
-										? "translateX(0)"
-										: "translateX(100%)",
-									zIndex: 0
-								}}
-							/>
-							<Stack direction="row" spacing={0}>
-								{[
-									{ val: "active", label: `Active (${activeSupplements.length})` },
-									{ val: "inactive", label: `Archived (${inactiveSupplements.length})` }
-								].map((tab, idx) => {
-									const isActive = tabValue === tab.val;
-									return (
-										<Box
-											key={tab.val}
-											onClick={() => setTabValue(tab.val)}
-											sx={{
-												position: "relative",
-												cursor: "pointer",
-												userSelect: "none",
-												px: { xs: 2.5, sm: 3.5 },
-												py: 1.1,
-												borderRadius: 16,
-												zIndex: 1,
-												fontWeight: isActive ? 700 : 500,
-												color: isActive
-													? "primary.contrastText"
-													: "text.secondary",
-												bgcolor: "transparent",
-												transition: "color 0.32s cubic-bezier(0.55, 0, 0.1, 1)",
-												textAlign: "center",
-												fontSize: "1.05rem",
-												boxShadow: isActive ? 2 : "none",
-												"&:hover": {
-													color: isActive
-														? "primary.contrastText"
-														: "primary.main",
-													bgcolor: isActive
-														? "primary.main"
-														: theme => theme.palette.primary.light,
-												}
-											}}
-										>
-											{tab.label}
-										</Box>
-									);
-								})}
-							</Stack>
-						</Box>
-					</Box>
+                    <Box sx={{ width: "100%", display: "flex", justifyContent: "center" }}>
+                        <Box
+                            sx={{
+                                position: "relative",
+                                bgcolor: "background.paper",
+                                borderRadius: 20,
+                                px: 0.5,
+                                py: 0.5,
+                                display: "inline-flex",
+                                boxShadow: theme => `0 2px 8px ${theme.palette.mode === "light"
+                                    ? "rgba(0,0,0,0.06)"
+                                    : "rgba(0,0,0,0.25)"}`
+                            }}
+                        >
+                            <Box
+                                sx={{
+                                    position: "absolute",
+                                    top: 4,
+                                    left: 4,
+                                    height: "calc(100% - 8px)",
+                                    width: "calc(50% - 8px)",
+                                    borderRadius: 16,
+                                    bgcolor: theme => theme.palette.primary.main,
+                                    transition: "transform 0.32s cubic-bezier(0.55, 0, 0.1, 1)",
+                                    transform: tabValue === "active"
+                                        ? "translateX(0)"
+                                        : "translateX(100%)",
+                                    zIndex: 0
+                                }}
+                            />
+                            <Stack direction="row" spacing={0}>
+                                {[
+                                    { val: "active", label: `Active (${activeSupplements.length})` },
+                                    { val: "inactive", label: `Archived (${inactiveSupplements.length})` }
+                                ].map((tab, idx) => {
+                                    const isActive = tabValue === tab.val;
+                                    return (
+                                        <Box
+                                            key={tab.val}
+                                            onClick={() => setTabValue(tab.val)}
+                                            sx={{
+                                                position: "relative",
+                                                cursor: "pointer",
+                                                userSelect: "none",
+                                                px: { xs: 2.5, sm: 3.5 },
+                                                py: 1.1,
+                                                borderRadius: 16,
+                                                zIndex: 1,
+                                                fontWeight: isActive ? 700 : 500,
+                                                color: isActive
+                                                    ? "primary.contrastText"
+                                                    : "text.secondary",
+                                                bgcolor: "transparent",
+                                                transition: "color 0.32s cubic-bezier(0.55, 0, 0.1, 1)",
+                                                textAlign: "center",
+                                                fontSize: "1.05rem",
+                                                boxShadow: isActive ? 2 : "none",
+                                                "&:hover": {
+                                                    color: isActive
+                                                        ? "primary.contrastText"
+                                                        : "primary.main",
+                                                    bgcolor: isActive
+                                                        ? "primary.main"
+                                                        : theme => theme.palette.primary.light,
+                                                }
+                                            }}
+                                        >
+                                            {tab.label}
+                                        </Box>
+                                    );
+                                })}
+                            </Stack>
+                        </Box>
+                    </Box>
 
-                    {/* Content Grid */}
                     <Box sx={{ width: '100%' }}>
                         {tabValue === "active" ? (
                             activeSupplements.length === 0 ? (
@@ -772,83 +776,62 @@ const ProfilePage = () => {
                             )
                         )}
                     </Box>
-                </Stack>
 
-                {/* --- STICKY FLOATING ACTION BUTTON (Mobile Only) --- */}
-                <Zoom in={true} style={{ transitionDelay: '300ms' }}>
-                    <Fab
-                        color="primary"
-                        aria-label="add"
-                        onClick={() => handleOpenDrawer(null)}
-                        sx={{
-                            position: 'fixed',
-                            bottom: 150, // ~34px above standard bottom nav height (56px)
-                            right: 24,
-                            display: { xs: 'flex', md: 'none' }, // Show only on mobile/tablet
-                            zIndex: 100,
-                            boxShadow: theme.shadows[10],
-                            width: 65,
-                            height: 65,
-                            '&:active': { transform: 'scale(0.95)' }
+                    <Zoom in={true} style={{ transitionDelay: '300ms' }}>
+                        <Fab
+                            color="primary"
+                            aria-label="add"
+                            onClick={() => handleOpenDrawer(null)}
+                            sx={{
+                                position: 'fixed',
+                                bottom: 150,
+                                right: 24,
+                                display: { xs: 'flex', md: 'none' },
+                                zIndex: 100,
+                                boxShadow: theme.shadows[10],
+                                width: 65,
+                                height: 65,
+                                '&:active': { transform: 'scale(0.95)' }
+                            }}
+                        >
+                            <AddIcon sx={{ fontSize: 28 }} />
+                        </Fab>
+                    </Zoom>
+
+                    <Drawer
+                        anchor="bottom"
+                        open={drawerOpen}
+                        onClose={handleCloseDrawer}
+                        PaperProps={{
+                            sx: {
+                                borderTopLeftRadius: 32,
+                                borderTopRightRadius: 32,
+                                maxHeight: '92vh',
+                                height: 'auto',
+                                overflow: 'visible',
+                                bgcolor: 'background.default',
+                                maxWidth: 'md',
+                                mx: 'auto'
+                            }
                         }}
                     >
-                        <AddIcon sx={{ fontSize: 28 }} />
-                    </Fab>
-                </Zoom>
-
-                {/* --- BOTTOM SHEET DRAWER --- */}
-                <Drawer
-                    anchor="bottom"
-                    open={drawerOpen}
-                    onClose={handleCloseDrawer}
-                    PaperProps={{
-                        sx: {
-                            borderTopLeftRadius: 32,
-                            borderTopRightRadius: 32,
-                            maxHeight: '92vh',
-                            height: 'auto',
-                            overflow: 'visible',
-                            bgcolor: 'background.default',
-                            maxWidth: 'md',
-                            mx: 'auto'
-                        }
-                    }}
-                >
-                    <Box sx={{ width: 60, height: 6, bgcolor: 'divider', borderRadius: 3, mx: 'auto', mt: 2, mb: 1, opacity: 0.5 }} />
-                    <Container maxWidth="sm" sx={{ pb: 4, height: '100%', overflowY: 'auto' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', py: 2 }}>
-                            <Typography variant="h5" sx={{ fontWeight: 800, color: "text.primary" }}>
-                                {editingSupplement ? "Edit Supplement" : "Add to Stack"}
-                            </Typography>
-                            <IconButton onClick={handleCloseDrawer} sx={{ position: 'absolute', right: 0, bgcolor: 'action.hover' }}>
-                                <CloseIcon />
-                            </IconButton>
-                        </Box>
-                        <SupplementForm />
-                    </Container>
-                </Drawer>
+                        <Box sx={{ width: 60, height: 6, bgcolor: 'divider', borderRadius: 3, mx: 'auto', mt: 2, mb: 1, opacity: 0.5 }} />
+                        <Container maxWidth="sm" sx={{ pb: 4, height: '100%', overflowY: 'auto' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', py: 2 }}>
+                                <Typography variant="h5" sx={{ fontWeight: 800, color: "text.primary" }}>
+                                    {editingSupplement ? "Edit Supplement" : "Add to Stack"}
+                                </Typography>
+                                <IconButton onClick={handleCloseDrawer} sx={{ position: 'absolute', right: 0, bgcolor: 'action.hover' }}>
+                                    <CloseIcon />
+                                </IconButton>
+                            </Box>
+                            <SupplementFormContent />
+                        </Container>
+                    </Drawer>
+                </Stack>
             </Container>
         </Box>
     );
 };
-
-const EmptyState = ({ message, subMessage }: { message: string, subMessage: string }) => (
-    <Box sx={{
-        py: 10,
-        textAlign: "center",
-        bgcolor: 'background.paper',
-        borderRadius: 4,
-        border: '1px dashed',
-        borderColor: 'divider'
-    }}>
-        <MedicationIcon sx={{ fontSize: 64, color: "primary.light", mb: 2, opacity: 0.5 }} />
-        <Typography variant="h6" color="primary.main" gutterBottom>
-            {message}
-        </Typography>
-        <Typography variant="body2" color="secondary.main">
-            {subMessage}
-        </Typography>
-    </Box>
-);
 
 export default ProfilePage;

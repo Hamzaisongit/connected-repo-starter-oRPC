@@ -18,13 +18,13 @@ export const userContext = createContext<SessionInfo | null>(null);
  * Hook to access session data in components
  * Session data is provided by AppLayout via Outlet context
  *
- * @returns SessionInfo object with user data and session state
- * @throws Error if used outside of authenticated routes
+ * @returns SessionInfo object with user data and session state, or null if not set
  */
-export function useSessionInfo(): SessionInfo {
-	const sessionInfo = useOutletContext<SessionInfo>();
-	if (!sessionInfo) {
-		throw new Error("useSessionInfo must be used within authenticated routes (under AppLayout)");
+export function useSessionInfo(): SessionInfo | null {
+	try {
+		const sessionInfo = useOutletContext<SessionInfo>();
+		return sessionInfo || null;
+	} catch {
+		return null;
 	}
-	return sessionInfo;
 }
