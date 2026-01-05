@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
 	server: {
 		host: true,
 		// only set https if both env vars are present and non-empty, else fallback to http
-		...(env.VITE_USER_NODE_ENV === 'test' && env.VITE_HTTPS_KEY_PATH && env.VITE_HTTPS_CERT_PATH
+		...((mode === 'development' || env.VITE_USER_NODE_ENV === 'test') && env.VITE_HTTPS_KEY_PATH && env.VITE_HTTPS_CERT_PATH
 			? {
 				https: {
 					key: fs.readFileSync(path.resolve(process.cwd(), env.VITE_HTTPS_KEY_PATH as string)),
