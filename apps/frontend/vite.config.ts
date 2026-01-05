@@ -42,8 +42,8 @@ export default defineConfig(({ mode }) => {
 				type: "module"
 				},
 			manifest: {
-				name: "OneQ",
-				short_name: "OneQ",
+				name: "HelioCoach",
+				short_name: "HelioCoach",
 				start_url: "/",
 				display: "standalone",
 				background_color: "#ffffff",

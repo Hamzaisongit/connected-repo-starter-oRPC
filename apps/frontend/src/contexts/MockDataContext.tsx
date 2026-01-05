@@ -41,24 +41,41 @@ const generateRandomizedData = (supplements: MockSupplement[]) => {
     const todayStart = new Date();
     todayStart.setHours(0,0,0,0);
     const startMs = todayStart.getTime();
+    const nowMs = Date.now();
 
     // Generate Schedule Items
     limitedSupplements.forEach(supp => {
-        // Simple schedule: 1 time per supplement for cleaner UI
-        const times = ["09:00"]; 
+        // Randomly assign 1 or 2 times
+        const timesCount = Math.random() > 0.7 ? 2 : 1;
+        const times: string[] = [];
+        
+        if (timesCount === 1) {
+            // Pick a random morning time between 07:00 and 10:00
+            const hour = 7 + Math.floor(Math.random() * 4);
+            times.push(`${hour.toString().padStart(2, '0')}:00`);
+        } else {
+            // Morning + Evening
+            const h1 = 7 + Math.floor(Math.random() * 3); // 7-9 AM
+            const h2 = 18 + Math.floor(Math.random() * 4); // 6-9 PM
+            times.push(`${h1.toString().padStart(2, '0')}:00`);
+            times.push(`${h2.toString().padStart(2, '0')}:00`);
+        }
 
         times.forEach(timeStr => {
-            const [h, m] = timeStr.split(':').map(Number);
+            const parts = timeStr.split(':');
+            const h = Number(parts[0] ?? 0);
+            const m = Number(parts[1] ?? 0);
+            
             const scheduledTime = startMs + (h * 3600000) + (m * 60000);
 
-            // 2. STATUS LOGIC: No "Missed". Mostly Pending.
+            // 2. STATUS LOGIC: 50% Pending, 40% Taken, 10% Skipped
             const rand = Math.random();
             let status: "pending" | "taken" | "skipped" = "pending";
             let log: any ;
 
-            if (rand > 0.6) { // 40% chance it's already interacted with
-                if (rand > 0.9) status = "skipped"; // 10% Skipped
-                else status = "taken"; // 30% Taken
+            if (rand > 0.5) { 
+                if (rand > 0.9) status = "skipped"; 
+                else status = "taken"; 
 
                 log = {
                     id: `log-${Math.random()}`,
@@ -67,11 +84,18 @@ const generateRandomizedData = (supplements: MockSupplement[]) => {
                 };
             }
 
+            // FIX: Calculate isOverdue
+            const isOverdue = scheduledTime < nowMs && status === "pending";
+
             scheduleItems.push({
-                supplement: supp,
+                supplement: {
+                    ...supp,
+                    imageUrl: supp.imageUrl ?? null
+                },
                 scheduledTime,
                 status,
-                adherenceLog: log
+                adherenceLog: log,
+                isOverdue: isOverdue // FIX: Added required property
             });
         });
     });
@@ -86,7 +110,7 @@ const generateRandomizedData = (supplements: MockSupplement[]) => {
     const completionPercentage = totalScheduled > 0 ? Math.round((taken / totalScheduled) * 100) : 0;
 
     const progress: DailyProgress = {
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toISOString().split('T')[0] || new Date().toISOString(),
         totalScheduled,
         takenOnTime: taken,
         takenLate: 0,
@@ -98,38 +122,36 @@ const generateRandomizedData = (supplements: MockSupplement[]) => {
     return { scheduleItems, progress, limitedSupplements };
 };
 
-// --- Helper: Reduce Insights Volume ---
+// --- Helper: Diverse Insights Volume ---
 const reduceInsightsData = (original: Insights): Insights => {
-    // Helper to lower the count in breakdown objects
+    // Generate a random multiplier between 0.5 and 0.9
+    const getMultiplier = () => 0.5 + (Math.random() * 0.4);
+
     const lowerBreakdown = (bd: any) => ({
-        takenOnTime: Math.floor(bd.takenOnTime * 0.4), // Reduce to 40% of original
-        takenLate: Math.floor(bd.takenLate * 0.2),
-        missed: Math.floor(bd.missed * 0.3),
-        skipped: Math.floor(bd.skipped * 0.2),
+        takenOnTime: Math.floor(bd.takenOnTime * getMultiplier()),
+        takenLate: Math.floor(bd.takenLate * getMultiplier() * 0.5), 
+        missed: Math.floor(bd.missed * getMultiplier() * 0.4), 
+        skipped: Math.floor(bd.skipped * getMultiplier() * 0.3), 
     });
 
     return {
         ...original,
-        // Keep percentages realistic, just reduce raw counts if they are used elsewhere
         weeklyAdherenceBreakdown: lowerBreakdown(original.weeklyAdherenceBreakdown),
         monthlyAdherenceBreakdown: lowerBreakdown(original.monthlyAdherenceBreakdown),
         
-        // Simulating "Less Logs" in history arrays by making them slightly more sparse or lower values
         weeklyCompliance: original.weeklyCompliance.map(d => ({
             ...d,
-            // Vary the percentage slightly to look natural but keep data
-            adherencePercentage: d.adherencePercentage
+            adherencePercentage: Math.floor(40 + Math.random() * 60)
         })),
         monthlyCompliance: original.monthlyCompliance.map(d => ({
             ...d,
-            adherencePercentage: d.adherencePercentage
+            adherencePercentage: Math.floor(50 + Math.random() * 45)
         }))
     };
 };
 
 
 export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    // Initialize state with randomized, limited data
     const initialData = useMemo(() => generateRandomizedData(mockSupplements), []);
 
     const [supplements, setSupplements] = useState<MockSupplement[]>(initialData.limitedSupplements);
@@ -137,7 +159,6 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     const [dailyProgress, setDailyProgress] = useState<DailyProgress>(initialData.progress);
     const [userStats, setUserStats] = useState<UserStats>(mockUserStats);
     
-    // 3. INSIGHTS: Apply reduction
     const [insights] = useState<Insights>(() => reduceInsightsData(getMockInsights()));
 
     const addSupplement = useCallback((supplement: Omit<MockSupplement, "id" | "createdAt">) => {
@@ -145,6 +166,7 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
             ...supplement,
             id: `supp-${Date.now()}`,
             createdAt: new Date().toISOString(),
+            imageUrl: supplement.imageUrl ?? null
         };
         setSupplements((prev) => [...prev, newSupplement]);
         const newData = generateRandomizedData([...supplements, newSupplement]);
@@ -153,34 +175,45 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     }, [supplements]);
 
     const updateSupplement = useCallback((id: string, supplement: Partial<MockSupplement>) => {
-        const updatedSupps = supplements.map((s) => (s.id === id ? { ...s, ...supplement } : s));
-        setSupplements(updatedSupps);
-        const newData = generateRandomizedData(updatedSupps);
-        setDailySchedule(newData.scheduleItems);
-        setDailyProgress(newData.progress);
-    }, [supplements]);
+        setSupplements((prev) => {
+            const updatedSupps = prev.map((s) => (s.id === id ? { ...s, ...supplement } : s));
+            const newData = generateRandomizedData(updatedSupps);
+            setTimeout(() => {
+                setDailySchedule(newData.scheduleItems);
+                setDailyProgress(newData.progress);
+            }, 0);
+            return updatedSupps;
+        });
+    }, []);
 
     const deleteSupplement = useCallback((id: string) => {
-        const filtered = supplements.filter((s) => s.id !== id);
-        setSupplements(filtered);
-        const newData = generateRandomizedData(filtered);
-        setDailySchedule(newData.scheduleItems);
-        setDailyProgress(newData.progress);
-    }, [supplements]);
+        setSupplements((prev) => {
+            const filtered = prev.filter((s) => s.id !== id);
+            const newData = generateRandomizedData(filtered);
+            setTimeout(() => {
+                setDailySchedule(newData.scheduleItems);
+                setDailyProgress(newData.progress);
+            }, 0);
+            return filtered;
+        });
+    }, []);
 
     const toggleSupplementActive = useCallback((id: string, isActive: boolean) => {
-        const updated = supplements.map((s) => (s.id === id ? { ...s, isActive } : s));
-        setSupplements(updated);
-        const newData = generateRandomizedData(updated);
-        setDailySchedule(newData.scheduleItems);
-        setDailyProgress(newData.progress);
-    }, [supplements]);
+        setSupplements((prev) => {
+            const updated = prev.map((s) => (s.id === id ? { ...s, isActive } : s));
+            const newData = generateRandomizedData(updated);
+            setTimeout(() => {
+                setDailySchedule(newData.scheduleItems);
+                setDailyProgress(newData.progress);
+            }, 0);
+            return updated;
+        });
+    }, []);
 
     const markAdherence = useCallback((supplementId: string, scheduledFor: number, status: "Taken on-time" | "Taken late" | "Missed" | "Skipped") => {
         setDailySchedule((prev) =>
             prev.map((item) => {
                 if (item.supplement.id === supplementId && item.scheduledTime === scheduledFor) {
-                    // Map "Missed" to "Skipped" in UI just in case, or keep strict types
                     const newStatus: "taken" | "skipped" | "pending" =
                         status === "Taken on-time" || status === "Taken late" ? "taken" : "skipped";
                     
@@ -200,7 +233,7 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
 
         setDailyProgress((prev) => {
             const isTaken = status === "Taken on-time" || status === "Taken late";
-            const isSkipped = status === "Skipped" || status === "Missed"; // Treat missed as skipped for counts
+            const isSkipped = status === "Skipped" || status === "Missed";
             
             const newStats = { ...prev };
             
@@ -226,7 +259,7 @@ export const MockDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     }, [supplements]);
 
     const refreshDailyProgress = useCallback(() => {
-        // handled in refreshDailySchedule
+        // Handled via refreshDailySchedule
     }, []);
 
     const value: MockDataContextValue = {

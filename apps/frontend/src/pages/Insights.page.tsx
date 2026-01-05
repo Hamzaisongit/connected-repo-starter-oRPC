@@ -5,16 +5,15 @@ import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { Card } from "@connected-repo/ui-mui/layout/Card";
 import { Container } from "@connected-repo/ui-mui/layout/Container";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
+import { useMockData } from "@frontend/contexts/MockDataContext";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
-import { alpha, Divider, Grid, LinearProgress, MenuItem, Select, Tooltip, useTheme } from "@mui/material";
+import { alpha, Divider, LinearProgress, MenuItem, Select, Tooltip, useTheme } from "@mui/material";
 import { useState } from "react";
-// Import your mock context
-import { useMockData } from "@frontend/contexts/MockDataContext";
 
 // --- 1. VISUALIZATION COMPONENTS ---
 
@@ -127,18 +126,18 @@ const SupplementPerformanceList = ({ data }: { data: any[] }) => {
                             {supp.complianceRate}%
                         </Typography>
                     </Box>
-                    <LinearProgress 
-                        variant="determinate" 
-                        value={supp.complianceRate} 
-                        sx={{ 
-                            height: 8, 
+                    <LinearProgress
+                        variant="determinate"
+                        value={supp.complianceRate}
+                        sx={{
+                            height: 8,
                             borderRadius: 4,
                             bgcolor: 'action.hover',
                             '& .MuiLinearProgress-bar': {
                                 bgcolor: supp.complianceRate >= 80 ? 'success.main' : supp.complianceRate >= 50 ? 'warning.main' : 'error.main',
                                 borderRadius: 4
                             }
-                        }} 
+                        }}
                     />
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
                         {supp.count} logs recorded
@@ -156,20 +155,20 @@ const SupplementPerformanceList = ({ data }: { data: any[] }) => {
 
 // --- 3. REUSABLE PERIOD CARD (Week/Month) ---
 
-const PeriodInsightsCard = ({ 
-    title, 
-    subTitle, 
-    avgCompliance, 
-    historyData, 
-    breakdownData, 
+const PeriodInsightsCard = ({
+    title,
+    subTitle,
+    avgCompliance,
+    historyData,
+    breakdownData,
     supplementData,
-    chartColor 
-}: { 
-    title: string, 
-    subTitle: string, 
-    avgCompliance: number, 
-    historyData: number[], 
-    breakdownData: any[], 
+    chartColor
+}: {
+    title: string,
+    subTitle: string,
+    avgCompliance: number,
+    historyData: number[],
+    breakdownData: any[],
     supplementData: any[],
     chartColor: string
 }) => {
@@ -177,7 +176,6 @@ const PeriodInsightsCard = ({
 
     return (
         <Card sx={{ p: 3, borderRadius: 4, width: '100%', boxShadow: '0px 2px 12px rgba(0,0,0,0.04)' }}>
-            {/* Header + History Chart */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Box>
                     <Typography variant="h6" fontWeight={700}>{title}</Typography>
@@ -187,12 +185,11 @@ const PeriodInsightsCard = ({
                     Avg: {avgCompliance}%
                 </Box>
             </Box>
-            
+
             <CustomBarChart data={historyData} color={chartColor} />
-            
+
             <Divider sx={{ my: 3 }} />
 
-            {/* Controls */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="subtitle2" fontWeight={700}>Detailed Analysis</Typography>
                 <Select
@@ -201,11 +198,11 @@ const PeriodInsightsCard = ({
                     variant="standard"
                     disableUnderline
                     IconComponent={KeyboardArrowDownIcon}
-                    sx={{ 
-                        fontSize: '0.875rem', 
-                        fontWeight: 600, 
+                    sx={{
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
                         color: 'primary.main',
-                        '& .MuiSelect-select': { py: 0.5, pr: '24px !important' } 
+                        '& .MuiSelect-select': { py: 0.5, pr: '24px !important' }
                     }}
                 >
                     <MenuItem value="split">Adherence Split</MenuItem>
@@ -213,15 +210,14 @@ const PeriodInsightsCard = ({
                 </Select>
             </Box>
 
-            {/* Dynamic Content Body */}
             <Box sx={{ minHeight: 180 }}>
                 {viewMode === 'split' ? (
-                    <Grid container spacing={2} alignItems="center">
-                        <Grid item xs={5} sx={{ display: 'flex', justifyContent: 'center' }}>
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                        <Box sx={{display: 'flex', justifyContent: 'center' }}>
                             <SimpleDonutChart data={breakdownData} />
-                        </Grid>
-                        <Grid item xs={7}>
-                            <Stack spacing={1.5}>
+                        </Box>
+                        <Box>
+                            <Stack spacing={2}>
                                 {breakdownData.map((item, idx) => (
                                     <Box key={idx} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -232,14 +228,14 @@ const PeriodInsightsCard = ({
                                                 {item.label}
                                             </Typography>
                                         </Box>
-                                        <Typography variant="body2" fontWeight={700}>
+                                        <Typography variant="body2" sx={{ml: 1.5}} fontWeight={700}>
                                             {item.value}
                                         </Typography>
                                     </Box>
                                 ))}
                             </Stack>
-                        </Grid>
-                    </Grid>
+                        </Box>
+                    </Box>
                 ) : (
                     <SupplementPerformanceList data={supplementData} />
                 )}
@@ -250,7 +246,7 @@ const PeriodInsightsCard = ({
 
 // --- 4. TOP SUMMARY STATS ---
 
-const StatItem = ({ label, value, subLabel, color }: { label: string, value: string | number, subLabel?: string, color?: string }) => (
+const StatItem = ({ label, value, subLabel, color }: { label: string; value: string | number; subLabel?: string; color?: string }) => (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
         <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: 0.5 }}>
             {label}
@@ -270,7 +266,6 @@ const StatItem = ({ label, value, subLabel, color }: { label: string, value: str
 
 const InsightsPage = () => {
     const theme = useTheme();
-    // Using Mock Data Hook as requested
     const { insights, dailyComplianceForToday } = useMockData();
 
     if (!insights) return <LoadingSpinner text="Loading insights..." />;
@@ -290,7 +285,6 @@ const InsightsPage = () => {
             <Container maxWidth="md" disableGutters sx={{ px: 2 }}>
                 <Stack spacing={3} sx={{ width: '100%' }}>
 
-                    {/* Header */}
                     <Box>
                         <Typography variant="h5" fontWeight={800}>Health Insights</Typography>
                         <Typography variant="body2" color="text.secondary">Your performance overview</Typography>
@@ -314,38 +308,53 @@ const InsightsPage = () => {
                         </Box>
                     </Box>
 
-                    {/* Summary Stats */}
-                    <Card sx={{ p: 3, borderRadius: 4, width: '100%', boxShadow: '0px 2px 12px rgba(0,0,0,0.04)' }}>
-                        <Grid container justifyContent={'space-around'} alignItems='center'>
-                            <Grid item xs={6} sm={3}>
-                                <StatItem label="Weekly Score" value={`${insights.weeklyComplianceRate}%`} subLabel="Consistency" color="#3b82f6" />
-                            </Grid>
-                            <Grid item xs={6} sm={3}>
-                                <StatItem label="Streak" value={insights.userStats?.currentStreak ?? 0} subLabel={`Best: ${insights.userStats?.longestStreak ?? 0}`} color="#f59e0b" />
-                            </Grid>
-                        </Grid>
+                    {/* Summary Stats Card */}
+                    <Card sx={{ py: 3, px: 2, borderRadius: 4, width: '100%', boxShadow: '0px 2px 12px rgba(0,0,0,0.04)' }}>
+                        <Stack 
+                            direction="row" 
+                            divider={<Divider orientation="vertical" flexItem sx={{ opacity: 0.5 }} />} 
+                            spacing={2} 
+                            alignItems="center" 
+                            justifyContent="center"
+                        >
+                            <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                                <StatItem 
+                                    label="Current Streak" 
+                                    value={insights.userStats?.currentStreak ?? 0} 
+                                    subLabel={`Best: ${insights.userStats?.longestStreak ?? 0}`} 
+                                    color="#f59e0b" 
+                                />
+                            </Box>
+                            
+                            <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                                <StatItem 
+                                    label="Shields Used" 
+                                    value={2} 
+                                    subLabel={"in current streak"}
+                                    color="#3b82f6" 
+                                />
+                            </Box>
+                        </Stack>
                     </Card>
 
-                    {/* Weekly Insights Card */}
                     <PeriodInsightsCard 
-                        title="Weekly Trend"
-                        subTitle="Last 7 Days"
-                        avgCompliance={insights.weeklyAvgCompliance}
-                        historyData={weeklyHistory}
-                        breakdownData={getBreakdownData(insights.weeklyAdherenceBreakdown)}
-                        supplementData={Object.values(insights.weeklySupplementCompliance)}
-                        chartColor="#3b82f6" // Blue
+                        title="Weekly Trend" 
+                        subTitle="Last 7 Days" 
+                        avgCompliance={insights.weeklyAvgCompliance} 
+                        historyData={weeklyHistory} 
+                        breakdownData={getBreakdownData(insights.weeklyAdherenceBreakdown)} 
+                        supplementData={Object.values(insights.weeklySupplementCompliance)} 
+                        chartColor="#3b82f6" 
                     />
 
-                    {/* Monthly Insights Card */}
                     <PeriodInsightsCard 
-                        title="Monthly Overview"
-                        subTitle="Last 30 Days"
-                        avgCompliance={insights.monthlyAvgCompliance}
-                        historyData={monthlyHistory}
-                        breakdownData={getBreakdownData(insights.monthlyAdherenceBreakdown)}
-                        supplementData={Object.values(insights.monthlySupplementCompliance)}
-                        chartColor="#8b5cf6" // Violet
+                        title="Monthly Overview" 
+                        subTitle="Last 30 Days" 
+                        avgCompliance={insights.monthlyAvgCompliance} 
+                        historyData={monthlyHistory} 
+                        breakdownData={getBreakdownData(insights.monthlyAdherenceBreakdown)} 
+                        supplementData={Object.values(insights.monthlySupplementCompliance)} 
+                        chartColor="#8b5cf6" 
                     />
 
                 </Stack>

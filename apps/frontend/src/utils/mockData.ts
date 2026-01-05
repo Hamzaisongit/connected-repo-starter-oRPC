@@ -318,7 +318,7 @@ const generateMockDailySchedule = (date: Date): ScheduleItem[] => {
 					dosage: supplement.dosage,
 					unit: supplement.unit,
 					instructions: supplement.instructions,
-					imageUrl: supplement.imageUrl,
+					imageUrl: supplement.imageUrl ?? null,
 				},
 				scheduledTime,
 				adherenceLog,
