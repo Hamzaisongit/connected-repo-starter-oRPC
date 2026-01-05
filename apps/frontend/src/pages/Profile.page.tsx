@@ -1,5 +1,4 @@
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
-import { Dialog } from "@connected-repo/ui-mui/feedback/Dialog";
 import { Button } from "@connected-repo/ui-mui/form/Button";
 import { Switch } from "@connected-repo/ui-mui/form/Switch";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
@@ -8,7 +7,6 @@ import { Container } from "@connected-repo/ui-mui/layout/Container";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
 import { DAYS_OF_WEEK_ENUM } from "@connected-repo/zod-schemas/enums.zod";
 import { orpc } from "@frontend/utils/orpc.client";
-import { queryClient } from "@frontend/utils/queryClient";
 import { zodResolver } from "@hookform/resolvers/zod";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import AddIcon from "@mui/icons-material/Add";
@@ -21,16 +19,20 @@ import MedicationIcon from "@mui/icons-material/Medication";
 import OpacityIcon from "@mui/icons-material/Opacity";
 import StickyNote2Icon from '@mui/icons-material/StickyNote2';
 import {
-  Chip,
-  CircularProgress,
-  Divider,
-  Grid,
-  IconButton,
-  InputAdornment,
-  MenuItem,
-  TextField,
-  Tooltip,
-  useTheme
+    Chip,
+    CircularProgress,
+    Divider,
+    Drawer,
+    Fab, // Added Fab
+    Grid,
+    IconButton,
+    InputAdornment,
+    MenuItem,
+    TextField,
+    TextFieldProps,
+    Tooltip,
+    Zoom, // Added Zoom for animation
+    useTheme
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -57,31 +59,70 @@ interface SupplementWithId extends SupplementFormData {
 
 const DAYS_OF_WEEK = DAYS_OF_WEEK_ENUM as readonly [string, ...string[]];
 
-// --- Helper Components ---
+// --- Custom Components ---
+
+const StyledTextField = (props: TextFieldProps) => {
+    return (
+        <TextField
+            {...props}
+            variant="outlined"
+            size="medium"
+            sx={{
+                ...props.sx,
+                '& .MuiOutlinedInput-root': {
+                    borderRadius: 4,
+                    backgroundColor: 'background.paper',
+                    transition: 'all 0.2s ease-in-out',
+                    '& fieldset': {
+                        borderWidth: '2px',
+                        borderColor: (theme) => alpha(theme.palette.text.disabled, 0.2),
+                    },
+                    '&:hover fieldset': {
+                        borderColor: 'primary.light',
+                        borderWidth: '2px',
+                    },
+                    '&.Mui-focused': {
+                        backgroundColor: 'background.paper',
+                        boxShadow: (theme) => `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
+                        '& fieldset': {
+                            borderColor: 'primary.main',
+                            borderWidth: '2px',
+                        },
+                    },
+                    '& input': {
+                        fontWeight: 600,
+                    }
+                },
+                '& .MuiInputLabel-root': {
+                    fontWeight: 500,
+                }
+            }}
+        />
+    );
+};
 
 const DayToggle = ({ day, selected, onClick }: { day: string; selected: boolean; onClick: () => void }) => {
-    const theme = useTheme();
     return (
         <Box
             onClick={onClick}
             sx={{
-                width: 36,
-                height: 36,
+                width: 42,
+                height: 42,
                 borderRadius: "50%",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 cursor: "pointer",
-                fontWeight: 700,
-                fontSize: "0.75rem",
-                transition: "all 0.2s ease",
-                bgcolor: selected ? "primary.main" : "background.paper",
+                fontWeight: 800,
+                fontSize: "0.85rem",
+                transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                bgcolor: selected ? "primary.main" : "transparent",
                 color: selected ? "primary.contrastText" : "text.secondary",
-                border: "1px solid",
+                border: "2px solid",
                 borderColor: selected ? "primary.main" : "divider",
                 "&:hover": {
-                    bgcolor: selected ? "primary.dark" : "background.default",
-                    borderColor: selected ? "primary.dark" : "primary.light",
+                    bgcolor: selected ? "primary.dark" : "action.hover",
+                    transform: 'scale(1.05)'
                 }
             }}
         >
@@ -92,13 +133,12 @@ const DayToggle = ({ day, selected, onClick }: { day: string; selected: boolean;
 
 const ProfilePage = () => {
     const [tabValue, setTabValue] = useState("active");
-    const [dialogOpen, setDialogOpen] = useState(false);
+    const [drawerOpen, setDrawerOpen] = useState(false);
     const [editingSupplement, setEditingSupplement] = useState<SupplementWithId | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const theme = useTheme();
 
     const {
-        register,
         handleSubmit,
         reset,
         control,
@@ -119,12 +159,11 @@ const ProfilePage = () => {
         },
     });
 
-    // We use watch to sync local state logic with RHF
     const currentDays = watch("days");
     const currentTimes = watch("timesOfDay");
     const currentInstructions = watch("instructions");
 
-    const handleOpenDialog = (supplement: SupplementWithId | null = null) => {
+    const handleOpenDrawer = (supplement: SupplementWithId | null = null) => {
         setEditingSupplement(supplement);
         if (supplement) {
             reset({ ...supplement });
@@ -139,23 +178,25 @@ const ProfilePage = () => {
                 isActive: true,
             });
         }
-        setDialogOpen(true);
+        setDrawerOpen(true);
     };
 
-    const handleCloseDialog = () => {
-        setDialogOpen(false);
-        setEditingSupplement(null);
-        reset();
+    const handleCloseDrawer = () => {
+        setDrawerOpen(false);
+        setTimeout(() => {
+            setEditingSupplement(null);
+            reset();
+        }, 300);
     };
 
-    const { data: supplements = [], isLoading: supplementsLoading, refetch: refetchSupplements } = useQuery(
+    const { data: supplements = [], refetch: refetchSupplements } = useQuery(
         orpc.supplements.getAllSupplements.queryOptions()
     );
 
     const createMutation = useMutation({
         ...orpc.supplements.createSupplement.mutationOptions(),
         onSuccess: () => {
-            handleCloseDialog();
+            handleCloseDrawer();
             refetchSupplements();
         },
     });
@@ -163,7 +204,7 @@ const ProfilePage = () => {
     const updateMutation = useMutation({
         ...orpc.supplements.updateSupplement.mutationOptions(),
         onSuccess: () => {
-            handleCloseDialog();
+            handleCloseDrawer();
             refetchSupplements();
         },
     });
@@ -184,7 +225,6 @@ const ProfilePage = () => {
                 await createMutation.mutateAsync(data);
             }
         } catch (error) {
-            // eslint-disable-next-line no-console
             console.error("[Profile] Error saving supplement:", error);
         } finally {
             setIsLoading(false);
@@ -195,25 +235,24 @@ const ProfilePage = () => {
         await toggleMutation.mutateAsync({ id: supplement.id, isActive: !supplement.isActive });
     };
 
-    // --- Form Logic Helpers ---
     const toggleDay = (day: typeof DAYS_OF_WEEK[number]) => {
         const current = getValues("days");
-        const newDays = current.includes(day) 
-            ? current.filter(d => d !== day) 
+        const newDays = current.includes(day)
+            ? current.filter(d => d !== day)
             : [...current, day];
         setValue("days", newDays, { shouldValidate: true });
     };
 
     const addTime = () => setValue("timesOfDay", [...getValues("timesOfDay"), "09:00"]);
     const removeTime = (idx: number) => setValue("timesOfDay", getValues("timesOfDay").filter((_, i) => i !== idx));
-    
+
     const addInstruction = () => setValue("instructions", [...getValues("instructions"), ""]);
     const removeInstruction = (idx: number) => setValue("instructions", getValues("instructions").filter((_, i) => i !== idx));
 
     const activeSupplements = (supplements ?? []).filter((s) => s.isActive);
     const inactiveSupplements = (supplements ?? []).filter((s) => !s.isActive);
 
-	const SupplementCard = ({ supplement, showActions = true }: { supplement: SupplementWithId; showActions?: boolean }) => (
+    const SupplementCard = ({ supplement, showActions = true }: { supplement: SupplementWithId; showActions?: boolean }) => (
         <Card
             sx={{
                 width: "100%",
@@ -261,7 +300,7 @@ const ProfilePage = () => {
                     {showActions && (
                         <Box sx={{ display: "flex", gap: 0.5, ml: 1 }}>
                             <Tooltip title="Edit">
-                                <IconButton size="small" onClick={() => handleOpenDialog(supplement)}>
+                                <IconButton size="small" onClick={() => handleOpenDrawer(supplement)}>
                                     <EditIcon fontSize="small" color="primary" />
                                 </IconButton>
                             </Tooltip>
@@ -298,16 +337,6 @@ const ProfilePage = () => {
                             ))}
                         </Box>
                     </Box>
-                    <Box>
-                        <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 0.5, display: 'block', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                            Instructions
-                        </Typography>
-                        {supplement.instructions.map((inst, i) => (
-                            <Typography key={i} variant="body2" color="secondary.dark" sx={{ display: 'flex', alignItems: 'flex-start', mb: 0.5 }}>
-                                <span style={{ marginRight: 6, color: theme.palette.secondary.main }}>•</span> {inst} 
-                            </Typography>
-                        ))}
-                    </Box>
                 </Stack>
             </Box>
             {!showActions && (
@@ -324,47 +353,38 @@ const ProfilePage = () => {
             )}
         </Card>
     );
-    
-    
-    // ... (Assume imports for DayToggle, etc. are handled)
-    
-const SupplementForm = () => {
-        const theme = useTheme();
-    
-    return (
-            <Box sx={{ p: 2, bgcolor: alpha(theme.palette.grey[400], 0.1) }}>
+
+    const SupplementForm = () => {
+        return (
+            <Box sx={{ p: 0 }}>
                 <Stack spacing={4} sx={{ p: 1 }}>
-                    
                     {/* --- SECTION 1: ESSENTIALS --- */}
                     <Box>
                         <Stack direction="row" alignItems="center" gap={2} mb={3}>
-                            <Box sx={{ 
-                                p: 1.2, 
-                                borderRadius: '12px', 
-                                bgcolor: alpha(theme.palette.primary.main, 0.1), 
-                                color: 'primary.main', 
-                                display: 'flex' 
+                            <Box sx={{
+                                p: 1.2,
+                                borderRadius: '12px',
+                                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                color: 'primary.main',
+                                display: 'flex'
                             }}>
                                 <LocalPharmacyIcon fontSize="small" />
                             </Box>
-                            <Typography variant="subtitle1" fontWeight={700} color="text.primary">
-                                Supplement Details
+                            <Typography variant="h6" fontWeight={800} color="text.primary">
+                                The Basics
                             </Typography>
                         </Stack>
-    
+
                         <Stack spacing={2.5}>
                             <Controller
                                 name="name"
                                 control={control}
                                 render={({ field }) => (
-                                    <TextField
+                                    <StyledTextField
                                         {...field}
                                         label="Supplement Name"
                                         placeholder="e.g. Vitamin D3"
                                         fullWidth
-                                        variant="outlined"
-                                        // Subtle background for inputs
-                                        sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
                                         error={!!errors.name}
                                         helperText={errors.name?.message}
                                     />
@@ -376,7 +396,7 @@ const SupplementForm = () => {
                                         name="dosage"
                                         control={control}
                                         render={({ field }) => (
-                                            <TextField
+                                            <StyledTextField
                                                 {...field}
                                                 label="Dosage"
                                                 placeholder="0"
@@ -397,43 +417,49 @@ const SupplementForm = () => {
                                         name="unit"
                                         control={control}
                                         render={({ field }) => (
-                                            <TextField {...field} select label="Unit" fullWidth error={!!errors.unit}>
+                                            <StyledTextField {...field} select label="Unit" fullWidth error={!!errors.unit}>
                                                 {["tablet", "capsule", "mg", "mcg", "ml", "drops", "g", "IU", "billion CFU"].map((u) => (
-                                                    <MenuItem key={u} value={u}>{u}</MenuItem>
+                                                    <MenuItem key={u} value={u} sx={{ fontWeight: 600 }}>{u}</MenuItem>
                                                 ))}
-                                            </TextField>
+                                            </StyledTextField>
                                         )}
                                     />
                                 </Grid>
                             </Grid>
                         </Stack>
                     </Box>
-    
-                    <Divider sx={{ borderStyle: 'dashed' }} />
-    
+
+                    <Divider sx={{ borderStyle: 'dashed', borderColor: 'divider' }} />
+
                     {/* --- SECTION 2: SCHEDULE --- */}
                     <Box>
                         <Stack direction="row" alignItems="center" gap={2} mb={3}>
-                            <Box sx={{ 
-                                p: 1.2, 
-                                borderRadius: '12px', 
-                                bgcolor: alpha(theme.palette.warning.main, 0.1), 
-                                color: 'warning.main', 
-                                display: 'flex' 
+                            <Box sx={{
+                                p: 1.2,
+                                borderRadius: '12px',
+                                bgcolor: alpha(theme.palette.warning.main, 0.1),
+                                color: 'warning.main',
+                                display: 'flex'
                             }}>
                                 <CalendarTodayIcon fontSize="small" />
                             </Box>
-                            <Typography variant="subtitle1" fontWeight={700} color="text.primary">
-                                Frequency & Timing
+                            <Typography variant="h6" fontWeight={800} color="text.primary">
+                                Schedule
                             </Typography>
                         </Stack>
-    
+
                         {/* Days Selector */}
                         <Box sx={{ mb: 3 }}>
                             <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ mb: 1.5, display: 'block', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                                Days of Week
+                                Frequency
                             </Typography>
-                            <Stack direction="row" spacing={0.5} justifyContent="space-between" sx={{ bgcolor: 'action.hover', p: 1, borderRadius: 3 }}>
+                            <Stack direction="row" spacing={0} justifyContent="space-between" sx={{
+                                bgcolor: 'background.paper',
+                                border: '2px solid',
+                                borderColor: 'divider',
+                                p: 1.5,
+                                borderRadius: 4
+                            }}>
                                 {DAYS_OF_WEEK.map((day) => (
                                     <DayToggle
                                         key={day}
@@ -445,7 +471,7 @@ const SupplementForm = () => {
                             </Stack>
                             {errors.days && <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>{errors.days.message}</Typography>}
                         </Box>
-    
+
                         {/* Times Grid */}
                         <Box>
                             <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ mb: 1.5, display: 'block', textTransform: 'uppercase', letterSpacing: 0.5 }}>
@@ -458,14 +484,10 @@ const SupplementForm = () => {
                                             name={`timesOfDay.${idx}`}
                                             control={control}
                                             render={({ field }) => (
-                                                <TextField
+                                                <StyledTextField
                                                     {...field}
                                                     type="time"
                                                     fullWidth
-                                                    size="small"
-                                                    sx={{ 
-                                                        '& .MuiInputBase-input': { fontWeight: 600, fontSize: '0.9rem' }
-                                                    }}
                                                     InputProps={{
                                                         endAdornment: currentTimes.length > 1 && (
                                                             <InputAdornment position="end">
@@ -486,13 +508,14 @@ const SupplementForm = () => {
                                         fullWidth
                                         startIcon={<AddIcon />}
                                         onClick={addTime}
-                                        sx={{ 
-                                            height: 40, 
-                                            borderStyle: 'dashed', 
-                                            borderColor: 'divider', 
-                                            color: 'text.secondary', 
-                                            borderRadius: 1,
-                                            '&:hover': { borderColor: 'primary.main', color: 'primary.main', bgcolor: 'transparent' } 
+                                        sx={{
+                                            height: 56,
+                                            border: '2px dashed',
+                                            borderColor: 'divider',
+                                            color: 'text.secondary',
+                                            borderRadius: 4,
+                                            fontWeight: 600,
+                                            '&:hover': { borderColor: 'primary.main', color: 'primary.main', bgcolor: alpha(theme.palette.primary.main, 0.04), borderWidth: 2 }
                                         }}
                                     >
                                         Add Time
@@ -501,26 +524,26 @@ const SupplementForm = () => {
                             </Grid>
                         </Box>
                     </Box>
-    
-                    <Divider sx={{ borderStyle: 'dashed' }} />
-    
+
+                    <Divider sx={{ borderStyle: 'dashed', borderColor: 'divider' }} />
+
                     {/* --- SECTION 3: EXTRAS --- */}
                     <Box>
                         <Stack direction="row" alignItems="center" gap={2} mb={3}>
-                            <Box sx={{ 
-                                p: 1.2, 
-                                borderRadius: '12px', 
-                                bgcolor: alpha(theme.palette.info.main, 0.1), 
-                                color: 'info.main', 
-                                display: 'flex' 
+                            <Box sx={{
+                                p: 1.2,
+                                borderRadius: '12px',
+                                bgcolor: alpha(theme.palette.info.main, 0.1),
+                                color: 'info.main',
+                                display: 'flex'
                             }}>
                                 <StickyNote2Icon fontSize="small" />
                             </Box>
-                            <Typography variant="subtitle1" fontWeight={700} color="text.primary">
-                                Additional Details
+                            <Typography variant="h6" fontWeight={800} color="text.primary">
+                                Details
                             </Typography>
                         </Stack>
-    
+
                         <Stack spacing={2}>
                             {currentInstructions.map((item, idx) => (
                                 <Controller
@@ -528,13 +551,11 @@ const SupplementForm = () => {
                                     name={`instructions.${idx}`}
                                     control={control}
                                     render={({ field }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             placeholder="e.g. Take after breakfast"
                                             fullWidth
-                                            size="small"
                                             InputProps={{
-                                                // Bullet point visual
                                                 startAdornment: <InputAdornment position="start"><Typography color="text.disabled" fontWeight="bold">•</Typography></InputAdornment>,
                                                 endAdornment: currentInstructions.length > 1 && (
                                                     <InputAdornment position="end">
@@ -552,14 +573,14 @@ const SupplementForm = () => {
                                 size="small"
                                 startIcon={<AddIcon />}
                                 onClick={addInstruction}
-                                sx={{ alignSelf: 'flex-start', color: 'text.secondary', fontWeight: 600 }}
+                                sx={{ alignSelf: 'flex-start', color: 'text.secondary', fontWeight: 700 }}
                             >
                                 Add Instruction
                             </Button>
                         </Stack>
-    
+
                         {/* Styled Switch Card */}
-                        <Card variant="outlined" sx={{ mt: 3, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: alpha(theme.palette.background.default, 0.5), borderColor: 'divider', borderRadius: 2 }}>
+                        <Card variant="outlined" sx={{ mt: 3, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: alpha(theme.palette.background.default, 0.5), borderColor: 'divider', borderRadius: 4, borderWidth: 2 }}>
                             <Box>
                                 <Typography variant="body2" fontWeight={700}>Active Tracking</Typography>
                                 <Typography variant="caption" color="text.secondary">Enable daily reminders & stats</Typography>
@@ -571,20 +592,19 @@ const SupplementForm = () => {
                             />
                         </Card>
                     </Box>
-    
+
                     {/* --- FOOTER ACTIONS --- */}
-                    <Stack direction="row" spacing={2} pt={2}>
+                    <Stack direction="row" spacing={2} pt={4} pb={2}>
                         <Button
-                            variant="outlined"
-                            onClick={handleCloseDialog}
+                            variant="text"
+                            onClick={handleCloseDrawer}
                             disabled={isLoading}
-                            color="inherit"
-                            sx={{ 
-                                flex: 1, 
-                                py: 1.5, 
-                                borderColor: 'divider', 
+                            sx={{
+                                flex: 1,
+                                py: 2,
                                 color: 'text.secondary',
-                                borderRadius: 3
+                                borderRadius: 4,
+                                fontWeight: 700
                             }}
                         >
                             Cancel
@@ -593,17 +613,18 @@ const SupplementForm = () => {
                             variant="contained"
                             onClick={handleSubmit(onSubmit)}
                             disabled={isLoading}
-                            sx={{ 
-                                flex: 1, 
-                                py: 1.5, 
-                                boxShadow: theme.shadows[4],
+                            sx={{
+                                flex: 2,
+                                py: 2,
+                                boxShadow: theme.shadows[8],
                                 bgcolor: "primary.main",
                                 color: "primary.contrastText",
-                                borderRadius: 3,
-                                fontWeight: 700
+                                borderRadius: 4,
+                                fontWeight: 700,
+                                fontSize: '1rem'
                             }}
                         >
-                            {isLoading ? <CircularProgress size={24} color="inherit" /> : editingSupplement ? "Save Changes" : "Add Supplement"}
+                            {isLoading ? <CircularProgress size={24} color="inherit" /> : editingSupplement ? "Save Changes" : "Add to Stack"}
                         </Button>
                     </Stack>
                 </Stack>
@@ -612,56 +633,116 @@ const SupplementForm = () => {
     };
 
     return (
-        <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: { xs: 3, md: 6 } }}>
+        // Adjusted padding-bottom to ensure content isn't hidden behind Fab/Nav
+        <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: { xs: 3, md: 6 }}}>
             <Container maxWidth="lg">
                 <Stack spacing={5}>
                     {/* Header */}
                     <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} spacing={2}>
                         <Box>
-                            <Typography variant="h4" fontWeight={800} color="primary.main">
+                            <Typography variant="h4" fontWeight={800} >
                                 My Stack
                             </Typography>
                             <Typography variant="body1" color="text.secondary">
                                 Manage your daily stack and schedule
                             </Typography>
                         </Box>
+                        {/* HIDE this button on mobile, show on Desktop */}
                         <Button
                             variant="contained"
                             size="large"
-                            onClick={() => handleOpenDialog(null)}
+                            onClick={() => handleOpenDrawer(null)}
                             startIcon={<AddIcon />}
-                            sx={{ borderRadius: 3, px: 3, boxShadow: 2, bgcolor: "primary.main", color: "primary.contrastText" }}
+                            sx={{ 
+                                borderRadius: 3, 
+                                px: 3, 
+                                boxShadow: 2, 
+                                bgcolor: "primary.main", 
+                                color: "primary.contrastText",
+                                display: { xs: 'none', md: 'flex' } // UI Adjustment 1
+                            }}
                         >
                             Add Supplement
                         </Button>
                     </Stack>
 
                     {/* Tabs */}
-                    <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                        <Stack direction="row" spacing={1}>
-                            {[
-                                { val: 'active', label: `Active (${activeSupplements.length})` },
-                                { val: 'inactive', label: `Archived (${inactiveSupplements.length})` }
-                            ].map((tab) => (
-                                <Box
-                                    key={tab.val}
-                                    onClick={() => setTabValue(tab.val)}
-                                    sx={{
-                                        px: 3, py: 1.5,
-                                        cursor: 'pointer',
-                                        borderBottom: 2,
-                                        borderColor: tabValue === tab.val ? 'primary.main' : 'transparent',
-                                        color: tabValue === tab.val ? 'primary.main' : 'text.secondary',
-                                        fontWeight: tabValue === tab.val ? 600 : 400,
-                                        transition: 'all 0.2s',
-                                        "&:hover": { color: 'primary.main', bgcolor: 'primary.lighter' }
-                                    }}
-                                >
-                                    {tab.label}
-                                </Box>
-                            ))}
-                        </Stack>
-                    </Box>
+					{/* Capsule-like animated tabs */}
+					<Box sx={{ width: "100%", display: "flex", justifyContent: "center" }}>
+						<Box
+							sx={{
+								position: "relative",
+								bgcolor: "background.paper",
+								borderRadius: 20,
+								px: 0.5,
+								py: 0.5,
+								display: "inline-flex",
+								boxShadow: theme => `0 2px 8px ${theme.palette.mode === "light"
+									? "rgba(0,0,0,0.06)"
+									: "rgba(0,0,0,0.25)"}`
+							}}
+						>
+							{/* Animated background */}
+							<Box
+								sx={{
+									position: "absolute",
+									top: 4,
+									left: 4,
+									height: "calc(100% - 8px)",
+									width: "calc(50% - 8px)",
+									borderRadius: 16,
+									bgcolor: theme => theme.palette.primary.main,
+									transition: "transform 0.32s cubic-bezier(0.55, 0, 0.1, 1)",
+									transform: tabValue === "active"
+										? "translateX(0)"
+										: "translateX(100%)",
+									zIndex: 0
+								}}
+							/>
+							<Stack direction="row" spacing={0}>
+								{[
+									{ val: "active", label: `Active (${activeSupplements.length})` },
+									{ val: "inactive", label: `Archived (${inactiveSupplements.length})` }
+								].map((tab, idx) => {
+									const isActive = tabValue === tab.val;
+									return (
+										<Box
+											key={tab.val}
+											onClick={() => setTabValue(tab.val)}
+											sx={{
+												position: "relative",
+												cursor: "pointer",
+												userSelect: "none",
+												px: { xs: 2.5, sm: 3.5 },
+												py: 1.1,
+												borderRadius: 16,
+												zIndex: 1,
+												fontWeight: isActive ? 700 : 500,
+												color: isActive
+													? "primary.contrastText"
+													: "text.secondary",
+												bgcolor: "transparent",
+												transition: "color 0.32s cubic-bezier(0.55, 0, 0.1, 1)",
+												textAlign: "center",
+												fontSize: "1.05rem",
+												boxShadow: isActive ? 2 : "none",
+												"&:hover": {
+													color: isActive
+														? "primary.contrastText"
+														: "primary.main",
+													bgcolor: isActive
+														? "primary.main"
+														: theme => theme.palette.primary.lighter,
+												}
+											}}
+										>
+											{tab.label}
+										</Box>
+									);
+								})}
+							</Stack>
+						</Box>
+					</Box>
 
                     {/* Content Grid */}
                     <Box sx={{ width: '100%' }}>
@@ -692,18 +773,60 @@ const SupplementForm = () => {
                         )}
                     </Box>
                 </Stack>
-                <Dialog
-                    open={dialogOpen}
-                    onClose={handleCloseDialog}
-                    maxWidth="sm"
-                    fullWidth
-                    PaperProps={{ sx: { borderRadius: 3, bgcolor: 'primary.default'} }}
+
+                {/* --- STICKY FLOATING ACTION BUTTON (Mobile Only) --- */}
+                <Zoom in={true} style={{ transitionDelay: '300ms' }}>
+                    <Fab
+                        color="primary"
+                        aria-label="add"
+                        onClick={() => handleOpenDrawer(null)}
+                        sx={{
+                            position: 'fixed',
+                            bottom: 150, // ~34px above standard bottom nav height (56px)
+                            right: 24,
+                            display: { xs: 'flex', md: 'none' }, // Show only on mobile/tablet
+                            zIndex: 100,
+                            boxShadow: theme.shadows[10],
+                            width: 65,
+                            height: 65,
+                            '&:active': { transform: 'scale(0.95)' }
+                        }}
+                    >
+                        <AddIcon sx={{ fontSize: 28 }} />
+                    </Fab>
+                </Zoom>
+
+                {/* --- BOTTOM SHEET DRAWER --- */}
+                <Drawer
+                    anchor="bottom"
+                    open={drawerOpen}
+                    onClose={handleCloseDrawer}
+                    PaperProps={{
+                        sx: {
+                            borderTopLeftRadius: 32,
+                            borderTopRightRadius: 32,
+                            maxHeight: '92vh',
+                            height: 'auto',
+                            overflow: 'visible',
+                            bgcolor: 'background.default',
+                            maxWidth: 'md',
+                            mx: 'auto'
+                        }
+                    }}
                 >
-                    <Typography variant="h6" sx={{ p: 2, pb: 1, fontWeight: 700, color: "primary.main" }}>
-                        {editingSupplement ? "Edit Supplement" : "Add New Supplement"}
-                    </Typography>
-                    <SupplementForm />
-                </Dialog>
+                    <Box sx={{ width: 60, height: 6, bgcolor: 'divider', borderRadius: 3, mx: 'auto', mt: 2, mb: 1, opacity: 0.5 }} />
+                    <Container maxWidth="sm" sx={{ pb: 4, height: '100%', overflowY: 'auto' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', py: 2 }}>
+                            <Typography variant="h5" sx={{ fontWeight: 800, color: "text.primary" }}>
+                                {editingSupplement ? "Edit Supplement" : "Add to Stack"}
+                            </Typography>
+                            <IconButton onClick={handleCloseDrawer} sx={{ position: 'absolute', right: 0, bgcolor: 'action.hover' }}>
+                                <CloseIcon />
+                            </IconButton>
+                        </Box>
+                        <SupplementForm />
+                    </Container>
+                </Drawer>
             </Container>
         </Box>
     );

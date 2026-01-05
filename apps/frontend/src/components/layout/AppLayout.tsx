@@ -1,7 +1,7 @@
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import type { SessionInfo } from "@frontend/contexts/UserContext";
 import { useMediaQuery } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 import { Outlet, useLoaderData } from "react-router";
 import { PwaInstallPrompt } from "../pwa/PwaInstallPrompt.pwa";
 import { PwaUpdatePrompt } from "../pwa/PwaUpdatePrompt.pwa";
@@ -44,6 +44,7 @@ export const AppLayout = () => {
 					pt: { xs: 2, md: 3 },
 					pb: { xs: 15, md: 3 }, // Extra padding bottom on mobile for bottom nav
 					px: { xs: 2, sm: 3, md: 4 },
+					bgcolor: theme.palette.background.default
 				}}
 			>
 				<Outlet context={sessionInfo} />

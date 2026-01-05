@@ -2,6 +2,8 @@ import { HomeIcon } from "@connected-repo/ui-mui/icons/HomeIcon";
 import { DashboardIcon } from "@connected-repo/ui-mui/icons/DashboardIcon";
 import { ErrorOutlineIcon } from "@connected-repo/ui-mui/icons/ErrorOutlineIcon";
 import { AccountCircleIcon } from "@connected-repo/ui-mui/icons/AccountCircleIcon";
+import LocalPharmacyIcon from "@mui/icons-material/LocalPharmacy";
+import MedicationIcon from "@mui/icons-material/Medication";
 
 interface NavItem {
 	/** Display label for the nav item */
@@ -25,12 +27,12 @@ export const navItems: NavItem[] = [
 		desktopIcon: <HomeIcon fontSize="small" />,
 		mobileIcon: <HomeIcon />,
 	},
-	{
-		label: "Alerts",
-		path: "/alerts",
-		desktopIcon: <ErrorOutlineIcon fontSize="small" />,
-		mobileIcon: <ErrorOutlineIcon />,
-	},
+	// {
+	// 	label: "Alerts",
+	// 	path: "/alerts",
+	// 	desktopIcon: <ErrorOutlineIcon fontSize="small" />,
+	// 	mobileIcon: <ErrorOutlineIcon />,
+	// },
 	{
 		label: "Insights",
 		path: "/insights",
@@ -40,7 +42,7 @@ export const navItems: NavItem[] = [
 	{
 		label: "Profile",
 		path: "/profile",
-		desktopIcon: <AccountCircleIcon fontSize="small" />,
-		mobileIcon: <AccountCircleIcon />,
+		desktopIcon: <MedicationIcon fontSize="small" />,
+		mobileIcon: <MedicationIcon />,
 	},
 ];

@@ -180,87 +180,119 @@ const HomePage = () => {
     };
 
     return (
-        <Container maxWidth="lg" sx={{ py: 3, px: 2, bgcolor: alpha(theme.palette.primary.light, 0.05) }}>
+        <Container maxWidth="lg" sx={{ py: 3, px: 2, bgcolor: theme.palette.background.default }}>
             <Stack spacing={3}>
-                
-                {/* --- HEADER --- */}
-                <Box>
-                    <Typography variant="h5" fontWeight={800} color="text.primary">Today's Plan</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        {format(new Date(), "EEEE, MMM do")}
-                    </Typography>
-                </Box>
 
                 {/* --- UNIFIED DASHBOARD CARD --- */}
                 {dailyProgress && userStats && (
                     <Card sx={{ 
                         p: 0, 
-                        // Rich Gradient: Deep Blue to Indigo
-                        background: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)", 
-                        color: "white", 
-                        borderRadius: 3,
-                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.5)",
-                        position: "relative", 
-                        overflow: "hidden",
-                        border: 'none'
+                        bgcolor: 'background.paper',
+                        borderRadius: 4, // consistent with your theme
+                        boxShadow: 2, // Soft shadow, not glowing
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        overflow: 'hidden'
                     }}>
-                        {/* Decorative Background Blob */}
-                        <Box sx={{ position: 'absolute', top: -50, right: -50, width: 150, height: 150, background: 'rgba(255,255,255,0.1)', borderRadius: '50%', filter: 'blur(30px)' }} />
-
-                        {/* TOP SECTION: Major Stats */}
-                        <Box sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            
-                            {/* Left: Completion */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <Box sx={{ position: "relative", display: "inline-flex" }}>
-                                    <CircularProgress variant="determinate" value={100} size={64} thickness={5} sx={{ color: "rgba(255,255,255,0.15)", position: 'absolute' }} />
-                                    <CircularProgress variant="determinate" value={dailyProgress.completionPercentage} size={64} thickness={5} sx={{ color: "#4ade80", ".MuiCircularProgress-circle": { strokeLinecap: "round" } }} />
-                                    <Box sx={{ position: "absolute", top: 0, left: 0, bottom: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                        <Typography variant="subtitle2" fontWeight={800}>{Math.round(dailyProgress.completionPercentage)}%</Typography>
-                                    </Box>
-                                </Box>
-                                <Box>
-                                    <Typography variant="body2" sx={{ opacity: 0.8, fontWeight: 500 }}>Daily Goal</Typography>
-                                    <Typography variant="h6" fontWeight={800} lineHeight={1}>
-                                        {completed}/{totalScheduled} <span style={{ fontSize: '0.6em', opacity: 0.8, fontWeight: 400 }}>DOSES</span>
-                                    </Typography>
-                                </Box>
-                            </Box>
-
-                            {/* Right: Streak */}
-                            <Box sx={{ textAlign: 'right' }}>
-                                <Stack direction="row" alignItems="center" justifyContent="flex-end" spacing={0.5}>
-                                    <LocalFireDepartment sx={{ color: '#fb923c', fontSize: 24 }} />
-                                    <Typography variant="body2" sx={{ opacity: 0.8, fontWeight: 500 }}>Streak</Typography>
-                                </Stack>
-                                <Typography variant="h4" fontWeight={800} lineHeight={1}>
-                                    {userStats.currentStreak}<span style={{ fontSize: '0.4em', fontWeight: 600, opacity: 0.8, verticalAlign: 'super', marginLeft: 2 }}>DAYS</span>
+                        {/* HEADER: Title & Streak */}
+                        <Box sx={{ p: 3, pb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Box>
+                                {/* <Typography variant="h6" fontWeight={800} color="text.primary">
+                                    Today's Progress
+                                </Typography> */}
+                                <Typography fontSize={25} color="text.primary" fontWeight={700}>
+                                    {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                                 </Typography>
                             </Box>
                         </Box>
 
-                        {/* BOTTOM SECTION: Detailed Grid (Glassmorphism) */}
+                        {/* MIDDLE: Chart & Big Numbers */}
+                        <Box sx={{ px: 3, pb: 3, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            
+                            {/* 1. The Circular Chart */}
+                            <Box sx={{ position: "relative", display: "inline-flex" }}>
+                                {/* Background Track */}
+                                <CircularProgress 
+                                    variant="determinate" 
+                                    value={100} 
+                                    size={100} 
+                                    thickness={5} 
+                                    sx={{ color: theme.palette.grey[100], position: 'absolute' }} 
+                                />
+                                {/* Active Progress */}
+                                <CircularProgress 
+                                    variant="determinate" 
+                                    value={dailyProgress.completionPercentage} 
+                                    size={100} 
+                                    thickness={5} 
+                                    sx={{ 
+                                        color: theme.palette.primary.main, 
+                                        // Round caps for a polished look
+                                        [`& .MuiCircularProgress-circle`]: { strokeLinecap: 'round' } 
+                                    }} 
+                                />
+                                {/* Center Text */}
+                                <Box sx={{ 
+                                    position: "absolute", 
+                                    top: 0, left: 0, bottom: 0, right: 0, 
+                                    display: "flex", 
+                                    flexDirection: 'column',
+                                    alignItems: "center", 
+                                    justifyContent: "center" 
+                                }}>
+                                    <Typography variant="h4" fontWeight={800} color="text.primary" lineHeight={1}>
+                                        {Math.round(dailyProgress.completionPercentage)}%
+                                    </Typography>
+                                </Box>
+                            </Box>
+
+                            {/* 2. The Text Context */}
+                            <Box>
+                                <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 1 }}>
+                                    Daily Goal
+                                </Typography>
+                                <Stack direction="row" alignItems="baseline" spacing={0.5}>
+                                    <Typography variant="h4" fontWeight={800} color="text.primary">
+                                        {completed}
+                                    </Typography>
+                                    <Typography variant="h6" color="text.secondary" fontWeight={500}>
+                                        / {totalScheduled}
+                                    </Typography>
+                                </Stack>
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                    Doses logged so far
+                                </Typography>
+                            </Box>
+                        </Box>
+
+                        {/* FOOTER: Clean Breakdown Grid */}
+                        <Divider />
                         <Box sx={{ 
-                            bgcolor: 'rgba(0,0,0,0.2)', 
-                            backdropFilter: 'blur(5px)',
-                            p: 2,
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(4, 1fr)',
-                            gap: 1,
-                            textAlign: 'center'
+                            display: 'flex', 
+                            bgcolor: alpha(theme.palette.background.default, 0.5) // Slightly off-white footer
                         }}>
                             {[
-                                { label: 'On Time', val: dailyProgress.takenOnTime, color: '#4ade80' }, // Green
-                                { label: 'Late', val: dailyProgress.takenLate, color: '#facc15' },   // Yellow
-                                { label: 'Missed', val: dailyProgress.missed, color: '#f87171' },    // Red
-                                { label: 'Skipped', val: dailyProgress.skipped, color: '#94a3b8' }   // Gray
+                                { label: 'Taken', val: dailyProgress.takenOnTime, color: theme.palette.success.main },
+                                // { label: 'Late', val: dailyProgress.takenLate, color: theme.palette.warning.main },
+                                // { label: 'Missed', val: dailyProgress.missed, color: theme.palette.error.main },
+                                { label: 'Skipped', val: dailyProgress.skipped, color: theme.palette.text.disabled }
                             ].map((stat, i) => (
-                                <Box key={i} sx={{ position: 'relative' }}>
-                                    {i > 0 && i<3 && <Divider orientation="vertical" absolute sx={{ left: 0, height: '70%', top: '15%', borderColor: theme.palette.grey[500] }} />}
-                                    <Typography variant="h6" fontWeight={700} sx={{ color: stat.val > 0 ? 'white' : 'rgba(255,255,255,0.4)' }}>
+                                <Box key={i} sx={{ 
+                                    flex: 1, 
+                                    py: 2,
+                                    display: 'flex', 
+                                    flexDirection: 'column', 
+                                    alignItems: 'center',
+                                    borderRight: i !== 3 ? '1px solid' : 'none',
+                                    borderColor: 'divider'
+                                }}>
+                                    {/* Colored Dot */}
+                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: stat.color, mb: 1 }} />
+                                    
+                                    <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
                                         {stat.val}
                                     </Typography>
-                                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                    <Typography variant="caption" color="text.secondary" fontWeight={600}>
                                         {stat.label}
                                     </Typography>
                                 </Box>
@@ -295,7 +327,7 @@ const HomePage = () => {
                                             border: "1px solid",
                                             borderColor: isPending ? 'divider' : 'transparent',
                                             bgcolor: 'background.paper',
-                                            boxShadow: isPending ? "0 2px 8px rgba(0,0,0,0.04)" : "none",
+                                            boxShadow: isPending ? "0 2px 8px rgba(0,0,0,0.04)" : "0 2px 8px rgba(0,0,0,0.1)",
                                             cursor: isPending ? "pointer" : "default",
                                             transition: "transform 0.2s ease",
                                             opacity: !isPending && item.status !== 'taken' ? 0.7 : 1,

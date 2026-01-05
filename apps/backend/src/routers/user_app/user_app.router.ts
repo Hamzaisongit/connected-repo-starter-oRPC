@@ -1,5 +1,6 @@
 import { journalEntriesRouter } from '@backend/modules/journal-entries/journal-entries.router'
 import { promptsRouter } from '@backend/modules/prompts/prompts.router'
+import { dailyComplianceRouter } from '@backend/modules/streaks/dailyCompliance.router'
 import { supplementsRouter } from '@backend/modules/supplements/supplements.router'
 import { usersStatsRouter } from '@backend/modules/users/users-stats.router'
 import { rpcPublicProcedure } from '@backend/procedures/public.procedure'
@@ -27,7 +28,8 @@ export const userAppRouter = {
 	journalEntries: journalEntriesRouter,
 	prompts: promptsRouter,
 	supplements: supplementsRouter,
-	userStats: usersStatsRouter
+	userStats: usersStatsRouter,
+	userCompliance: dailyComplianceRouter
 };
 
 export type UserAppRouter = RouterClient<typeof userAppRouter>;
