@@ -7,19 +7,10 @@ import { RhfSubmitButton } from "@connected-repo/ui-mui/rhf-form/RhfSubmitButton
 import { RhfTextField } from "@connected-repo/ui-mui/rhf-form/RhfTextField";
 import { SUPPLEMENT_UNITS } from "@frontend/utils/supplement.constants";
 import { memo, useMemo } from "react";
-import { Controller, type UseFormReturn } from "react-hook-form";
+import { type UseFormReturn } from "react-hook-form";
 import { MoreSection } from "./MoreSection";
 import { TimeFieldArray } from "./TimeFieldArray";
-
-const DAYS_OF_WEEK = [
-	{ label: "S", value: "Sunday" },
-	{ label: "M", value: "Monday" },
-	{ label: "T", value: "Tuesday" },
-	{ label: "W", value: "Wednesday" },
-	{ label: "T", value: "Thursday" },
-	{ label: "F", value: "Friday" },
-	{ label: "S", value: "Saturday" },
-] as const;
+import { FrequencySelector } from "./FrequencySelector";
 
 const PhotoAssistCard = memo(() => (
 	<Box
@@ -85,53 +76,7 @@ const FormDivider = memo(() => (
 
 FormDivider.displayName = "FormDivider";
 
-const DayButton = memo<{ day: typeof DAYS_OF_WEEK[number]; isSelected: boolean; onClick: () => void }>(
-	({ day, isSelected, onClick }) => (
-		<Box
-			onClick={onClick}
-			sx={{
-				width: 40,
-				height: 40,
-				borderRadius: "50%",
-				display: "flex",
-				alignItems: "center",
-				justifyContent: "center",
-				cursor: "pointer",
-				fontSize: "0.875rem",
-				fontWeight: 600,
-				transition: "all 0.3s ease-in-out",
-				backgroundColor: isSelected ? "#E0F2FE" : "#F1F5F9",
-				color: isSelected ? "#0369A1" : "#64748B",
-				border: isSelected ? "none" : "1px solid rgba(0, 0, 0, 0.06)",
-				boxShadow: isSelected 
-					? "0 0 20px rgba(224, 242, 254, 0.8), 0 0 35px rgba(186, 230, 253, 0.5), 0 4px 12px rgba(186, 230, 253, 0.4)" 
-					: "none",
-				"&:hover": {
-					transform: "scale(1.08)",
-					boxShadow: isSelected 
-						? "0 0 25px rgba(224, 242, 254, 0.9), 0 0 45px rgba(186, 230, 253, 0.6), 0 6px 16px rgba(186, 230, 253, 0.5)" 
-						: "none",
-				},
-			}}
-		>
-			{day.label}
-		</Box>
-	)
-);
 
-DayButton.displayName = "DayButton";
-
-const inputSx = {
-	"& .MuiOutlinedInput-root": {
-		borderRadius: "12px",
-		backgroundColor: "rgba(248, 250, 252, 0.8)",
-		fontSize: "0.9rem",
-		"& fieldset": { border: "1px solid rgba(0, 0, 0, 0.06)" },
-		"&:hover fieldset": { border: "1px solid rgba(0, 0, 0, 0.12)", backgroundColor: "#FFFFFF" },
-		"&.Mui-focused fieldset": { border: "2px solid #BAE6FD", backgroundColor: "#FFFFFF" },
-	},
-	"& .MuiInputLabel-root": { fontSize: "0.875rem", color: "#64748B" },
-};
 
 interface UserStackFormFieldsProps {
 	formMethods: UseFormReturn<any>;
@@ -171,7 +116,6 @@ export function UserStackFormFields({ formMethods, submitButtonText, submittingT
 					name="name"
 					label="Supplement Name"
 					placeholder="e.g. Magnesium Glycinate"
-					sx={inputSx}
 				/>
 
 				{/* Dosage Row */}
@@ -181,14 +125,14 @@ export function UserStackFormFields({ formMethods, submitButtonText, submittingT
 						label="Dosage"
 						type="number"
 						inputProps={{ min: 1 }}
-						sx={{ flex: 1.4, ...inputSx }}
+						sx={{ flex: 1.4 }}
 					/>
 					<RhfSelect
 						name="unit"
 						label="Unit"
 						options={unitOptions}
 						placeholder="Select unit"
-						sx={{ flex: 1, ...inputSx }}
+						sx={{ flex: 1 }}
 					/>
 				</Stack>
 
@@ -197,50 +141,14 @@ export function UserStackFormFields({ formMethods, submitButtonText, submittingT
 						name="customUnit"
 						label="Custom Unit"
 						placeholder="Enter your custom unit"
-						sx={inputSx}
 					/>
 				)}
 
 				{/* Frequency */}
-				<Stack direction="column" gap={1} sx = {{ m: 0, mt: 0 }}>
-					<Typography variant="body2" sx={{ color: "#64748B", fontSize: "0.875rem", fontWeight: 500 }}>
-						Frequency
-					</Typography>
-					<Controller
-						name="days"
-						control={formMethods.control}
-						render={({ field, fieldState: { error } }) => (
-							<>
-								<Box sx={{ display: "flex", gap: 1, justifyContent: "space-between" }}>
-									{DAYS_OF_WEEK.map((day) => {
-										const isSelected = field.value.includes(day.value);
-										return (
-											<DayButton
-												key={day.value}
-												day={day}
-												isSelected={isSelected}
-												onClick={() => {
-													const newValue = isSelected
-														? field.value.filter((d: string) => d !== day.value)
-														: [...field.value, day.value];
-													field.onChange(newValue);
-												}}
-											/>
-										);
-									})}
-								</Box>
-								{error && (
-									<Typography sx={{ fontSize: "0.75rem", color: "#EF4444", mt: 0.75, ml: 1.75 }}>
-										{error.message}
-									</Typography>
-								)}
-							</>
-						)}
-					/>
-				</Stack>
+				<FrequencySelector formMethods={formMethods} />
 
 				{/* Time */}
-				<TimeFieldArray />
+				<TimeFieldArray formMethods={formMethods} />
 
 				{/* More Section */}
 				<MoreSection />

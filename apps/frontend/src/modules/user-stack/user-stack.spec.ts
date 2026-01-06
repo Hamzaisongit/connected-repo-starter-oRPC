@@ -85,7 +85,7 @@ test.describe('User Stack', () => {
       await expect(page.locator('label:has-text("Dosage")')).toBeVisible();
       await expect(page.locator('label:has-text("Unit")')).toBeVisible();
       await expect(page.locator('label:has-text("Day of Week")')).toBeVisible();
-      await expect(page.locator('label:has-text("Times of Day")')).toBeVisible();
+       await expect(page.locator('text=Time')).toBeVisible();
       await expect(page.locator('label:has-text("Active in my stack")')).toBeVisible();
       await expect(page.locator('button[type="submit"]')).toContainText('Add to Stack');
     });
@@ -99,11 +99,11 @@ test.describe('User Stack', () => {
       const testId = generateTestId('create-stack-item');
       const itemName = `Test Supplement ${testId}`;
 
-      // Fill in the form
-      await page.locator('input[name="name"]').fill(itemName);
-      await page.locator('input[name="dosage"]').fill('2');
-      await page.locator('input[name="timesOfDay"]').fill('Morning, Evening');
-      await page.locator('textarea[name="instructions"]').fill('Take with food\nAvoid caffeine');
+        // Fill in the form
+        await page.locator('input[name="name"]').fill(itemName);
+        await page.locator('input[name="dosage"]').fill('2');
+        await page.locator('input[name="reminderTime"]').fill('08:00');
+        await page.locator('textarea[name="instructions"]').fill('Take with food\nAvoid caffeine');
 
       // Submit the form
       await page.locator('button[type="submit"]').click();
@@ -133,10 +133,10 @@ test.describe('User Stack', () => {
 
       // First create an item for testing
       await page.goto('/user-stack/new');
-      await page.locator('input[name="name"]').fill(itemName);
-      await page.locator('input[name="dosage"]').fill('1');
-      await page.locator('input[name="timesOfDay"]').fill('Morning');
-      await page.locator('textarea[name="instructions"]').fill('Take daily');
+        await page.locator('input[name="name"]').fill(itemName);
+        await page.locator('input[name="dosage"]').fill('1');
+        await page.locator('input[name="reminderTime"]').fill('08:00');
+        await page.locator('textarea[name="instructions"]').fill('Take daily');
       await page.locator('button[type="submit"]').click();
 
       // Wait for success message
@@ -178,10 +178,10 @@ test.describe('User Stack', () => {
 
       // First create an item for testing
       await page.goto('/user-stack/new');
-      await page.locator('input[name="name"]').fill(itemName);
-      await page.locator('input[name="dosage"]').fill('3');
-      await page.locator('input[name="timesOfDay"]').fill('Afternoon');
-      await page.locator('button[type="submit"]').click();
+        await page.locator('input[name="name"]').fill(itemName);
+        await page.locator('input[name="dosage"]').fill('3');
+        await page.locator('input[name="reminderTime"]').fill('08:00');
+        await page.locator('button[type="submit"]').click();
 
       // Wait for success message
       await expect(page.locator('text=User stack item added successfully!')).toBeVisible({ timeout: 5000 });
@@ -225,10 +225,11 @@ test.describe('User Stack', () => {
 
       // First create an item for testing
       await page.goto('/user-stack/new');
-      await page.locator('input[name="name"]').fill(itemName);
-      await page.locator('input[name="dosage"]').fill('5');
-      await page.locator('input[name="timesOfDay"]').fill('Evening');
-      await page.locator('button[type="submit"]').click();
+       await page.locator('input[name="name"]').fill(itemName);
+       await page.locator('input[name="dosage"]').fill('5');
+       await page.locator('input[name="timeOfDayHour"]').fill('08');
+       await page.locator('input[name="timeOfDayMinute"]').fill('00');
+       await page.locator('button[type="submit"]').click();
 
       // Wait for success message
       await expect(page.locator('text=User stack item added successfully!')).toBeVisible({ timeout: 5000 });
@@ -279,10 +280,10 @@ test.describe('User Stack', () => {
 
       // First create an item for testing
       await page.goto('/user-stack/new');
-      await page.locator('input[name="name"]').fill(itemName);
-      await page.locator('input[name="dosage"]').fill('10');
-      await page.locator('input[name="timesOfDay"]').fill('Morning');
-      await page.locator('button[type="submit"]').click();
+        await page.locator('input[name="name"]').fill(itemName);
+        await page.locator('input[name="dosage"]').fill('10');
+        await page.locator('input[name="reminderTime"]').fill('08:00');
+        await page.locator('button[type="submit"]').click();
 
       // Wait for success message
       await expect(page.locator('text=User stack item added successfully!')).toBeVisible({ timeout: 5000 });

@@ -16,8 +16,8 @@ export class UserStackTable extends BaseTable {
     isActive: t.boolean(),
     dosage: t.smallint(),
     unit: t.string(),
-    days: t.array(t.string().narrowType((t) => t<DaysOfWeek>())),
-    timesOfDay: t.array(t.string()),
+    reminderDays: t.array(t.string().narrowType((t) => t<DaysOfWeek>())),
+    reminderTime: t.time().default("08:00:00"),
     imageUrl: t.string().nullable(),
     ...t.timestamps(),
   }));

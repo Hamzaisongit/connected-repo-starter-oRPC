@@ -20,10 +20,9 @@ export function UserStackTableView({ stacks, onStackClick }: UserStackTableViewP
 		return daysArray.slice(0, 3).join(", ") + (daysArray.length > 3 ? "..." : "");
 	}, []);
 
-	const formatTimes = useCallback((times: string[]) => {
-		if (times.length === 0) return "No times set";
-		return times.join(", ");
-	}, []);
+  const formatTime = useCallback((timeString: string) => {
+    return timeString.slice(0, 5); // Extract HH:MM from HH:MM:SS
+  }, []);
 
 	const columns = useMemo<MRT_ColumnDef<UserStack>[]>(
 		() => [
@@ -51,16 +50,15 @@ export function UserStackTableView({ stacks, onStackClick }: UserStackTableViewP
 				size: 120,
 			},
 			{
-				accessorKey: "days",
+				accessorKey: "reminderDays",
 				header: "Days",
 				size: 150,
-				Cell: ({ cell }) => formatDays(cell.getValue<string | string[]>()),
+				Cell: ({ cell }) => formatDays(cell.getValue<string[]>()),
 			},
 			{
-				accessorKey: "timesOfDay",
-				header: "Times",
-				size: 150,
-				Cell: ({ cell }) => formatTimes(cell.getValue<string[]>()),
+				accessorFn: (row) => formatTime(row.reminderTime),
+				header: "Time",
+				size: 100,
 			},
 			{
 				accessorKey: "instructions",
@@ -74,7 +72,7 @@ export function UserStackTableView({ stacks, onStackClick }: UserStackTableViewP
 				},
 			},
 		],
-		[formatDays, formatTimes],
+		[formatDays, formatTime],
 	);
 
 	return (

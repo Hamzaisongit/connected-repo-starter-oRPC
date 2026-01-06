@@ -10,6 +10,8 @@ import { LoadingSpinner } from "@connected-repo/ui-mui/components/LoadingSpinner
 import { ThemeContextProvider } from "@connected-repo/ui-mui/theme/ThemeContext";
 import { ErrorFallback } from "@frontend/components/error_fallback";
 import { router } from "@frontend/router";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { ErrorBoundary } from "@sentry/react";
 import { Suspense } from "react";
 import { RouterProvider } from "react-router";
@@ -19,15 +21,17 @@ import { RouterProvider } from "react-router";
 // `main.tsx` following the oRPC + TanStack React Query recommended setup.
 function App() {
 	return (
-		<ThemeContextProvider>
-			<Suspense fallback={<LoadingSpinner text="Loading..." />}>
-				<ErrorBoundary fallback={<ErrorFallback />} beforeCapture={(scope) => {
-          scope.setTag("level", "top-level");
-        }}>
-					<RouterProvider router={router} />
-				</ErrorBoundary>
-			</Suspense>
-		</ThemeContextProvider>
+		<LocalizationProvider dateAdapter={AdapterDayjs}>
+			<ThemeContextProvider>
+				<Suspense fallback={<LoadingSpinner text="Loading..." />}>
+					<ErrorBoundary fallback={<ErrorFallback />} beforeCapture={(scope) => {
+	          scope.setTag("level", "top-level");
+	        }}>
+						<RouterProvider router={router} />
+					</ErrorBoundary>
+				</Suspense>
+			</ThemeContextProvider>
+		</LocalizationProvider>
 	);
 }
 

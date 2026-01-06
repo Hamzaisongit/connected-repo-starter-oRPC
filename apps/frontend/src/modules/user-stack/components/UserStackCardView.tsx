@@ -13,17 +13,15 @@ interface UserStackCardViewProps {
 }
 
 export function UserStackCardView({ stacks, onStackClick }: UserStackCardViewProps) {
-	const formatDays = (days: string | string[]) => {
-		const daysArray = Array.isArray(days) ? days : [days];
-		if (daysArray.length === 7) return "Every day";
-		if (daysArray.length === 0) return "No schedule";
-		return daysArray.slice(0, 3).join(", ") + (daysArray.length > 3 ? "..." : "");
-	};
+  const formatDays = (days: string[]) => {
+    if (days.length === 7) return "Every day";
+    if (days.length === 0) return "No schedule";
+    return days.slice(0, 3).join(", ") + (days.length > 3 ? "..." : "");
+  };
 
-	const formatTimes = (times: string[]) => {
-		if (times.length === 0) return "No times set";
-		return times.join(", ");
-	};
+  const formatTimes = (timeString: string) => {
+    return timeString.slice(0, 5); // Extract HH:MM from HH:MM:SS
+  };
 
 	return (
 		<Box
@@ -113,14 +111,14 @@ export function UserStackCardView({ stacks, onStackClick }: UserStackCardViewPro
 									display="block"
 									sx={{ mb: 0.5 }}
 								>
-									Days: {formatDays(stack.days)}
+									Days: {formatDays(stack.reminderDays)}
 								</Typography>
 								<Typography
 									variant="caption"
 									color="text.secondary"
 									display="block"
 								>
-									Times: {formatTimes(stack.timesOfDay)}
+									Times: {formatTimes(stack.reminderTime)}
 								</Typography>
 							</Box>
 

@@ -1,9 +1,7 @@
-
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@connected-repo/ui-mui/feedback/Dialog";
 import { Button } from "@connected-repo/ui-mui/form/Button";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
-
 import type { TodaysPlanSupplement } from "@connected-repo/zod-schemas/user_stack.zod";
 import { getStockIconAndColor } from "@frontend/utils/supplement.utils";
 import { useState } from "react";
@@ -23,7 +21,6 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
  	const [revertDialogOpen, setRevertDialogOpen] = useState(false);
 
  	const isTaken = supplement.status === "taken";
- 	const isOverdue = supplement.status === "overdue";
 
  	const handleLogClick = () => {
   		if (isTaken) {
@@ -74,7 +71,7 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
   // Calculate status text and color with robust date handling
   const getStatusInfo = () => {
   	if (isTaken) {
-  		return { text: `✅ Taken`, color: "#4CAF50" };
+  		return { text: `🌟 Taken on time!`, color: "#4CAF50", isWin: true };
   	}
 
   	// Helper function to create today's date with scheduled time
@@ -98,38 +95,39 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
 
   	const scheduledDateTime = createScheduledDateTime(supplement.scheduledTime);
   	if (!scheduledDateTime) {
-  		return { text: `🕒 Check Schedule`, color: "#666666" };
+  		return { text: `🕒 Check Schedule`, color: "#666666", isWin: false };
   	}
 
   	const now = new Date();
+  	const isOverdue = supplement.status === "overdue";
 
   	if (isOverdue) {
   		const timeDiff = now.getTime() - scheduledDateTime.getTime();
 
   		if (timeDiff < 0) {
-  			return { text: `🕒 Due Now`, color: "#666666" };
+  			return { text: `🔔 Due Now`, color: "#FF9800", isWin: false };
   		}
 
   		const minutesOverdue = Math.floor(timeDiff / (1000 * 60));
   		if (minutesOverdue < 60) {
-  			return { text: `⚠️ Overdue by ${minutesOverdue} mins`, color: "#FA8072" };
+  			return { text: `⚠️ Overdue by ${minutesOverdue} mins`, color: "#FA8072", isWin: false };
   		}
   		const hoursOverdue = Math.floor(minutesOverdue / 60);
-  		return { text: `⚠️ Overdue by ${hoursOverdue}h`, color: "#FA8072" };
+  		return { text: `⚠️ Overdue by ${hoursOverdue}h`, color: "#FA8072", isWin: false };
   	}
 
   	const timeDiff = scheduledDateTime.getTime() - now.getTime();
 
   	if (timeDiff <= 0) {
-  		return { text: `🕒 Due Now`, color: "#666666" };
+  		return { text: `🔔 Due Now`, color: "#FF9800", isWin: false };
   	}
 
   	const minutesLeft = Math.floor(timeDiff / (1000 * 60));
   	if (minutesLeft <= 60) {
-  		return { text: `🕒 Due in ${minutesLeft}m`, color: "#666666" };
+  		return { text: `🕒 Due in ${minutesLeft}m`, color: "#666666", isWin: false };
   	}
   	const hoursLeft = Math.floor(minutesLeft / 60);
-  	return { text: `🕒 Due in ${hoursLeft}h`, color: "#666666" };
+  	return { text: `🕒 Due in ${hoursLeft}h`, color: "#666666", isWin: false };
   };
 
   const statusInfo = getStatusInfo();

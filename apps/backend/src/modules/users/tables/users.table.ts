@@ -10,6 +10,7 @@ export class UserTable extends BaseTable {
 		name: t.string(),
 		image: t.string().nullable(),
 		timeZone: t.string().nullable(),
+		themeSetting: t.themeSettingEnum().default("system"),
 		...t.timestamps(),
 	}));
 }

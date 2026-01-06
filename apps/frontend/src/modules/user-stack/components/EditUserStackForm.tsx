@@ -18,18 +18,8 @@ const editUserStackFormSchema = z.object({
 	dosage: z.string().min(1, "Dosage is required"),
 	unit: z.enum(SUPPLEMENT_UNITS),
 	customUnit: z.string().optional(),
-	days: z.array(z.string()).min(1, "Select at least one day"),
-	timesOfDay: z.array(z.object({ 
-		hour: z.string().min(1, "Hour is required").refine((val) => {
-			const num = Number.parseInt(val);
-			return num >= 1 && num <= 12;
-		}, "Hour must be 1-12"),
-		minute: z.string().min(1, "Minute is required").refine((val) => {
-			const num = Number.parseInt(val);
-			return num >= 0 && num <= 59;
-		}, "Minute must be 0-59"),
-		period: z.enum(["AM", "PM"]),
-	})).min(1, "Add at least one time"),
+	reminderDays: z.array(z.string()).min(1, "Select at least one day"),
+	reminderTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Time must be in HH:MM format"),
 	imageUrl: z.string().url().nullable().optional(),
 }).refine((data) => {
 	if (data.unit === "Other" && (!data.customUnit || data.customUnit.trim() === "")) {
@@ -61,22 +51,6 @@ export function EditUserStackForm({ stackId }: EditUserStackFormProps) {
 			const instructions: string[] = data.instructions
 				.map((i) => i.value.trim())
 				.filter((i) => i);
-			
-			const timesOfDay: string[] = data.timesOfDay
-				.map((t) => {
-					const hour = Number.parseInt(t.hour);
-					const minute = t.minute.padStart(2, "0");
-					let hour24 = hour;
-					
-					if (t.period === "PM" && hour !== 12) {
-						hour24 = hour + 12;
-					} else if (t.period === "AM" && hour === 12) {
-						hour24 = 0;
-					}
-					
-					return `${hour24.toString().padStart(2, "0")}:${minute}`;
-				})
-				.filter((t) => t);
 
 			const finalUnit = data.unit === "Other" ? data.customUnit : data.unit;
 
@@ -87,8 +61,8 @@ export function EditUserStackForm({ stackId }: EditUserStackFormProps) {
 				dosage: Number(data.dosage),
 				unit: finalUnit || "",
 				instructions,
-				timesOfDay,
-				days: data.days as DaysOfWeek[],
+				reminderTime: data.reminderTime,
+				reminderDays: data.reminderDays as DaysOfWeek[],
 				imageUrl: data.imageUrl || null,
 			};
 			await orpcFetch.userStacks.update(submitData);
@@ -110,8 +84,8 @@ export function EditUserStackForm({ stackId }: EditUserStackFormProps) {
 				dosage: "1",
 				unit: "mg",
 				customUnit: "",
-				days: [],
-				timesOfDay: [{ hour: "08", minute: "00", period: "AM" }],
+				reminderDays: [],
+				reminderTime: "08:00",
 				imageUrl: undefined,
 			},
 		},
@@ -120,45 +94,20 @@ export function EditUserStackForm({ stackId }: EditUserStackFormProps) {
 	// Update form values when userStack data is loaded
 	useEffect(() => {
 		if (userStack) {
-			// Convert times from 24-hour format (HH:MM) to 12-hour format with period
-			const convertedTimes = userStack.timesOfDay.map(time => {
-				const [hours, minutes] = time.split(":");
-				const hour24 = Number.parseInt(hours || "0", 10);
-				const minute = minutes || "00";
-				
-				let period: "AM" | "PM" = "AM";
-				let hour12 = hour24;
-				
-				if (hour24 >= 12) {
-					period = "PM";
-					if (hour24 > 12) {
-						hour12 = hour24 - 12;
-					}
-				} else if (hour24 === 0) {
-					hour12 = 12;
-				}
-				
-				return {
-					hour: hour12.toString().padStart(2, "0"),
-					minute,
-					period,
-				};
-			});
-
 			// Check if unit is a standard one or custom
 			const isStandardUnit = SUPPLEMENT_UNITS.includes(userStack.unit as typeof SUPPLEMENT_UNITS[number]);
-			
+
 			formMethods.reset({
 				name: userStack.name,
-				instructions: userStack.instructions.length > 0 
+				instructions: userStack.instructions.length > 0
 					? userStack.instructions.map(i => ({ value: i }))
 					: [{ value: "" }],
 				isActive: userStack.isActive,
 				dosage: userStack.dosage.toString(),
 				unit: isStandardUnit ? userStack.unit as typeof SUPPLEMENT_UNITS[number] : "Other",
 				customUnit: isStandardUnit ? "" : userStack.unit,
-				days: userStack.days,
-				timesOfDay: convertedTimes,
+				reminderDays: userStack.reminderDays,
+				reminderTime: userStack.reminderTime.slice(0, 5),
 				imageUrl: userStack.imageUrl || undefined,
 			});
 		}

@@ -94,18 +94,18 @@ const getTodaysPlan = rpcProtectedProcedure
 			.selectAll()
 			.where({ userId: user.id, isActive: true });
 
-		// Filter to today's supplements and expand by times
-		const todaysSupplements = userStacks.flatMap(stack => {
-			// Check if this supplement is scheduled for today
-			if (!stack.days.includes(today)) return [];
-
-			// Create an entry for each scheduled time
-			return stack.timesOfDay.map(time => ({
-				...stack,
-				scheduledTime: time,
-				isOverdue: time < currentTime,
-			}));
-		});
+		// Filter to today's supplements
+		const todaysSupplements = userStacks
+			.filter(stack => stack.reminderDays.includes(today))
+			.map(stack => {
+				// Create an entry for the scheduled time
+				const scheduledTime = stack.reminderTime.slice(0, 5); // HH:MM from HH:MM:SS
+				return {
+					...stack,
+					scheduledTime,
+					isOverdue: scheduledTime < currentTime,
+				};
+			});
 
 		// Get today's adherence logs to determine status
 		const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());

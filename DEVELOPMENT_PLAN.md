@@ -506,11 +506,15 @@ If after 60 days:
 - Added USER_ADHERENCE_STATUS_ENUM: ['Taken on-time', 'Taken late', 'Missed', 'Skipped']
 - Updated base_table.ts with enum helpers (removed daysOfWeekEnum after refactoring)
 - **Deviation:** Days field changed from enum to array(t.string()) for better flexibility (multiple days per stack, custom day names)
+- **Updated Deviation:** Refactored supplement scheduling from multiple timesOfDay array to single reminderTime field per stack
+- Renamed days to reminderDays for clarity
+- Added THEME_SETTING_ENUM: ['dark', 'light', 'system'] and user.themeSetting field
 - **Acceptance Criteria:**
   - Enums added to database schema
   - Zod schemas created
   - Available in base table definitions
   - Days field now supports flexible scheduling
+  - Single daily reminder time instead of multiple times
 
 ---
 

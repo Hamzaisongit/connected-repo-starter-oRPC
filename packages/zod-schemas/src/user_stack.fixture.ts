@@ -8,8 +8,8 @@ export const createUserStackFixture = (input?: Partial<UserStackCreateInput>) =>
 	isActive: faker.datatype.boolean(),
 	dosage: faker.number.int({ min: 1, max: 10 }),
 	unit: faker.string.alpha(3),
-	days: faker.helpers.arrayElements([...DAYS_OF_WEEK_ENUM], { min: 1, max: 7 }),
-	timesOfDay: faker.helpers.arrayElements(['morning', 'afternoon', 'evening'], { min: 1, max: 3 }),
+	reminderDays: faker.helpers.arrayElements([...DAYS_OF_WEEK_ENUM], { min: 1, max: 7 }),
+ 	reminderTime: `${faker.number.int({min:0,max:23}).toString().padStart(2,'0')}:${faker.number.int({min:0,max:59}).toString().padStart(2,'0')}:00`,
 	imageUrl: faker.datatype.boolean() ? faker.image.url() : null,
 	...input
 })

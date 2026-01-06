@@ -25,6 +25,10 @@ export const DAYS_OF_WEEK_ENUM = ["Sunday", "Monday", "Tuesday", "Wednesday", "T
 export const daysOfWeekZod = z.enum(DAYS_OF_WEEK_ENUM);
 export type DaysOfWeek = z.infer<typeof daysOfWeekZod>;
 
+export const THEME_SETTING_ENUM = ["dark", "light", "system"] as const;
+export const themeSettingZod = z.enum(THEME_SETTING_ENUM);
+export type ThemeSetting = z.infer<typeof themeSettingZod>;
+
 export const USER_ADHERENCE_STATUS_ENUM = ["Taken on-time", "Taken late", "Missed", "Skipped"] as const;
 export const userAdherenceStatusZod = z.enum(USER_ADHERENCE_STATUS_ENUM);
 export type UserAdherenceStatus = z.infer<typeof userAdherenceStatusZod>;

@@ -51,17 +51,17 @@ const StatsPage = () => {
 	const longestStreakValue = longestStreak?.longestStreak || 0;
 
 	return (
-		<Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
+		<Container maxWidth="lg" sx={{ py: { xs: 2, md: 5 }, pb: { xs: 10, md: 5 } }}>
 			<Fade in timeout={400}>
-				<Stack spacing={4}>
+				<Stack spacing={{ xs: 2, md: 4 }}>
 					{/* Header */}
-					<Box sx={{ mb: 3, textAlign: "center" }}>
+					<Box sx={{ mb: { xs: 1, md: 2 }, textAlign: "center" }}>
 						<Typography
 							variant="h4"
 							component="h1"
 							sx={{
 								fontFamily: '"Playfair Display", Georgia, serif',
-								fontSize: "1.75rem",
+								fontSize: { xs: "1.5rem", md: "1.75rem" },
 								fontWeight: 700,
 								color: "#1A1C2E",
 								mb: 0.5,
@@ -83,8 +83,8 @@ const StatsPage = () => {
 					{/* Momentum Cards */}
 					<Stack
 						direction={{ xs: "column", md: "row" }}
-						spacing={3}
-						sx={{ maxWidth: 800, mx: "auto" }}
+						spacing={{ xs: 2, md: 3 }}
+						sx={{ maxWidth: 800, mx: "auto", width: "100%" }}
 					>
 						{/* Current Streak */}
 						<Fade in timeout={500}>
@@ -92,59 +92,165 @@ const StatsPage = () => {
 								sx={{
 									flex: 1,
 									textAlign: "center",
-									p: 3,
-									borderRadius: 1,
+									p: { xs: 2.5, md: 4 },
+									borderRadius: "32px",
 									border: "1px solid",
-									borderColor: currentStreakValue > 0 ? "warning.main" : "divider",
+									borderColor: currentStreakValue > 0 ? "rgba(255, 152, 0, 0.3)" : "rgba(255, 152, 0, 0.08)",
 									background: currentStreakValue > 0
-										? "linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.15) 100%)"
-										: "rgba(255, 255, 255, 0.05)",
-									backdropFilter: "blur(10px)",
-									boxShadow: currentStreakValue > 0 ? "0 8px 32px rgba(255, 165, 0, 0.1)" : "none",
+										? "linear-gradient(135deg, rgba(255, 243, 224, 0.95) 0%, rgba(255, 236, 209, 0.95) 100%)"
+										: "linear-gradient(135deg, rgba(255, 248, 240, 0.6) 0%, rgba(255, 250, 245, 0.6) 100%)",
+									backdropFilter: "blur(20px)",
+									WebkitBackdropFilter: "blur(20px)",
+									boxShadow: currentStreakValue > 0 
+										? "0 8px 32px rgba(255, 152, 0, 0.12), 0 2px 8px rgba(255, 152, 0, 0.08)" 
+										: "0 4px 20px rgba(0, 0, 0, 0.06)",
 									position: "relative",
+									transition: "all 0.3s ease-in-out",
+									"&:hover": {
+										transform: "translateY(-4px)",
+										boxShadow: currentStreakValue > 0
+											? "0 12px 40px rgba(255, 152, 0, 0.18), 0 4px 12px rgba(255, 152, 0, 0.12)"
+											: "0 8px 28px rgba(0, 0, 0, 0.1)",
+									},
 								}}
 							>
 								<CardContent>
+									{/* Status Badge */}
+									<Box
+										sx={{
+											position: "absolute",
+											top: 16,
+											left: 16,
+											px: 2,
+											py: 0.75,
+											borderRadius: "100px",
+											backgroundColor: currentStreakValue > 0 
+												? "rgba(255, 152, 0, 0.15)" 
+												: "rgba(100, 116, 139, 0.1)",
+											border: "1px solid",
+											borderColor: currentStreakValue > 0 
+												? "rgba(255, 152, 0, 0.3)" 
+												: "rgba(100, 116, 139, 0.2)",
+										}}
+									>
+										<Typography
+											sx={{
+												fontSize: "0.7rem",
+												fontWeight: 700,
+												color: currentStreakValue > 0 ? "#E65100" : "#64748B",
+												textTransform: "uppercase",
+												letterSpacing: "0.5px",
+											}}
+										>
+											{currentStreakValue > 0 ? "🔥 Active" : "Start Today"}
+										</Typography>
+									</Box>
+
 									{/* Shields Pill */}
 									{currentStreak?.currentStreakShieldsUsed && (
-										<Box sx={{ position: "absolute", top: 12, right: 12 }}>
+										<Box sx={{ position: "absolute", top: 16, right: 16 }}>
 											<Box
 												sx={{
-													px: 1.5,
-													py: 0.5,
-													borderRadius: 1,
-													backgroundColor: "rgba(0, 0, 0, 0.7)",
+													px: 2,
+													py: 0.75,
+													borderRadius: "100px",
+													backgroundColor: "rgba(79, 111, 82, 0.9)",
+													border: "1px solid rgba(255, 255, 255, 0.2)",
 													color: "white",
 													fontSize: "0.7rem",
-													fontWeight: 600,
+													fontWeight: 700,
 												}}
 											>
 												🛡️ {currentStreak.currentStreakShieldsUsed}
 											</Box>
 										</Box>
 									)}
-									<Box sx={{ fontSize: "3rem", mb: 2 }}>🔥</Box>
+
+									<Box 
+										sx={{ 
+											fontSize: { xs: currentStreakValue > 0 ? "3rem" : "2.5rem", md: currentStreakValue > 0 ? "3.5rem" : "3rem" },
+											mb: { xs: 1, md: 1.5 }, 
+											mt: { xs: 2, md: 2.5 },
+											transition: "all 0.3s ease-in-out",
+											filter: currentStreakValue > 0 
+												? "drop-shadow(0 4px 12px rgba(255, 152, 0, 0.3))" 
+												: "none",
+										}}
+									>
+										🔥
+									</Box>
+
 									<Typography
 										variant="h2"
 										sx={{
-											fontWeight: 800,
-											color: "text.primary",
-											mb: 1,
+											fontFamily: '"Playfair Display", Georgia, serif',
+											fontWeight: 700,
+											color: currentStreakValue > 0 ? "#E65100" : "text.primary",
+											mb: 0.5,
 											fontSize: { xs: "2.5rem", md: "3rem" },
+											lineHeight: 1.1,
+											transition: "color 0.3s ease-in-out",
 										}}
 									>
 										{currentStreakValue}
 									</Typography>
+
 									<Typography
 										variant="body1"
 										sx={{
-											color: "text.secondary",
-											fontWeight: 500,
-											fontSize: "1rem",
+											color: currentStreakValue > 0 ? "#F57C00" : "text.secondary",
+											fontWeight: 600,
+											fontSize: { xs: "1rem", md: "1.1rem" },
+											mb: 0.5,
+											transition: "color 0.3s ease-in-out",
 										}}
 									>
 										Current Streak
 									</Typography>
+
+									{/* Motivational Subtitle */}
+									{currentStreakValue === 0 ? (
+										<Typography
+											sx={{
+												fontSize: { xs: "0.75rem", md: "0.85rem" },
+												color: "#64748B",
+												fontStyle: "italic",
+												fontWeight: 400,
+											}}
+										>
+											Begin your wellness journey
+										</Typography>
+									) : currentStreakValue >= 7 ? (
+										<Typography
+											sx={{
+												fontSize: { xs: "0.75rem", md: "0.85rem" },
+												color: "#F57C00",
+												fontWeight: 600,
+											}}
+										>
+											🌟 Outstanding consistency!
+										</Typography>
+									) : currentStreakValue >= 3 ? (
+										<Typography
+											sx={{
+												fontSize: { xs: "0.75rem", md: "0.85rem" },
+												color: "#F57C00",
+												fontWeight: 600,
+											}}
+										>
+											💪 Building momentum!
+										</Typography>
+									) : (
+										<Typography
+											sx={{
+												fontSize: { xs: "0.75rem", md: "0.85rem" },
+												color: "#F57C00",
+												fontWeight: 600,
+											}}
+										>
+											🌱 Great start!
+										</Typography>
+									)}
 								</CardContent>
 							</Card>
 						</Fade>
@@ -155,59 +261,175 @@ const StatsPage = () => {
 								sx={{
 									flex: 1,
 									textAlign: "center",
-									p: 3,
-									borderRadius: 1,
+									p: { xs: 2.5, md: 4 },
+									borderRadius: "32px",
 									border: "1px solid",
-									borderColor: longestStreakValue > 0 ? "success.main" : "divider",
+									borderColor: longestStreakValue > 0 ? "rgba(79, 111, 82, 0.3)" : "rgba(79, 111, 82, 0.08)",
 									background: longestStreakValue > 0
-										? "linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.1) 100%)"
-										: "rgba(255, 255, 255, 0.05)",
-									backdropFilter: "blur(10px)",
-									boxShadow: longestStreakValue > 0 ? "0 8px 32px rgba(34, 197, 94, 0.1)" : "none",
+										? "linear-gradient(135deg, rgba(237, 247, 237, 0.95) 0%, rgba(232, 245, 233, 0.95) 100%)"
+										: "linear-gradient(135deg, rgba(245, 250, 245, 0.6) 0%, rgba(248, 252, 248, 0.6) 100%)",
+									backdropFilter: "blur(20px)",
+									WebkitBackdropFilter: "blur(20px)",
+									boxShadow: longestStreakValue > 0 
+										? "0 8px 32px rgba(79, 111, 82, 0.12), 0 2px 8px rgba(79, 111, 82, 0.08)" 
+										: "0 4px 20px rgba(0, 0, 0, 0.06)",
 									position: "relative",
+									transition: "all 0.3s ease-in-out",
+									"&:hover": {
+										transform: "translateY(-4px)",
+										boxShadow: longestStreakValue > 0
+											? "0 12px 40px rgba(79, 111, 82, 0.18), 0 4px 12px rgba(79, 111, 82, 0.12)"
+											: "0 8px 28px rgba(0, 0, 0, 0.1)",
+									},
 								}}
 							>
 								<CardContent>
+									{/* Status Badge */}
+									<Box
+										sx={{
+											position: "absolute",
+											top: 16,
+											left: 16,
+											px: 2,
+											py: 0.75,
+											borderRadius: "100px",
+											backgroundColor: longestStreakValue > 0 
+												? "rgba(79, 111, 82, 0.15)" 
+												: "rgba(100, 116, 139, 0.1)",
+											border: "1px solid",
+											borderColor: longestStreakValue > 0 
+												? "rgba(79, 111, 82, 0.3)" 
+												: "rgba(100, 116, 139, 0.2)",
+										}}
+									>
+										<Typography
+											sx={{
+												fontSize: "0.7rem",
+												fontWeight: 700,
+												color: longestStreakValue > 0 ? "#2E7D32" : "#64748B",
+												textTransform: "uppercase",
+												letterSpacing: "0.5px",
+											}}
+										>
+											{longestStreakValue > 0 ? "🏆 Record" : "No Record Yet"}
+										</Typography>
+									</Box>
+
 									{/* Shields Pill */}
 									{longestStreak?.longestStreakShieldsUsed && (
-										<Box sx={{ position: "absolute", top: 12, right: 12 }}>
+										<Box sx={{ position: "absolute", top: 16, right: 16 }}>
 											<Box
 												sx={{
-													px: 1.5,
-													py: 0.5,
-													borderRadius: 1,
-													backgroundColor: "rgba(0, 0, 0, 0.7)",
+													px: 2,
+													py: 0.75,
+													borderRadius: "100px",
+													backgroundColor: "rgba(79, 111, 82, 0.9)",
+													border: "1px solid rgba(255, 255, 255, 0.2)",
 													color: "white",
 													fontSize: "0.7rem",
-													fontWeight: 600,
+													fontWeight: 700,
 												}}
 											>
 												🛡️ {longestStreak.longestStreakShieldsUsed}
 											</Box>
 										</Box>
 									)}
-									<Box sx={{ fontSize: "3rem", mb: 2 }}>🏆</Box>
+
+									<Box 
+										sx={{ 
+											fontSize: { xs: longestStreakValue > 0 ? "3rem" : "2.5rem", md: longestStreakValue > 0 ? "3.5rem" : "3rem" },
+											mb: { xs: 1, md: 1.5 }, 
+											mt: { xs: 2, md: 2.5 },
+											transition: "all 0.3s ease-in-out",
+											filter: longestStreakValue > 0 
+												? "drop-shadow(0 4px 12px rgba(255, 215, 0, 0.4))" 
+												: "none",
+										}}
+									>
+										🏆
+									</Box>
+
 									<Typography
 										variant="h2"
 										sx={{
-											fontWeight: 800,
-											color: "text.primary",
-											mb: 1,
+											fontFamily: '"Playfair Display", Georgia, serif',
+											fontWeight: 700,
+											color: longestStreakValue > 0 ? "#2E7D32" : "text.primary",
+											mb: 0.5,
 											fontSize: { xs: "2.5rem", md: "3rem" },
+											lineHeight: 1.1,
+											transition: "color 0.3s ease-in-out",
 										}}
 									>
 										{longestStreakValue}
 									</Typography>
+
 									<Typography
 										variant="body1"
 										sx={{
-											color: "text.secondary",
-											fontWeight: 500,
-											fontSize: "1rem",
+											color: longestStreakValue > 0 ? "#388E3C" : "text.secondary",
+											fontWeight: 600,
+											fontSize: { xs: "1rem", md: "1.1rem" },
+											mb: 0.5,
+											transition: "color 0.3s ease-in-out",
 										}}
 									>
 										Longest Streak
 									</Typography>
+
+									{/* Motivational Subtitle */}
+									{longestStreakValue === 0 ? (
+										<Typography
+											sx={{
+												fontSize: { xs: "0.75rem", md: "0.85rem" },
+												color: "#64748B",
+												fontStyle: "italic",
+												fontWeight: 400,
+											}}
+										>
+											Your first milestone awaits
+										</Typography>
+									) : longestStreakValue >= 30 ? (
+										<Typography
+											sx={{
+												fontSize: { xs: "0.75rem", md: "0.85rem" },
+												color: "#388E3C",
+												fontWeight: 600,
+											}}
+										>
+											👑 Legendary achievement!
+										</Typography>
+									) : longestStreakValue >= 14 ? (
+										<Typography
+											sx={{
+												fontSize: { xs: "0.75rem", md: "0.85rem" },
+												color: "#388E3C",
+												fontWeight: 600,
+											}}
+										>
+											⭐ Impressive dedication!
+										</Typography>
+									) : longestStreakValue >= 7 ? (
+										<Typography
+											sx={{
+												fontSize: { xs: "0.75rem", md: "0.85rem" },
+												color: "#388E3C",
+												fontWeight: 600,
+											}}
+										>
+											🎯 One week strong!
+										</Typography>
+									) : (
+										<Typography
+											sx={{
+												fontSize: { xs: "0.75rem", md: "0.85rem" },
+												color: "#388E3C",
+												fontWeight: 600,
+											}}
+										>
+											💚 Keep it going!
+										</Typography>
+									)}
 								</CardContent>
 							</Card>
 						</Fade>

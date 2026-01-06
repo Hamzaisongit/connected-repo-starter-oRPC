@@ -64,17 +64,9 @@ export default function UserStackDetailPage() {
 
 
 
-	const formatTimes = (times: string[]) => {
-		if (times.length === 0) return "No times set";
-		return times.map(time => {
-			const [hours, minutes] = time.split(":");
-			const hour = parseInt(hours || "0", 10);
-			const minute = minutes || "00";
-			const period = hour >= 12 ? "PM" : "AM";
-			const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-			return `${displayHour}:${minute} ${period}`;
-		}).join(", ");
-	};
+  const formatTime = (timeString: string) => {
+    return timeString.slice(0, 5); // Extract HH:MM from HH:MM:SS
+  };
 
 	const formatDays = (days: string[]) => {
 		if (days.length === 7) return "Daily";
@@ -271,19 +263,19 @@ export default function UserStackDetailPage() {
 									Times
 								</Typography>
 								<Typography sx={{ fontWeight: 700, fontSize: "1.1rem", color: "#000000" }}>
-									{formatTimes(userStack.timesOfDay)}
+									{formatTime(userStack.reminderTime)}
 								</Typography>
 							</Box>
 						</Box>
 
 					{/* Days Display */}
-					{userStack.days && userStack.days.length > 0 && (
+					{userStack.reminderDays && userStack.reminderDays.length > 0 && (
 						<Box sx={{ mb: 3, textAlign: "center" }}>
 							<Typography variant="body2" sx={{ color: "#64748B", fontWeight: 600, mb: 1 }}>
 								Schedule
 							</Typography>
 							<Typography sx={{ fontWeight: 600, fontSize: "1rem", color: "#666666" }}>
-								{formatDays(userStack.days)}
+								{formatDays(userStack.reminderDays)}
 							</Typography>
 						</Box>
 					)}

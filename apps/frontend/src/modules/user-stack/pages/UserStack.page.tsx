@@ -313,7 +313,7 @@ export default function UserStackPage() {
 									{/* Line 3: Frequency with days and times */}
 									<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
 										<span style={{ fontSize: "1.1rem" }}>
-											{Array.isArray(stack.days) && stack.days.length === 7 ? "📅" : "⏰"}
+											{stack.reminderDays.length === 7 ? "📅" : "⏰"}
 										</span>
 										<Typography
 											sx={{
@@ -322,11 +322,9 @@ export default function UserStackPage() {
 												fontWeight: 500,
 											}}
 										>
-											{Array.isArray(stack.days) && stack.days.length === 7
-												? `Daily • ${Array.isArray(stack.timesOfDay) ? stack.timesOfDay.join(", ") : "No times"}`
-												: Array.isArray(stack.days)
-												? `${formatDaysShort(stack.days)} • ${Array.isArray(stack.timesOfDay) ? stack.timesOfDay.join(", ") : "No times"}`
-												: "No schedule"}
+											{stack.reminderDays.length === 7
+												? `Daily • ${stack.reminderTime.slice(0, 5)}`
+												: `${formatDaysShort(stack.reminderDays)} • ${stack.reminderTime.slice(0, 5)}`}
 										</Typography>
 									</Box>
 

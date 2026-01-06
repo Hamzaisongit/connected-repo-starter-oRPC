@@ -1,9 +1,9 @@
 {
 	"author": "Balkrishna Agarwal",
-	"description": "Common Zod Schemas to be used everywhere",
 	"dependencies": {
 		"@faker-js/faker": "^10.1.0"
 	},
+	"description": "Common Zod Schemas to be used everywhere",
 	"devDependencies": {
 		"@connected-repo/typescript-config": "*",
 		"tsc-alias": "^1.8.16",
@@ -20,7 +20,8 @@
 	"license": "AGPL-3.0-only",
 	"name": "@connected-repo/zod-schemas",
 	"peerDependencies": {
-		"zod": "^4.1.12"
+		"zod": "^4.1.12",
+		"zod-timezone-validation": "^1.0.5"
 	},
 	"private": true,
 	"repository": "git@github.com:shipmyapp/connected-repo.git",
