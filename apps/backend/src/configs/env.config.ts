@@ -57,7 +57,7 @@ const envSchema = z.object({
 	OTEL_TRACE_EXPORTER_URL: z.url().optional(),
 	PORT: z.coerce.number().default(3000),
 	SESSION_SECRET: zString.min(32, "Session secret must be at least 32 characters"),
-	VITE_OTEL_SERVICE_NAME: zString.min(1),
+	OTEL_SERVICE_NAME: zString.min(1),
 	VITE_SENTRY_DSN: z.preprocess((val) => (val === "" ? undefined : val), z.url().optional()),
 	VITE_SENTRY_ENV: zString.optional(),
 	VITE_API_URL: z.url(),

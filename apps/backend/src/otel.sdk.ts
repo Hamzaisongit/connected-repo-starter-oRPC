@@ -36,7 +36,7 @@ export const otelNodeSdk = new NodeSDK({
     contextManager: new Sentry.SentryContextManager(),
     
     resource: resourceFromAttributes({
-      'service.name': env.VITE_OTEL_SERVICE_NAME,
+      'service.name': env.OTEL_SERVICE_NAME,
     }),
     sampler: sentryClient ? new SentrySampler(sentryClient) : undefined,
     textMapPropagator: new SentryPropagator(),

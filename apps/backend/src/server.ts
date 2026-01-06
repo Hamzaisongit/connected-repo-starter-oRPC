@@ -1,6 +1,5 @@
 import "./otel.sdk";
 
-import { createServer } from 'node:http';
 import { allowedOrigins } from '@backend/configs/allowed_origins.config';
 import { env, isDev, isProd, isStaging, isTest } from '@backend/configs/env.config';
 import { betterAuthHandler } from '@backend/request_handlers/better_auth.handler';
@@ -11,6 +10,7 @@ import { handleServerClose } from '@backend/utils/graceful_shutdown.utils';
 import { logger } from '@backend/utils/logger.utils';
 import { recordErrorOtel } from "@backend/utils/record-message.otel.utils";
 import { trace } from '@opentelemetry/api';
+import { createServer } from 'node:http';
 
 logger.info({ isDev, isProd, isStaging, isTest }, "Environment:");
 logger.info(allowedOrigins, "Allowed Origins:");
@@ -72,7 +72,7 @@ try {
        res.setHeader('Content-Type', 'application/json');
        res.end(JSON.stringify({
          status: 'ok',
-         service: env.VITE_OTEL_SERVICE_NAME,
+         service: env.OTEL_SERVICE_NAME,
          environment: env.NODE_ENV,
          timestamp: new Date().toISOString(),
          message: 'Server is running',

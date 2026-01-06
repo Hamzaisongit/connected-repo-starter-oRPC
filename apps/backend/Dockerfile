@@ -86,6 +86,9 @@ USER root
 RUN find ./apps/backend/dist/db/migrations -type f \( -name "*.d.ts" -o -name "*.d.ts.map" \) -delete
 # Install curl for the healthcheck
 RUN apk add --no-cache curl
+# Copy entrypoint script
+COPY --from=builder --chown=nodejs:nodejs /app/apps/backend/entrypoint.sh ./apps/backend/entrypoint.sh
+RUN chmod +x ./apps/backend/entrypoint.sh
 USER nodejs
 
 # Set environment variables
@@ -97,11 +100,11 @@ WORKDIR /app/apps/backend
 # Expose the port (adjust if your backend uses a different port)
 EXPOSE 3000
 
-# Add Healthcheck
+# Add Healthcheck for ongoing monitoring
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD response=$(curl -s http://localhost:3000/api/health) && \
       echo "$response" && \
       echo "$response" | grep -q '"status":"ok"' || exit 1
 
-# Run migrations then start the backend server
-CMD ["sh", "-c", "node dist/db/db_script.js up && node dist/server.js"]
+# Run the entrypoint script which handles migration, server start, health checks, and rollback on failure
+CMD ["./entrypoint.sh"]
