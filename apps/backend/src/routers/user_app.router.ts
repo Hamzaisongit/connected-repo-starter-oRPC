@@ -2,7 +2,7 @@ import { userAdherenceLogsRouter } from '@backend/modules/logs/user_adherence_lo
 import { dailyCompliancesRouter } from '@backend/modules/streaks/daily_compliances.user_app.router'
 import { userStackRouter } from '@backend/modules/user_stacks/user_stack.user_app.router'
 import { userStatsRouter } from '@backend/modules/users/user_stats.user_app.router'
-import { usersRouter } from '@backend/modules/users/users.user_app.router'
+import { ProfileRouter } from '@backend/modules/users/users.user_app.router'
 import { rpcPublicProcedure } from '@backend/procedures/public.procedure'
 import type { InferRouterInputs, InferRouterOutputs, RouterClient } from '@orpc/server'
 
@@ -23,7 +23,7 @@ const healthCheck = rpcPublicProcedure
 	
 export const userAppRouter = {
 	health: healthCheck,
-	users: usersRouter,
+	profile: ProfileRouter,
 	userStacks: userStackRouter,
 	userAdherenceLogs: userAdherenceLogsRouter,
 	dailyCompliances: dailyCompliancesRouter,

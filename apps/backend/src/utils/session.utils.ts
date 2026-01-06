@@ -54,6 +54,8 @@ const transformSessionData = (rawSession: BetterAuthSession["session"]): ActiveS
 const transformUserData = (rawUser: BetterAuthSession["user"]): UserSelectAll => {
 	return {
 		...rawUser,
+		themeSetting: rawUser.themeSetting as "dark" | "light" | "system",
+		timezone: (rawUser.timezone ?? null) as any,
 		image: rawUser.image ?? null,
 		createdAt: new Date(rawUser.createdAt).getTime(),
 		updatedAt: new Date(rawUser.updatedAt).getTime(),

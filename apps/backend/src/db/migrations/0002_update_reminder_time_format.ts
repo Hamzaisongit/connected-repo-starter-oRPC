@@ -12,6 +12,7 @@ change(async (db) => {
 
 change(async (db) => {
   await db.changeTable('users', (t) => ({
-    themeSetting: t.add(t.enum('theme_setting_enum').default("system")),
+    themeSetting: t.add(t.enum('theme_setting_enum').default('system')),
+    timeZone: t.rename('timezone'),
   }));
 });

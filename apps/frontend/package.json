@@ -20,7 +20,8 @@
 		"react": "^19.2.0",
 		"react-dom": "^19.2.0",
 		"react-hook-form": "^7.66.0",
-		"react-router": "^7.9.4"
+		"react-router": "^7.9.4",
+		"zod-timezone-validation": "^1.0.5"
 	},
 	"devDependencies": {
 		"@connected-repo/typescript-config": "*",

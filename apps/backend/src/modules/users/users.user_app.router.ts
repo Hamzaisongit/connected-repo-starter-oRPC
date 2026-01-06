@@ -1,23 +1,25 @@
 import { db } from "@backend/db/db";
 import { rpcProtectedProcedure } from "@backend/procedures/protected.procedure";
-import { userGetByIdInputZod } from "@connected-repo/zod-schemas/user.zod";
-
-// Get all users - requires authentication
-const getAll = rpcProtectedProcedure.handler(async () => {
-	const users = await db.users.selectAll();
-	return users;
-});
+import { userSelectAllZod, userUpdateInputZod } from "@connected-repo/zod-schemas/user.zod";
 
 // Get user by ID - requires authentication
-const getById = rpcProtectedProcedure
-	.input(userGetByIdInputZod)
-	.handler(async ({ input: { id: userId } }) => {
-		return await db.users
-			.selectAll()
-			.find(userId);
+const getProfile = rpcProtectedProcedure
+	.output(userSelectAllZod)
+	.handler(async ({ context: { user } }) => {
+		return user
 	});
 
-export const usersRouter = {
-	getAll,
-	getById,
+// Update user profile - requires authentication
+const updateProfile = rpcProtectedProcedure
+	.input(userUpdateInputZod)
+	.output(userSelectAllZod)
+	.handler(async ({ input, context: { user } }) => {
+		// Update user in database
+		const updatedUser = await db.users.find(user.id).selectAll().update(input);
+		return updatedUser;
+	});
+
+export const ProfileRouter = {
+	getProfile,
+	updateProfile,
 };

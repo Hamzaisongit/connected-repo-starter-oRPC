@@ -3,7 +3,9 @@ import { env, isDev, isProd, isTest } from "@backend/configs/env.config";
 import { db } from "@backend/db/db";
 import { logger } from "@backend/utils/logger.utils";
 import { recordErrorOtel } from "@backend/utils/record-message.otel.utils";
+import { themeSettingZod } from "@connected-repo/zod-schemas/enums.zod";
 import { betterAuth } from "better-auth";
+import { CoercedCanonicalTimezoneSchema } from "zod-timezone-validation";
 import { orchidAdapter } from "./orchid-adapter/factory.orchid_adapter";
 
 // TODO: Instrument Better Auth with OpenTelemetry for automatic tracing
@@ -120,6 +122,27 @@ export const auth = betterAuth({
 		changeEmail: {
 			enabled: false, // Disable email changes for simplicity
 		},
+		additionalFields: {
+			timezone: {
+				type: "string",
+				required: false,
+				input: true,
+				validator: {
+					input: CoercedCanonicalTimezoneSchema.nullish(),
+					output: CoercedCanonicalTimezoneSchema.nullish()
+				}
+			},
+			themeSetting: {
+				type: "string",
+				required: true,
+				defaultValue: "system",
+				input: true,
+				validator: {
+					input: themeSettingZod,
+					output: themeSettingZod
+				}
+			}
+		},
 		modelName: "users",
 	},
 	verification: {
@@ -141,12 +164,12 @@ export const auth = betterAuth({
 							const url = new URL(location, env.WEBAPP_URL);
 							const error = url.searchParams.get("error");
 							const errorDescription = url.searchParams.get("error_description");
-							
+
 							if (error) {
-								const errorMessage = errorDescription 
+								const errorMessage = errorDescription
 									? `OAuth error: ${error} - ${decodeURIComponent(errorDescription)}`
 									: `OAuth error: ${error}`;
-								
+
 								// Log with all available context
 								logger.error({
 									module: "oauth-error",
@@ -155,7 +178,7 @@ export const auth = betterAuth({
 									redirectUrl: location,
 									responseUrl: response.url || "",
 								}, errorMessage);
-								
+
 								// Record the error in OpenTelemetry/Sentry
 								recordErrorOtel({
 									spanName: "oauth.error.callback",

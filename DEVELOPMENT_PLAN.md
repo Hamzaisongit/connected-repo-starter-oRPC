@@ -109,6 +109,12 @@ If after 60 days:
 - Simplified compliance calendar to compact dots-only view
 - Added personalized flavor text and progress bars for engagement
 
+**Profile Page Enhancement:**
+- Added display for all user details (timezone, last updated, email verification status)
+- Synced theme setting with backend via updateProfile API
+- Improved account details UI with better information hierarchy
+- Implemented theme initialization from user preferences
+
 **EXPLICITLY EXCLUDED FROM V1:**
 - ❌ Leagues, points, challenges
 - ❌ Social features, buddies

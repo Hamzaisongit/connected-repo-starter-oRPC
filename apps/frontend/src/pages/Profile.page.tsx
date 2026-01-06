@@ -11,7 +11,6 @@ import {
 import { Fade } from "@connected-repo/ui-mui/feedback/Fade";
 import { Button } from "@connected-repo/ui-mui/form/Button";
 import { TextField } from "@connected-repo/ui-mui/form/TextField";
-import { AccountCircleIcon } from "@connected-repo/ui-mui/icons/AccountCircleIcon";
 import { CalendarTodayIcon } from "@connected-repo/ui-mui/icons/CalendarTodayIcon";
 import { DarkModeIcon } from "@connected-repo/ui-mui/icons/DarkModeIcon";
 import { DeleteIcon } from "@connected-repo/ui-mui/icons/DeleteIcon";
@@ -24,16 +23,24 @@ import { Divider } from "@connected-repo/ui-mui/layout/Divider";
 import { Paper } from "@connected-repo/ui-mui/layout/Paper";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
 import { useThemeMode } from "@connected-repo/ui-mui/theme/ThemeContext";
-import { useSessionInfo } from "@frontend/contexts/UserContext";
 import { authClient } from "@frontend/utils/auth.client";
+import { orpc, orpcFetch } from "@frontend/utils/orpc.client";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
 const ProfilePage = () => {
-	const { user } = useSessionInfo();
+	const { data: user } = useSuspenseQuery(orpc.profile.getProfile.queryOptions());
 	const navigate = useNavigate();
 	const { mode, setThemeMode } = useThemeMode();
+	const queryClient = useQueryClient();
+
+	useEffect(() => {
+		if (user.themeSetting) {
+			setThemeMode(user.themeSetting);
+		}
+	}, [user.themeSetting, setThemeMode]);
 
 	// Dialog states
 	const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
@@ -61,13 +68,23 @@ const ProfilePage = () => {
 		// navigate("/auth/login");
 	};
 
-	const handleThemeChange = () => {
+	const handleThemeChange = async () => {
+		if (!user?.id) return;
+		let newMode: "light" | "dark" | "system";
 		if (mode === "light") {
-			setThemeMode("dark");
+			newMode = "dark";
 		} else if (mode === "dark") {
-			setThemeMode("system");
+			newMode = "system";
 		} else {
-			setThemeMode("light");
+			newMode = "light";
+		}
+		setThemeMode(newMode);
+		try {
+			await orpcFetch.profile.updateProfile({ themeSetting: newMode });
+			queryClient.invalidateQueries({ queryKey: orpc.profile.getProfile.queryOptions().queryKey });
+		} catch (error) {
+			console.error("Failed to update theme:", error);
+			setThemeMode(mode);
 		}
 	};
 
@@ -231,56 +248,6 @@ const ProfilePage = () => {
 											Account Details
 										</Typography>
 
-										{/* Email */}
-										<Box
-											sx={{
-												display: "flex",
-												alignItems: "center",
-												gap: 2,
-												py: 1.5,
-												px: 2,
-												borderRadius: "12px",
-												backgroundColor: "rgba(102, 126, 234, 0.05)",
-											}}
-										>
-											<Box
-												sx={{
-													display: "flex",
-													alignItems: "center",
-													justifyContent: "center",
-													width: 40,
-													height: 40,
-													borderRadius: "12px",
-													backgroundColor: "rgba(102, 126, 234, 0.1)",
-												}}
-											>
-												<AccountCircleIcon sx={{ color: "#667eea", fontSize: "1.25rem" }} />
-											</Box>
-											<Box sx={{ flex: 1 }}>
-												<Typography
-													variant="caption"
-													sx={{
-														color: "#666666",
-														fontSize: "0.75rem",
-														display: "block",
-														mb: 0.25,
-													}}
-												>
-													Email
-												</Typography>
-												<Typography
-													variant="body2"
-													sx={{
-														color: "#000000",
-														fontWeight: 500,
-														fontSize: "0.95rem",
-													}}
-												>
-													{user.email}
-												</Typography>
-											</Box>
-										</Box>
-
 										{/* Email Verification Status */}
 										<Box
 											sx={{
@@ -389,6 +356,57 @@ const ProfilePage = () => {
 													}}
 												>
 													{accountCreatedDate}
+												</Typography>
+											</Box>
+										</Box>
+
+										{/* Timezone */}
+										<Box
+											sx={{
+												display: "flex",
+												alignItems: "center",
+												gap: 2,
+												py: 1.5,
+												px: 2,
+												mt: 1.5,
+												borderRadius: "12px",
+												backgroundColor: "rgba(102, 126, 234, 0.05)",
+											}}
+										>
+											<Box
+												sx={{
+													display: "flex",
+													alignItems: "center",
+													justifyContent: "center",
+													width: 40,
+													height: 48,
+													borderRadius: "12px",
+													backgroundColor: "rgba(102, 126, 234, 0.1)",
+												}}
+											>
+												<SettingsIcon sx={{ color: "#667eea", fontSize: "1.25rem" }} />
+											</Box>
+											<Box sx={{ flex: 1 }}>
+												<Typography
+													variant="caption"
+													sx={{
+														color: "#666666",
+														fontSize: "0.75rem",
+														display: "block",
+														mb: 0.25,
+													}}
+												>
+													Timezone
+												</Typography>
+												<Typography
+													variant="body2"
+													sx={{
+														color: "#000000",
+														fontWeight: 500,
+														fontSize: "0.95rem",
+													}}
+												>
+													{user.timezone || "Not set"}
 												</Typography>
 											</Box>
 										</Box>
