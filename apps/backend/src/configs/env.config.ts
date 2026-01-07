@@ -42,6 +42,9 @@ if (nodeEnv === "test") {
 const envSchema = z.object({
 	ALLOWED_ORIGINS: zString.optional(),
 	BETTER_AUTH_SECRET: zString.min(32, "Better Auth secret must be at least 32 characters"),
+	BREVO_API_KEY: zString.min(1, "Brevo API key is required"),
+	BREVO_SENDER_EMAIL: zString.email("Invalid Brevo sender email format"),
+	BREVO_SENDER_NAME: zString.min(1, "Brevo sender name is required"),
 	CRON_JOB_ALLOWED_ORIGIN: z.preprocess((val) => (val === "" ? undefined : val), z.url().optional()),
 	CRON_JOB_TOKEN: zString.min(32, "Cron job token must be at least 32 characters"),
 	DB_HOST: zString.optional(),
@@ -56,11 +59,13 @@ const envSchema = z.object({
 	NODE_ENV: NODE_ENV_ZOD,
 	OTEL_TRACE_EXPORTER_URL: z.url().optional(),
 	PORT: z.coerce.number().default(3000),
+	REMINDER_EMAIL_TEMPLATE_ID: z.coerce.number().positive("Reminder email template ID must be a positive number"),
 	SESSION_SECRET: zString.min(32, "Session secret must be at least 32 characters"),
 	OTEL_SERVICE_NAME: zString.min(1),
 	VITE_SENTRY_DSN: z.preprocess((val) => (val === "" ? undefined : val), z.url().optional()),
 	VITE_SENTRY_ENV: zString.optional(),
 	VITE_API_URL: z.url(),
+	WELCOME_EMAIL_TEMPLATE_ID: z.coerce.number().positive("Welcome email template ID must be a positive number"),
 	WEBAPP_URL: z.url(),
 });
 

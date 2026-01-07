@@ -7,6 +7,8 @@ import { themeSettingZod } from "@connected-repo/zod-schemas/enums.zod";
 import { betterAuth } from "better-auth";
 import { CoercedCanonicalTimezoneSchema } from "zod-timezone-validation";
 import { orchidAdapter } from "./orchid-adapter/factory.orchid_adapter";
+import { tbus } from "@backend/modules/events/tbus";
+import { userCreatedEventZod } from "@connected-repo/zod-schemas/event.zod";
 
 // TODO: Instrument Better Auth with OpenTelemetry for automatic tracing
 // This will automatically create spans for all auth operations including:
@@ -38,6 +40,66 @@ export const auth = betterAuth({
 	baseURL: env.VITE_API_URL,
 	basePath: "/api/auth",
 	database: orchidAdapter(db),
+	databaseHooks: {
+		user: {
+			create: {
+				after: async (user) => {
+					try {
+						logger.info(
+							{
+								userId: user.id,
+								email: user.email,
+								name: user.name,
+							},
+							"User created via better-auth, publishing user.created event...",
+						);
+
+						const eventData = userCreatedEventZod.parse({
+							userId: user.id,
+							email: user.email,
+							name: user.name,
+							createdAt: new Date(user.createdAt).getTime(),
+						});
+
+						await tbus.publish({
+							event_name: "user.created",
+							data: eventData,
+						});
+
+						logger.info(
+							{
+								userId: user.id,
+								eventName: "user.created",
+							},
+							"Successfully published user.created event to pg-tbus",
+						);
+					} catch (error) {
+						const errorMessage = error instanceof Error ? error.message : String(error);
+						logger.error(
+							{
+								userId: user.id,
+								error: errorMessage,
+							},
+							"Failed to publish user.created event to pg-tbus",
+						);
+
+						recordErrorOtel({
+							spanName: "auth.user.created.event.publish",
+							error: error instanceof Error ? error : new Error(errorMessage),
+							level: "error",
+							tags: {
+								error_type: "event_publish_failed",
+							},
+							attributes: {
+								"user.id": user.id,
+								"event.name": "user.created",
+							},
+						});
+					}
+				},
+			},
+		},
+	},
 	// Increase timeout for OAuth token exchange
 	defaultCookieAttributes: {
 		httpOnly: true,
