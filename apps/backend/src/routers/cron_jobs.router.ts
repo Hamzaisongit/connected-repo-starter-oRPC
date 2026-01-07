@@ -1,9 +1,9 @@
 import { sql } from "@backend/db/base_table";
 import { db } from "@backend/db/db";
+import { tbus } from "@backend/modules/events/tbus";
 import { initiateWebhookCallService } from "@backend/modules/webhook_calls/services/initiate.webhook_calls.service";
 import { cronJobAuthProcedure } from "@backend/procedures/cron_job_auth.procedure";
 import { logger } from "@backend/utils/logger.utils";
-import { tbus } from "@backend/modules/events/tbus";
 import { Type } from "pg-tbus";
 import * as z from "zod";
 
@@ -40,7 +40,7 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 			.where({
 				isActive: true,
 			})
-			.where(sql`"days" @> ARRAY[${dayOfWeek}]`);
+			.where(sql`${dayOfWeek} = ANY("days")`);
 
 		const scheduledStacks = (dueStacks ?? []).filter(stack => {
 			return stack?.timesOfDay?.some(time => {
@@ -86,35 +86,49 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 
 			for (const stack of stacks) {
 				try {
-					await tbus.publish({
-						event_name: "userstack.scheduled",
-						data: {
-							userId: stack.userId,
-							stackId: stack.id,
-							stackName: stack.name,
-							supplements: [
-								{
-									id: stack.id,
-									name: stack.name,
-									dosage: Number(stack.dosage),
-									unit: stack.unit,
-									timeOfDay: stack.timesOfDay[0],
-									instructions: stack.instructions,
-								},
-							],
-							scheduledFor: stack.timesOfDay.reduce((earliest: number, time: string) => {
-								const [hours, minutes] = time.split(":").map(Number);
-								const timeMs = new Date(
-									now.getFullYear(),
-									now.getMonth(),
-									now.getDate(),
-									hours,
-									minutes,
-								).getTime();
-								return timeMs < earliest ? timeMs : earliest;
-							}, Infinity),
-						},
-					});
+					// For each <stack>, find all scheduled times in the window and publish one event per time
+					const upcomingTimes = Array.isArray(stack.timesOfDay)
+						? stack.timesOfDay.filter(time => {
+							const [hours, minutes] = time.split(":").map(Number);
+							const timeMs = new Date(
+								now.getFullYear(),
+								now.getMonth(),
+								now.getDate(),
+								hours,
+								minutes,
+							).getTime();
+							return timeMs >= nowMs && timeMs <= endMs;
+						})
+						: [];
+
+					for (const scheduledTime of upcomingTimes) {
+						await tbus.publish({
+							event_name: "userstack.scheduled",
+							data: {
+								userId: stack.userId,
+								stackId: stack.id,
+								stackName: stack.name,
+								supplements: [
+									{
+										id: stack.id,
+										name: stack.name,
+										dosage: stack.dosage,
+										unit: stack.unit,
+										timeOfDay: scheduledTime,
+										instructions: Array.isArray(stack.instructions) ? stack.instructions : [],
+									},
+								],
+								scheduledFor: (() => {
+									const [h, m] = scheduledTime.split(":").map(Number);
+									const hourNum = h % 12 === 0 ? 12 : h % 12;
+									const ampm = h < 12 ? "AM" : "PM";
+									const minute = m.toString().padStart(2, "0");
+									return `${hourNum}:${minute} ${ampm}`;
+								})(),
+							},
+						});
+						eventsPublished++;
+					}
 
 					eventsPublished++;
 

@@ -1,6 +1,7 @@
 import { db } from "@backend/db/db";
 import { subscriptionOpenApiRouter } from "@backend/modules/subscriptions/subscription.router";
 import { openApiPublicProcedure } from "@backend/procedures/open_api_public.procedure";
+import { testRemindersRouter } from "./test_reminders.router";
 import * as z from "zod";
 import { teamRouter } from "../modules/teams/team.router";
 
@@ -35,6 +36,7 @@ const healthCheck = openApiPublicProcedure
 
 export const openApiRouter = {
 	health: healthCheck,
+	test: testRemindersRouter,
 	v1: {
 		subscriptions: subscriptionOpenApiRouter,
 		team: teamRouter,

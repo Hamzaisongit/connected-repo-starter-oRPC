@@ -3,7 +3,7 @@ import { logger } from "@backend/utils/logger.utils";
 import { SendSmtpEmail, TransactionalEmailsApi, TransactionalEmailsApiApiKeys } from "@getbrevo/brevo";
 
 const defaultClient = new TransactionalEmailsApi();
-defaultClient.setApiKey(TransactionalEmailsApiApiKeys.apiKey, env.BREVO_API_KEY);
+defaultClient.setApiKey(TransactionalEmailsApiApiKeys.apiKey, env.BREVO_API_KEY );
 
 export interface SendEmailParams {
 	to: string;
@@ -28,8 +28,8 @@ export const sendTemplateEmail = async ({
 
 		const smtpEmail = new SendSmtpEmail();
 		smtpEmail.sender = {
-			email: env.BREVO_SENDER_EMAIL,
-			name: env.BREVO_SENDER_NAME,
+			email: env.BREVO_SENDER_EMAIL || 'hamza@printrnet.com',
+			name: env.BREVO_SENDER_NAME || 'Hamza Ravani',
 		};
 		smtpEmail.to = [
 			{
@@ -77,7 +77,7 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
 
 	const result = await sendTemplateEmail({
 		to: email,
-		templateId: env.WELCOME_EMAIL_TEMPLATE_ID,
+		templateId: env.WELCOME_EMAIL_TEMPLATE_ID || 1,
 		params: {
 			name,
 			email,

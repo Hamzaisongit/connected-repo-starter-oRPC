@@ -1,7 +1,7 @@
 import { db } from "@backend/db/db";
 import { logger } from "@backend/utils/logger.utils";
+import { createEventHandler, defineEvent, Type } from "pg-tbus";
 import { sendReminderEmail, sendWelcomeEmail } from "../services/brevo.service";
-import { Type, createEventHandler, defineEvent } from "pg-tbus";
 
 const userCreatedEventDef = defineEvent({
 	event_name: "user.created",
@@ -126,7 +126,7 @@ export const userStackScheduledHandler = createEventHandler({
 	task_name: "send_reminder_email",
 	eventDef: userStackScheduledEventDef,
 	handler: async (props) => {
-		const { userId, stackId, stackName, supplements, scheduledFor } = props.input;
+		const { userId, stackId, stackName, scheduledFor } = props.input;
 
 		logger.info(
 			{
@@ -183,6 +183,7 @@ export const userStackScheduledHandler = createEventHandler({
 					{
 						stackName,
 						supplements,
+						scheduledFor
 					},
 				],
 			});
