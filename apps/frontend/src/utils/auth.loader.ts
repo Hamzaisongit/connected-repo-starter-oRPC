@@ -19,11 +19,7 @@ export async function authLoader({ context }: LoaderFunctionArgs) {
 
 		const sessionInfo = {
 			hasSession: true,
-			user: {
-				email: session.user.email,
-				name: session.user.name,
-				displayPicture: session.user.image,
-			},
+			user: session.user,
 			isRegistered: true, // better-auth handles registration
 		};
 

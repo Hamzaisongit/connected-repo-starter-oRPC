@@ -4,7 +4,7 @@ import { Button } from "@connected-repo/ui-mui/form/Button";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import type { TodaysPlanSupplement } from "@connected-repo/zod-schemas/user_stack.zod";
 import { getStockIconAndColor } from "@frontend/utils/supplement.utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface SupplementCardProps {
 	supplement: TodaysPlanSupplement;
@@ -19,8 +19,15 @@ interface SupplementCardProps {
 export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, isLogging }: SupplementCardProps) {
  	const [isLoading, setIsLoading] = useState(false);
  	const [revertDialogOpen, setRevertDialogOpen] = useState(false);
+ 	// Optimistic status state - starts with prop value and updates immediately on user action
+ 	const [optimisticStatus, setOptimisticStatus] = useState<"pending" | "taken" | "missed" | "overdue">(supplement.status);
 
- 	const isTaken = supplement.status === "taken";
+ 	// Sync optimistic status with actual supplement status when it changes from parent
+ 	useEffect(() => {
+ 		setOptimisticStatus(supplement.status);
+ 	}, [supplement.status]);
+
+ 	const isTaken = optimisticStatus === "taken";
 
  	const handleLogClick = () => {
   		if (isTaken) {
@@ -34,8 +41,14 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
 
  	const handleLogTaken = async () => {
   		setIsLoading(true);
+  		// Optimistically update the status
+  		setOptimisticStatus("taken");
   		try {
   			await onLogTaken(supplement.id, supplement.scheduledTime);
+  		} catch (error) {
+  			// Revert optimistic update on error
+  			setOptimisticStatus(supplement.status);
+  			throw error;
   		} finally {
   			setIsLoading(false);
   		}
@@ -46,8 +59,15 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
 
   		setRevertDialogOpen(false);
   		setIsLoading(true);
+  		// Optimistically revert to pending status
+  		const previousStatus = optimisticStatus;
+  		setOptimisticStatus("pending");
   		try {
   			await onRevert(supplement.id, supplement.scheduledTime);
+  		} catch (error) {
+  			// Revert optimistic update on error
+  			setOptimisticStatus(previousStatus);
+  			throw error;
   		} finally {
   			setIsLoading(false);
   		}

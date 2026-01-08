@@ -23,24 +23,21 @@ import { Divider } from "@connected-repo/ui-mui/layout/Divider";
 import { Paper } from "@connected-repo/ui-mui/layout/Paper";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
 import { useThemeMode } from "@connected-repo/ui-mui/theme/ThemeContext";
+import { SessionInfo } from "@frontend/contexts/UserContext";
 import { authClient } from "@frontend/utils/auth.client";
-import { orpc, orpcFetch } from "@frontend/utils/orpc.client";
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { orpc } from "@frontend/utils/orpc.client";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useState } from "react";
+import { useNavigate, useOutletContext, useRevalidator } from "react-router";
 
 const ProfilePage = () => {
-	const { data: user } = useSuspenseQuery(orpc.profile.getProfile.queryOptions());
+	// Get session data from authLoader
+	const { user } = useOutletContext<SessionInfo>();
 	const navigate = useNavigate();
 	const { mode, setThemeMode } = useThemeMode();
 	const queryClient = useQueryClient();
-
-	useEffect(() => {
-		if (user.themeSetting) {
-			setThemeMode(user.themeSetting);
-		}
-	}, [user.themeSetting, setThemeMode]);
+	const revalidator = useRevalidator();
 
 	// Dialog states
 	const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
@@ -80,8 +77,10 @@ const ProfilePage = () => {
 		}
 		setThemeMode(newMode);
 		try {
-			await orpcFetch.profile.updateProfile({ themeSetting: newMode });
+			await authClient.updateUser({ themeSetting: newMode });
+			console.log("request success");
 			queryClient.invalidateQueries({ queryKey: orpc.profile.getProfile.queryOptions().queryKey });
+			revalidator.revalidate();
 		} catch (error) {
 			console.error("Failed to update theme:", error);
 			setThemeMode(mode);
