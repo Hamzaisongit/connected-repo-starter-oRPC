@@ -30,7 +30,7 @@ export const TimeFieldArray = ({ formMethods }: TimeFieldArrayProps) => {
 						<TimePicker
 							value={field.value ? dayjs(field.value, "HH:mm") : null}
 							onChange={(newValue) => {
-								field.onChange(newValue ? newValue.format("HH:mm") : "");
+								field.onChange(newValue ? newValue.format("HH:mm:ss") : "");
 							}}
 							slotProps={{
 								textField: {

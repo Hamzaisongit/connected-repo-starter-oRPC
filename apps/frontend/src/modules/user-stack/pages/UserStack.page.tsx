@@ -13,8 +13,8 @@ import { orpc } from "@frontend/utils/orpc.client";
 import { getStockIconAndColor } from "@frontend/utils/supplement.utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 
 type StatusFilter = "all" | "active" | "inactive";
 
@@ -31,10 +31,25 @@ const formatDaysShort = (days: string | string[]) => {
 
 export default function UserStackPage() {
 	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
 	const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+	const highlightedStackId = searchParams.get("highlight");
 
 	const queryClient = useQueryClient();
 	const { data: userStacks, isLoading, error } = useQuery(orpc.userStacks.getAll.queryOptions());
+
+	// Scroll to highlighted item when it appears
+	useEffect(() => {
+		if (highlightedStackId && userStacks && userStacks.length > 0) {
+			const element = document.getElementById(`stack-${highlightedStackId}`);
+			if (element) {
+				element.scrollIntoView({
+					behavior: 'smooth',
+					block: 'center',
+				});
+			}
+		}
+	}, [highlightedStackId, userStacks]);
 
 	const updateStackMutation = useMutation(orpc.userStacks.update.mutationOptions());
 
@@ -188,14 +203,21 @@ export default function UserStackPage() {
 			>
 				{filteredStacks.map((stack) => {
 					const isInactive = !stack.isActive;
+					const isHighlighted = stack.id === highlightedStackId;
 					const stockIconData = getStockIconAndColor(stack.name);
 					return (
-						<Box
+						<motion.div
 							key={stack.id}
-							sx={{
-								position: "relative",
-							}}
+							id={`stack-${stack.id}`}
+							initial={isHighlighted ? { scale: 0.95, opacity: 0.8 } : { scale: 1, opacity: 1 }}
+							animate={isHighlighted ? { scale: 1, opacity: 1 } : { scale: 1, opacity: 1 }}
+							transition={{ duration: 0.6, ease: "easeOut" }}
 						>
+							<Box
+								sx={{
+									position: "relative",
+								}}
+							>
 							{/* 3D Overlapping Circular Image with Themed Background - Positioned outside card */}
 							<Box
 								sx={{
@@ -223,10 +245,12 @@ export default function UserStackPage() {
 								onClick={() => handleStackClick(stack.id)}
 								sx={{
 									borderRadius: "32px", // Larger radius for premium feel
-									backgroundColor: "rgba(255, 255, 255, 0.5)", // No borders, pure glass
+									backgroundColor: isHighlighted ? "rgba(255, 255, 255, 0.8)" : "rgba(255, 255, 255, 0.5)", // Highlighted cards are more opaque
 									backdropFilter: "blur(15px)",
 									WebkitBackdropFilter: "blur(15px)",
-									boxShadow: "0px 8px 32px rgba(0, 0, 0, 0.1)",
+									boxShadow: isHighlighted
+										? "0px 12px 40px rgba(26, 28, 46, 0.3), 0px 0px 20px rgba(135, 206, 235, 0.4)" // Special glow for highlighted
+										: "0px 8px 32px rgba(0, 0, 0, 0.1)",
 									p: 3,
 									height: "100%",
 									cursor: "pointer",
@@ -234,6 +258,7 @@ export default function UserStackPage() {
 									filter: isInactive ? "grayscale(0.6)" : "none",
 									opacity: isInactive ? 0.4 : 1, // More pronounced inactive state
 									position: "relative",
+									border: isHighlighted ? "2px solid rgba(26, 28, 46, 0.2)" : "none", // Subtle border for highlighted
 									"&:hover": {
 										transform: "translateY(-5px) scale(1.02)", // More pronounced lift
 										boxShadow: "0px 16px 48px rgba(0, 0, 0, 0.15)",
@@ -354,6 +379,7 @@ export default function UserStackPage() {
 								</Box>
 							</Box>
 						</Box>
+						</motion.div>
 					);
 				})}
 			</Box>

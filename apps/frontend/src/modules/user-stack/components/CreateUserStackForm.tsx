@@ -1,11 +1,12 @@
-import { SuccessAlert } from "@connected-repo/ui-mui/components/SuccessAlert";
 import { useRhfForm } from "@connected-repo/ui-mui/rhf-form/useRhfForm";
+import { Snackbar } from "@connected-repo/ui-mui/feedback/Snackbar";
 import type { DaysOfWeek } from "@connected-repo/zod-schemas/enums.zod";
 import type { UserStackCreateInput } from "@connected-repo/zod-schemas/user_stack.zod";
 import { orpcFetch } from "@frontend/utils/orpc.client";
 import { SUPPLEMENT_UNITS } from "@frontend/utils/supplement.constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useState } from "react";
+import { useNavigate } from "react-router";
 import z from "zod";
 import { UserStackFormFields } from "./UserStackFormFields";
 
@@ -17,7 +18,7 @@ const createUserStackFormSchema = z.object({
 	unit: z.enum(SUPPLEMENT_UNITS),
 	customUnit: z.string().optional(),
 	reminderDays: z.array(z.string()).min(1, "Select at least one day"),
-	reminderTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Time must be in HH:MM format"),
+	reminderTime: z.iso.time({ precision: 0 }),
 	imageUrl: z.string().url().nullable().optional(),
 }).refine((data) => {
 	if (data.unit === "Other" && (!data.customUnit || data.customUnit.trim() === "")) {
@@ -32,8 +33,9 @@ const createUserStackFormSchema = z.object({
 type CreateUserStackFormData = z.infer<typeof createUserStackFormSchema>;
 
 export function CreateUserStackForm() {
-	const [success, setSuccess] = useState("");
-	
+	const navigate = useNavigate();
+	const [showToast, setShowToast] = useState(false);
+
 	// Wrap onSubmit in useCallback to prevent recreating the function on every render
 	// This is critical because the function is passed to useRhfForm which memoizes the provider
 	const onSubmit = useCallback(async (data: CreateUserStackFormData) => {
@@ -53,10 +55,14 @@ export function CreateUserStackForm() {
 				reminderDays: data.reminderDays as DaysOfWeek[],
 				imageUrl: data.imageUrl || null,
 			};
-			await orpcFetch.userStacks.create(submitData);
-			setSuccess("User stack item added successfully!");
-			setTimeout(() => setSuccess(""), 3000);
-		}, []);
+			console.log({submitData});
+			const newStack = await orpcFetch.userStacks.create(submitData);
+			setShowToast(true);
+			setTimeout(() => {
+				setShowToast(false);
+				navigate(`/user-stack?highlight=${newStack.id}`);
+			}, 1500);
+		}, [navigate]);
 
 	const { formMethods, RhfFormProvider } = useRhfForm<CreateUserStackFormData>({
 		onSubmit,
@@ -70,7 +76,7 @@ export function CreateUserStackForm() {
 				unit: "mg",
 				customUnit: "",
 				reminderDays: [],
-				reminderTime: "08:00",
+				reminderTime: "08:00:00",
 				imageUrl: undefined,
 			},
 		},
@@ -78,12 +84,18 @@ export function CreateUserStackForm() {
 
 	return (
 		<RhfFormProvider>
-			<UserStackFormFields 
+			<UserStackFormFields
 				formMethods={formMethods}
 				submitButtonText="Confirm & Activate"
 				submittingText="Adding..."
 			/>
-			<SuccessAlert message={success} />
+			<Snackbar
+				open={showToast}
+				autoHideDuration={1500}
+				onClose={() => setShowToast(false)}
+				message="Supplement added successfully!"
+				anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+			/>
 		</RhfFormProvider>
 	);
 }

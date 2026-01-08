@@ -1,6 +1,6 @@
 import { LoadingSpinner } from "@connected-repo/ui-mui/components/LoadingSpinner";
-import { SuccessAlert } from "@connected-repo/ui-mui/components/SuccessAlert";
 import { useRhfForm } from "@connected-repo/ui-mui/rhf-form/useRhfForm";
+import { Snackbar } from "@connected-repo/ui-mui/feedback/Snackbar";
 import type { DaysOfWeek } from "@connected-repo/zod-schemas/enums.zod";
 import { orpc, orpcFetch } from "@frontend/utils/orpc.client";
 import { SUPPLEMENT_UNITS } from "@frontend/utils/supplement.constants";
@@ -19,7 +19,7 @@ const editUserStackFormSchema = z.object({
 	unit: z.enum(SUPPLEMENT_UNITS),
 	customUnit: z.string().optional(),
 	reminderDays: z.array(z.string()).min(1, "Select at least one day"),
-	reminderTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Time must be in HH:MM format"),
+	reminderTime: z.iso.time({ precision: 0 }),
 	imageUrl: z.string().url().nullable().optional(),
 }).refine((data) => {
 	if (data.unit === "Other" && (!data.customUnit || data.customUnit.trim() === "")) {
@@ -39,8 +39,8 @@ interface EditUserStackFormProps {
 
 export function EditUserStackForm({ stackId }: EditUserStackFormProps) {
 	const navigate = useNavigate();
-	const [success, setSuccess] = useState("");
-	
+	const [showToast, setShowToast] = useState(false);
+
 	const { data: userStack, isLoading } = useQuery(
 		orpc.userStacks.getById.queryOptions({ input: { id: stackId } })
 	);
@@ -66,10 +66,10 @@ export function EditUserStackForm({ stackId }: EditUserStackFormProps) {
 				imageUrl: data.imageUrl || null,
 			};
 			await orpcFetch.userStacks.update(submitData);
-			setSuccess("Supplement updated successfully!");
+			setShowToast(true);
 			setTimeout(() => {
-				setSuccess("");
-				navigate(`/user-stack/${stackId}`);
+				setShowToast(false);
+				navigate(`/user-stack?highlight=${stackId}`);
 			}, 1500);
 		}, [stackId, navigate]);
 
@@ -85,7 +85,7 @@ export function EditUserStackForm({ stackId }: EditUserStackFormProps) {
 				unit: "mg",
 				customUnit: "",
 				reminderDays: [],
-				reminderTime: "08:00",
+				reminderTime: "08:00:00",
 				imageUrl: undefined,
 			},
 		},
@@ -107,7 +107,7 @@ export function EditUserStackForm({ stackId }: EditUserStackFormProps) {
 				unit: isStandardUnit ? userStack.unit as typeof SUPPLEMENT_UNITS[number] : "Other",
 				customUnit: isStandardUnit ? "" : userStack.unit,
 				reminderDays: userStack.reminderDays,
-				reminderTime: userStack.reminderTime.slice(0, 5),
+				reminderTime: userStack.reminderTime,
 				imageUrl: userStack.imageUrl || undefined,
 			});
 		}
@@ -124,7 +124,13 @@ export function EditUserStackForm({ stackId }: EditUserStackFormProps) {
 				submitButtonText="Update Supplement"
 				submittingText="Updating..."
 			/>
-			<SuccessAlert message={success} />
+			<Snackbar
+				open={showToast}
+				autoHideDuration={1500}
+				onClose={() => setShowToast(false)}
+				message="Supplement updated successfully!"
+				anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+			/>
 		</RhfFormProvider>
 	);
 }

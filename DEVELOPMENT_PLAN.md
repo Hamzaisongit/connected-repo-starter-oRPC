@@ -492,6 +492,11 @@ If after 60 days:
 - **Enhancement:** Improved navigation with profile avatar and back buttons
 - **Enhancement:** Refactored form components for better reusability
 - **Enhancement:** Added revert functionality for supplement logs
+- **Enhancement:** Replaced SuccessAlert with Snackbar for better UX in create/edit forms
+- **Enhancement:** Added navigation to stack list with highlight parameter after creation/update
+- **Enhancement:** Implemented smooth scrolling and animation for highlighted items on user stack page
+- **Enhancement:** Updated reminder time validation to use z.iso.time({ precision: 0 }) for better consistency
+- **Enhancement:** Adjusted time picker format to HH:mm:ss internally for precision
 - **Acceptance Criteria:**
   - Complete stack management workflow (view → detail → edit/delete)
   - Mobile-optimized responsive design
