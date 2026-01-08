@@ -4,7 +4,8 @@ import { tbus } from "@backend/modules/events/tbus";
 import { initiateWebhookCallService } from "@backend/modules/webhook_calls/services/initiate.webhook_calls.service";
 import { cronJobAuthProcedure } from "@backend/procedures/cron_job_auth.procedure";
 import { logger } from "@backend/utils/logger.utils";
-import { Type } from "pg-tbus";
+import type { UserAdherenceLogSelectAll } from "@connected-repo/zod-schemas/user_adherence_log.zod";
+import type { UserStackSelectAll } from "@connected-repo/zod-schemas/user_stack.zod";
 import * as z from "zod";
 
 const scheduleSupplementReminders = cronJobAuthProcedure
@@ -69,9 +70,9 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 			if (!acc[stack.userId]) {
 				acc[stack.userId] = [];
 			}
-			(acc[stack.userId] as any).push(stack);
+			acc[stack.userId]!.push(stack);
 			return acc;
-		}, {} as Record<string, any>);
+		}, {} as Record<string, UserStackSelectAll[]>);
 
 		let eventsPublished = 0;
 
@@ -79,12 +80,12 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 			logger.info(
 				{
 					userId,
-					stackCount: (stacks as any[]).length,
+					stackCount: stacks.length,
 				},
 				"Publishing userstack.scheduled events for user...",
 			);
 
-			for (const stack of stacks as any[]) {
+			for (const stack of stacks) {
 				try {
 					if (!Array.isArray(stack.timesOfDay) || stack.timesOfDay.length === 0) {
 						logger.info(
@@ -98,7 +99,7 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 						continue;
 					}
 
-					const upcomingTimes = stack.timesOfDay.filter((time: string) => {
+					const upcomingTimes = stack.timesOfDay.filter((time) => {
 						const [hours, minutes] = time.split(":").map(Number);
 						const timeMs = new Date(
 							now.getFullYear(),
@@ -122,15 +123,39 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 						continue;
 					}
 
-					const earliestTime = upcomingTimes[0];
-					const [h, m] = earliestTime.split(":").map(Number);
+					const earliestTime = upcomingTimes[0]!;
+					const timeParts = earliestTime.split(":");
+					if (timeParts.length !== 2) {
+						logger.warn(
+							{
+								userId,
+								stackId: stack.id,
+								time: earliestTime,
+							},
+							"Invalid time format, skipping",
+						);
+						continue;
+					}
+					const h = Number(timeParts[0]);
+					const m = Number(timeParts[1]);
+					if (isNaN(h) || isNaN(m)) {
+						logger.warn(
+							{
+								userId,
+								stackId: stack.id,
+								time: earliestTime,
+							},
+							"Invalid time numbers, skipping",
+						);
+						continue;
+					}
 					const hourNum = h % 12 === 0 ? 12 : h % 12;
 					const ampm = h < 12 ? "AM" : "PM";
 					const minute = m.toString().padStart(2, "0");
 					const formattedTime = `${hourNum}:${minute} ${ampm}`;
 
 					// Only publish if there is NOT an adherence log in this 15-min window for this stack/user
-					const adherenceLog = await db.userAdherenceLogs.where({
+					const adherenceLog: UserAdherenceLogSelectAll[] = await db.userAdherenceLogs.where({
 						userId: stack.userId,
 						supplementId: stack.id,
 						actualAt: {
@@ -139,7 +164,7 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 						},
 					});
 
-					if (adherenceLog.length) {
+					if (adherenceLog.length > 0) {
 						logger.info(
 							{
 								userId,
@@ -150,7 +175,6 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 						);
 						continue;
 					}
-
 
 					await tbus.publish({
 						event_name: "userstack.scheduled",

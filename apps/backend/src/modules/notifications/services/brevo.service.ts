@@ -1,15 +1,10 @@
 import { env } from "@backend/configs/env.config";
 import { logger } from "@backend/utils/logger.utils";
-import { TransactionalEmailsApi, SendSmtpEmail } from "@getbrevo/brevo";
+import type { ReminderEmailParams, SendEmailParams } from "@connected-repo/zod-schemas/notifications.zod";
+import { SendSmtpEmail, TransactionalEmailsApi, TransactionalEmailsApiApiKeys } from "@getbrevo/brevo";
 
 const defaultClient = new TransactionalEmailsApi();
-(defaultClient as any).authentications.apiKey.apiKey = env.BREVO_API_KEY;
-
-export interface SendEmailParams {
-	to: string;
-	templateId: number;
-	params: Record<string, string | number | boolean>;
-}
+defaultClient.setApiKey(TransactionalEmailsApiApiKeys.apiKey, env.BREVO_API_KEY);
 
 export const sendTemplateEmail = async ({
 	to,
@@ -93,12 +88,7 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
 	return result;
 };
 
-export const sendReminderEmail = async (params: {
-	email: string;
-	name: string;
-	supplementName: string;
-	scheduledTime: string;
-}) => {
+export const sendReminderEmail = async (params: ReminderEmailParams) => {
 	const { email, name, supplementName, scheduledTime } = params;
 
 	logger.info(

@@ -1,7 +1,7 @@
 import { env } from "@backend/configs/env.config";
+import { userCreatedHandler, userStackScheduledHandler } from "@backend/modules/notifications/handlers/email.handlers";
 import { logger } from "@backend/utils/logger.utils";
 import createTBus, { type Bus } from "pg-tbus";
-import { userCreatedHandler, userStackScheduledHandler } from "@backend/modules/notifications/handlers/email.handlers";
 
 const SERVICE_NAME = "heliocoach-backend";
 const SCHEMA = "public";
