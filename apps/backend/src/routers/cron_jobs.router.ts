@@ -87,6 +87,7 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 				acc[stack.userId] = {};
 			}
 
+			//Groups together supplements with same times
 			for (const timeStr of upcomingTimes) {
 				const timeParts = timeStr.split(":");
 				if (timeParts.length !== 2) continue;
@@ -126,6 +127,7 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 
 		let eventsPublished = 0;
 
+
 		for (const [userId, timeGroups] of Object.entries(supplementsByUserAndTime)) {
 			logger.info(
 				{
@@ -143,20 +145,28 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 						const adherenceLog: UserAdherenceLogSelectAll[] = await db.userAdherenceLogs.where({
 							userId: supplement.stack.userId,
 							supplementId: supplement.stack.id,
-							actualAt: {
+							scheduledFor: {
 								gte: new Date(nowMs),
 								lt: new Date(endMs),
 							},
 						});
 
-						// Only include supplements that haven't been taken in this time window
+						// Check if adherence log doesn't exist in this window AND user has email notifications enabled
 						if (adherenceLog.length === 0) {
-							supplementsToRemind.push({
-								name: supplement.stack.name,
-								dosage: Number(supplement.stack.dosage),
-								unit: supplement.stack.unit,
-								scheduledTime: supplement.scheduledTime,
-							});
+
+							const user = await db.users.findBy({ id: supplement.stack.userId });
+							const notificationPreferences = typeof user?.notificationPreferences === "string"
+								? JSON.parse(user.notificationPreferences)
+								: user?.notificationPreferences;
+
+							if (notificationPreferences?.emailNotification) {
+								supplementsToRemind.push({
+									name: supplement.stack.name,
+									dosage: Number(supplement.stack.dosage),
+									unit: supplement.stack.unit,
+									scheduledTime: supplement.scheduledTime,
+								});
+							}
 						}
 					}
 
