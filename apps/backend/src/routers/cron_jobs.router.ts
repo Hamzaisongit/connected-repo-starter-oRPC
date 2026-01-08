@@ -21,7 +21,7 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 
 		const now = new Date();
 		const nowMs = now.getTime();
-		const minutesInMs = 15 * 60 * 1000;
+		const minutesInMs = 60 * 1000;
 		const endMs = nowMs + minutesInMs;
 
 		const dayOfWeek = now.toLocaleDateString("en-US", { weekday: "long" });

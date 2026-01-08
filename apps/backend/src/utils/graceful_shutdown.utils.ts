@@ -3,6 +3,7 @@ import { otelNodeSdk } from "@backend/otel.sdk";
 import { logger } from "@backend/utils/logger.utils";
 import { recordErrorOtel } from "@backend/utils/record-message.otel.utils";
 import { stopTBus } from "@backend/modules/events/tbus";
+import { stopSupplementReminderCron } from "@backend/modules/cron/supplement_reminder.cron";
 
 export const handleServerClose = (server: Server<typeof IncomingMessage, typeof ServerResponse>) => {
   const gracefulShutdown = async (signal: string) => {
@@ -15,6 +16,8 @@ export const handleServerClose = (server: Server<typeof IncomingMessage, typeof 
       await stopTBus().catch((error) => {
         logger.error('Error stopping pg-tbus event bus', error);
       });
+
+      stopSupplementReminderCron();
 
       // Stop accepting new connections
       server.close(() => {

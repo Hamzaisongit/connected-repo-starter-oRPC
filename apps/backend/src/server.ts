@@ -10,6 +10,7 @@ import { handleServerClose } from '@backend/utils/graceful_shutdown.utils';
 import { logger } from '@backend/utils/logger.utils';
 import { recordErrorOtel } from "@backend/utils/record-message.otel.utils";
 import { startTBus } from "@backend/modules/events/tbus";
+import { startSupplementReminderCron } from "@backend/modules/cron/supplement_reminder.cron";
 import { trace } from '@opentelemetry/api';
 import { createServer } from 'node:http';
 
@@ -123,6 +124,9 @@ try {
 						process.send("ready"); // ✅ Let PM2 know that app is ready
 					}
 					logger.info({ url: env.VITE_API_URL, port: env.PORT }, "Server running");
+
+					// Start the supplement reminder cron job
+					startSupplementReminderCron();
 				}
 			);
 		}).catch((error) => {
