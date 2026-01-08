@@ -21,7 +21,7 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 
 		const now = new Date();
 		const nowMs = now.getTime();
-		const minutesInMs = 60 * 1000;
+		const minutesInMs = 60 * 1000; // 1 minute window
 		const endMs = nowMs + minutesInMs;
 
 		const dayOfWeek = now.toLocaleDateString("en-US", { weekday: "long" });
@@ -33,7 +33,7 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 				timeWindowStart: new Date(nowMs).toISOString(),
 				timeWindowEnd: new Date(endMs).toISOString(),
 			},
-			"Querying for supplement reminders due in next 15 minutes...",
+			"Querying for supplement reminders due in next 1 minute...",
 		);
 
 		const dueStacks = await db.userStacks
@@ -43,6 +43,7 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 			})
 			.where(sql`${dayOfWeek} = ANY("days")`);
 
+		// Find all stacks with times in the 1-minute window
 		const scheduledStacks = (dueStacks ?? []).filter(stack => {
 			return stack?.timesOfDay?.some(time => {
 				const [hours, minutes] = time.split(":").map(Number);
@@ -61,156 +62,143 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 			{
 				dueStacksCount: scheduledStacks.length,
 			},
-			"Found supplement stacks due in next 15 minutes",
+			"Found supplement stacks due in next 1 minute",
 		);
 
-		const stacksByUser = (scheduledStacks ?? []).reduce((acc, stack) => {
-			if (!stack?.userId) return acc;
+		// Group stacks by user and then by exact scheduled time
+		const supplementsByUserAndTime = (scheduledStacks ?? []).reduce((acc, stack) => {
+			if (!stack?.userId || !Array.isArray(stack.timesOfDay)) return acc;
+
+			const upcomingTimes = stack.timesOfDay.filter(time => {
+				const [hours, minutes] = time.split(":").map(Number);
+				const timeMs = new Date(
+					now.getFullYear(),
+					now.getMonth(),
+					now.getDate(),
+					hours,
+					minutes,
+				).getTime();
+				return timeMs >= nowMs && timeMs <= endMs;
+			});
+
+			if (upcomingTimes.length === 0) return acc;
 
 			if (!acc[stack.userId]) {
-				acc[stack.userId] = [];
+				acc[stack.userId] = {};
 			}
-			acc[stack.userId]!.push(stack);
+
+			for (const timeStr of upcomingTimes) {
+				const timeParts = timeStr.split(":");
+				if (timeParts.length !== 2) continue;
+
+				const h = Number(timeParts[0]);
+				const m = Number(timeParts[1]);
+				if (isNaN(h) || isNaN(m)) continue;
+
+				const hourNum = h % 12 === 0 ? 12 : h % 12;
+				const ampm = h < 12 ? "AM" : "PM";
+				const minute = m.toString().padStart(2, "0");
+				const formattedTime = `${hourNum}:${minute} ${ampm}`;
+
+				if (!acc[stack.userId]![formattedTime]) {
+					acc[stack.userId]![formattedTime] = [];
+				}
+
+				acc[stack.userId]![formattedTime]!.push({
+					stack,
+					scheduledTime: formattedTime,
+					scheduledTimeMs: new Date(
+						now.getFullYear(),
+						now.getMonth(),
+						now.getDate(),
+						h,
+						m,
+					).getTime(),
+				});
+			}
+
 			return acc;
-		}, {} as Record<string, UserStackSelectAll[]>);
+		}, {} as Record<string, Record<string, Array<{
+			stack: UserStackSelectAll;
+			scheduledTime: string;
+			scheduledTimeMs: number;
+		}>>>);
 
 		let eventsPublished = 0;
 
-		for (const [userId, stacks] of Object.entries(stacksByUser)) {
+		for (const [userId, timeGroups] of Object.entries(supplementsByUserAndTime)) {
 			logger.info(
 				{
 					userId,
-					stackCount: stacks.length,
+					timeGroupsCount: Object.keys(timeGroups).length,
 				},
-				"Publishing userstack.scheduled events for user...",
+				"Publishing consolidated userstack.scheduled events for user...",
 			);
 
-			for (const stack of stacks) {
+			for (const [scheduledTime, supplements] of Object.entries(timeGroups)) {
 				try {
-					if (!Array.isArray(stack.timesOfDay) || stack.timesOfDay.length === 0) {
+					// Check adherence logs for each supplement in this time group
+					const supplementsToRemind = [];
+					for (const supplement of supplements) {
+						const adherenceLog: UserAdherenceLogSelectAll[] = await db.userAdherenceLogs.where({
+							userId: supplement.stack.userId,
+							supplementId: supplement.stack.id,
+							actualAt: {
+								gte: new Date(nowMs),
+								lt: new Date(endMs),
+							},
+						});
+
+						// Only include supplements that haven't been taken in this time window
+						if (adherenceLog.length === 0) {
+							supplementsToRemind.push({
+								name: supplement.stack.name,
+								dosage: Number(supplement.stack.dosage),
+								unit: supplement.stack.unit,
+								scheduledTime: supplement.scheduledTime,
+							});
+						}
+					}
+
+					// Only publish event if there are supplements to remind
+					if (supplementsToRemind.length > 0 && supplements.length > 0) {
+						await tbus.publish({
+							event_name: "userstack.scheduled",
+							data: {
+								userId,
+								supplements: supplementsToRemind,
+								scheduledFor: supplements[0]!.scheduledTimeMs,
+							},
+						});
+
+						eventsPublished++;
+
 						logger.info(
 							{
 								userId,
-								stackId: stack.id,
-								stackName: stack.name,
+								scheduledTime,
+								supplementsCount: supplementsToRemind.length,
 							},
-							"Stack has no scheduled times, skipping",
+							"Published consolidated userstack.scheduled event",
 						);
-						continue;
-					}
-
-					const upcomingTimes = stack.timesOfDay.filter((time) => {
-						const [hours, minutes] = time.split(":").map(Number);
-						const timeMs = new Date(
-							now.getFullYear(),
-							now.getMonth(),
-							now.getDate(),
-							hours,
-							minutes,
-						).getTime();
-						return timeMs >= nowMs && timeMs <= endMs;
-					});
-
-					if (upcomingTimes.length === 0) {
+					} else {
 						logger.info(
 							{
 								userId,
-								stackId: stack.id,
-								stackName: stack.name,
+								scheduledTime,
 							},
-							"Stack has no times in the 15-minute window, skipping",
+							"All supplements at this time have been taken, skipping event",
 						);
-						continue;
 					}
-
-					const earliestTime = upcomingTimes[0]!;
-					const timeParts = earliestTime.split(":");
-					if (timeParts.length !== 2) {
-						logger.warn(
-							{
-								userId,
-								stackId: stack.id,
-								time: earliestTime,
-							},
-							"Invalid time format, skipping",
-						);
-						continue;
-					}
-					const h = Number(timeParts[0]);
-					const m = Number(timeParts[1]);
-					if (isNaN(h) || isNaN(m)) {
-						logger.warn(
-							{
-								userId,
-								stackId: stack.id,
-								time: earliestTime,
-							},
-							"Invalid time numbers, skipping",
-						);
-						continue;
-					}
-					const hourNum = h % 12 === 0 ? 12 : h % 12;
-					const ampm = h < 12 ? "AM" : "PM";
-					const minute = m.toString().padStart(2, "0");
-					const formattedTime = `${hourNum}:${minute} ${ampm}`;
-
-					// Only publish if there is NOT an adherence log in this 15-min window for this stack/user
-					const adherenceLog: UserAdherenceLogSelectAll[] = await db.userAdherenceLogs.where({
-						userId: stack.userId,
-						supplementId: stack.id,
-						actualAt: {
-							gte: new Date(nowMs),
-							lt: new Date(endMs),
-						},
-					});
-
-					if (adherenceLog.length > 0) {
-						logger.info(
-							{
-								userId,
-								stackId: stack.id,
-								stackName: stack.name,
-							},
-							"Adherence log already exists for this stack/time in 15-min window, skipping event publish",
-						);
-						continue;
-					}
-
-					await tbus.publish({
-						event_name: "userstack.scheduled",
-						data: {
-							userId: stack.userId,
-							supplementName: stack.name,
-							scheduledTime: formattedTime,
-							scheduledFor: new Date(
-								now.getFullYear(),
-								now.getMonth(),
-								now.getDate(),
-								...earliestTime.split(":").map(Number),
-							).getTime(),
-						},
-					});
-
-					eventsPublished++;
-
-					logger.info(
-						{
-							userId,
-							stackId: stack.id,
-							stackName: stack.name,
-							scheduledTime: formattedTime,
-						},
-						"Published userstack.scheduled event",
-					);
 				} catch (error) {
 					const errorMessage = error instanceof Error ? error.message : String(error);
 					logger.error(
 						{
 							userId,
-							stackId: stack.id,
+							scheduledTime,
 							error: errorMessage,
 						},
-						"Failed to publish userstack.scheduled event",
+						"Failed to publish consolidated userstack.scheduled event",
 					);
 				}
 			}
@@ -218,14 +206,14 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 
 		logger.info(
 			{
-				usersProcessed: Object.keys(stacksByUser).length,
+				usersProcessed: Object.keys(supplementsByUserAndTime).length,
 				eventsPublished,
 			},
 			"Supplement reminder cron job completed",
 		);
 
 		return {
-			usersProcessed: Object.keys(stacksByUser).length,
+			usersProcessed: Object.keys(supplementsByUserAndTime).length,
 			eventsPublished,
 		};
 	});

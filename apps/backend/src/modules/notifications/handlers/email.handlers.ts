@@ -17,8 +17,12 @@ const userStackScheduledEventDef = defineEvent({
 	event_name: "userstack.scheduled",
 	schema: Type.Object({
 		userId: Type.String({ format: "uuid" }),
-		supplementName: Type.String(),
-		scheduledTime: Type.String(),
+		supplements: Type.Array(Type.Object({
+			name: Type.String(),
+			dosage: Type.Number(),
+			unit: Type.String(),
+			scheduledTime: Type.String(),
+		})),
 		scheduledFor: Type.Number(),
 	}),
 });
@@ -116,15 +120,15 @@ export const userStackScheduledHandler = createEventHandler({
 	task_name: "send_reminder_email",
 	eventDef: userStackScheduledEventDef,
 	handler: async (props) => {
-		const { userId, supplementName, scheduledTime } = props.input;
+		const { userId, supplements } = props.input;
 
 		logger.info(
 			{
 				userId,
-				supplementName,
+				supplementsCount: supplements.length,
 				eventName: "userstack.scheduled",
 			},
-			"Processing userstack.scheduled event to send reminder email...",
+			"Processing userstack.scheduled event to send consolidated reminder email...",
 		);
 
 		try {
@@ -159,15 +163,15 @@ export const userStackScheduledHandler = createEventHandler({
 				{
 					userId,
 					emailNotificationEnabled: true,
+					supplementsCount: supplements.length,
 				},
-				"User has enabled email notifications, sending reminder email...",
+				"User has enabled email notifications, sending consolidated reminder email...",
 			);
 
 			const result = await sendReminderEmail({
 				email: user.email,
 				name: user.name,
-				supplementName,
-				scheduledTime,
+				supplements,
 			});
 
 			if (result.success) {
@@ -175,18 +179,20 @@ export const userStackScheduledHandler = createEventHandler({
 					{
 						userId,
 						email: user.email,
+						supplementsCount: supplements.length,
 						messageId: result.messageId,
 					},
-					"Reminder email sent successfully via event handler",
+					"Consolidated reminder email sent successfully via event handler",
 				);
 			} else {
 				logger.error(
 					{
 						userId,
 						email: user.email,
+						supplementsCount: supplements.length,
 						error: result.error,
 					},
-					"Failed to send reminder email via event handler",
+					"Failed to send consolidated reminder email via event handler",
 				);
 			}
 		} catch (error) {
@@ -194,6 +200,7 @@ export const userStackScheduledHandler = createEventHandler({
 			logger.error(
 				{
 					userId,
+					supplementsCount: supplements.length,
 					error: errorMessage,
 				},
 				"Error processing userstack.scheduled event handler",

@@ -89,14 +89,14 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
 };
 
 export const sendReminderEmail = async (params: ReminderEmailParams) => {
-	const { email, name, supplementName, scheduledTime } = params;
+	const { email, name, supplements } = params;
 
 	logger.info(
 		{
 			email,
-			supplementName,
+			supplementsCount: supplements.length,
 		},
-		"Sending reminder email to user...",
+		"Sending consolidated reminder email to user...",
 	);
 
 	const result = await sendTemplateEmail({
@@ -105,8 +105,7 @@ export const sendReminderEmail = async (params: ReminderEmailParams) => {
 		params: {
 			name,
 			email,
-			supplementName,
-			scheduledTime,
+			supplements,
 		},
 	});
 

@@ -11,8 +11,12 @@ export const sendEmailParamsZod = z.object({
 export const reminderEmailParamsZod = z.object({
 	email: z.string().email(),
 	name: zString,
-	supplementName: zString,
-	scheduledTime: zString,
+	supplements: z.array(z.object({
+		name: zString,
+		dosage: z.number(),
+		unit: zString,
+		scheduledTime: zString,
+	})),
 });
 
 // Cron job response types
