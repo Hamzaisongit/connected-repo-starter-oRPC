@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import type { SessionInfo } from "@frontend/contexts/UserContext";
 import { useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Outlet, useLoaderData } from "react-router";
+import { useThemeMode } from "@connected-repo/ui-mui/theme/ThemeContext";
 import { DesktopNavbar } from "./DesktopNavbar";
 import { MobileNavbar } from "./MobileNavbar";
 
@@ -22,6 +24,14 @@ export const AppLayout = () => {
 
 	// Get session data from authLoader
 	const sessionInfo = useLoaderData() as SessionInfo;
+
+	const { setThemeMode } = useThemeMode();
+
+	useEffect(() => {
+		if (sessionInfo.user?.themeSetting) {
+			setThemeMode(sessionInfo.user.themeSetting);
+		}
+	}, [sessionInfo.user?.themeSetting, setThemeMode]);
 
 	return (
 		<Box

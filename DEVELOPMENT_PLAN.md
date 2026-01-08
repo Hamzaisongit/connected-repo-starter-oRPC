@@ -111,9 +111,14 @@ If after 60 days:
 
 **Profile Page Enhancement:**
 - Added display for all user details (timezone, last updated, email verification status)
-- Synced theme setting with backend via updateProfile API
+- Synced theme setting with backend via authClient.updateUser (deviated from oRPC approach for better integration with better-auth)
 - Improved account details UI with better information hierarchy
 - Implemented theme initialization from user preferences
+
+**Supplement Logging Improvements:**
+- Added revert functionality for supplement logs via deleteMutation
+- Implemented optimistic UI for status updates in SupplementCard component
+- Updated todaysPlan endpoint to include logId for precise revert operations
 
 **EXPLICITLY EXCLUDED FROM V1:**
 - ❌ Leagues, points, challenges

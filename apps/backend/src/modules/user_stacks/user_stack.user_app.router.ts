@@ -117,23 +117,32 @@ const getTodaysPlan = rpcProtectedProcedure
 			.where({ scheduledFor: { gte: todayStart } })
 			.where({ scheduledFor: { lte: todayEnd } });
 
-		// Create a map of supplementId + scheduledTime to log status
-		const logStatusMap = new Map<string, z.infer<typeof userAdherenceStatusZod>>();
+		// Create a map of supplementId + scheduledTime to log data
+		const logStatusMap = new Map<string, { status: z.infer<typeof userAdherenceStatusZod>, logId: string }>();
 		todaysLogs.forEach(log => {
 			const key = `${log.supplementId}-${new Date(log.scheduledFor).toTimeString().slice(0, 5)}`;
-			logStatusMap.set(key, log.status);
+			logStatusMap.set(key, { status: log.status, logId: log.id });
 		});
 
 		// Determine status for each supplement
 		const supplementsWithStatus = todaysSupplements.map(supplement => {
 			const key = `${supplement.id}-${supplement.scheduledTime}`;
-			const loggedStatus = logStatusMap.get(key);
+			const logData = logStatusMap.get(key);
 
 			let status: "pending" | "taken" | "missed" | "overdue";
-			if (loggedStatus === "Taken on-time" || loggedStatus === "Taken late") {
-				status = "taken";
-			} else if (loggedStatus === "Missed") {
-				status = "missed";
+			let logId: string | null = null;
+			
+			if (logData) {
+				logId = logData.logId;
+				if (logData.status === "Taken on-time" || logData.status === "Taken late") {
+					status = "taken";
+				} else if (logData.status === "Missed") {
+					status = "missed";
+				} else if (supplement.isOverdue) {
+					status = "overdue";
+				} else {
+					status = "pending";
+				}
 			} else if (supplement.isOverdue) {
 				status = "overdue";
 			} else {
@@ -143,6 +152,7 @@ const getTodaysPlan = rpcProtectedProcedure
 			return {
 				...supplement,
 				status,
+				logId,
 			};
 		});
 

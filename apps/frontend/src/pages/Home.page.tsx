@@ -56,11 +56,23 @@ const HomePage = () => {
 		}
 	};
 
+	// Delete mutation for reverting logs
+	const deleteMutation = useMutation(orpc.userAdherenceLogs.delete.mutationOptions());
+
 	const handleRevert = async (supplementId: string, scheduledTime: string) => {
 		try {
-			// For this demo, we'll just invalidate queries to refresh the data
-			// In a real implementation, you'd call the delete API with the correct log ID
-			// The backend would need to delete today's log for this supplement
+			// Find the log for this supplement
+			const supplement = todaysPlan?.supplements.find(
+				s => s.id === supplementId && s.scheduledTime === scheduledTime
+			);
+
+			if (!supplement?.logId) {
+				console.error("No log ID found for supplement");
+				return;
+			}
+
+			// Delete the adherence log
+			await deleteMutation.mutateAsync({ id: supplement.logId });
 
 			// Invalidate queries to refresh the data
 			queryClient.invalidateQueries({ queryKey: orpc.userStacks.getTodaysPlan.queryKey() });

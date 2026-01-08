@@ -54,6 +54,7 @@ export const todaysPlanSupplementZod = userStackSelectAllZod.extend({
 	status: z.enum(["pending", "taken", "missed", "overdue"]),
 	scheduledTime: z.string(), // HH:MM format
 	isOverdue: z.boolean(),
+	logId: z.uuid().nullable(), // ID of the adherence log if it exists
 });
 export type TodaysPlanSupplement = z.infer<typeof todaysPlanSupplementZod>;
 
