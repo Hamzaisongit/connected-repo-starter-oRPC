@@ -8,24 +8,32 @@ import { useEffect, useState } from "react";
 
 interface SupplementCardProps {
 	supplement: TodaysPlanSupplement;
-	onLogTaken: (supplementId: string, scheduledTime: string) => Promise<void>;
-	onRevert?: (supplementId: string, scheduledTime: string) => Promise<void>;
+	onLogTaken: (supplementId: string, reminderTime: string) => Promise<void>;
+	onRevert?: (supplementId: string, reminderTime: string) => Promise<void>;
 	onCardClick?: (supplementId: string) => void;
 	isLogging?: boolean;
 }
 
 // Status config is now handled directly in the component
 
-export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, isLogging }: SupplementCardProps) {
- 	const [isLoading, setIsLoading] = useState(false);
- 	const [revertDialogOpen, setRevertDialogOpen] = useState(false);
- 	// Optimistic status state - starts with prop value and updates immediately on user action
- 	const [optimisticStatus, setOptimisticStatus] = useState<"pending" | "taken" | "missed" | "overdue">(supplement.status);
+// Helper function to normalize status to component's expected values
+const normalizeStatus = (status: string): "pending" | "taken" | "missed" | "overdue" => {
+	if (status === "pending" || status === "overdue") return status as "pending" | "overdue";
+	if (status === "Taken on-time" || status === "Taken late") return "taken";
+	if (status === "Missed" || status === "Skipped") return "missed";
+	return "pending"; // fallback
+};
 
- 	// Sync optimistic status with actual supplement status when it changes from parent
- 	useEffect(() => {
- 		setOptimisticStatus(supplement.status);
- 	}, [supplement.status]);
+export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, isLogging }: SupplementCardProps) {
+  	const [isLoading, setIsLoading] = useState(false);
+  	const [revertDialogOpen, setRevertDialogOpen] = useState(false);
+  	// Optimistic status state - starts with prop value and updates immediately on user action
+  	const [optimisticStatus, setOptimisticStatus] = useState<"pending" | "taken" | "missed" | "overdue">(normalizeStatus(supplement.status));
+
+  	// Sync optimistic status with actual supplement status when it changes from parent
+  	useEffect(() => {
+  		setOptimisticStatus(normalizeStatus(supplement.status));
+  	}, [supplement.status]);
 
  	const isTaken = optimisticStatus === "taken";
 
@@ -39,20 +47,20 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
   		}
   	};
 
- 	const handleLogTaken = async () => {
-  		setIsLoading(true);
-  		// Optimistically update the status
-  		setOptimisticStatus("taken");
-  		try {
-  			await onLogTaken(supplement.id, supplement.scheduledTime);
-  		} catch (error) {
-  			// Revert optimistic update on error
-  			setOptimisticStatus(supplement.status);
-  			throw error;
-  		} finally {
-  			setIsLoading(false);
-  		}
-  	};
+  	const handleLogTaken = async () => {
+   		setIsLoading(true);
+   		// Optimistically update the status
+   		setOptimisticStatus("taken");
+   		try {
+   			await onLogTaken(supplement.id, supplement.reminderTime);
+   		} catch (error) {
+   			// Revert optimistic update on error
+   			setOptimisticStatus(normalizeStatus(supplement.status));
+   			throw error;
+   		} finally {
+   			setIsLoading(false);
+   		}
+   	};
 
  	const handleRevertConfirm = async () => {
   		if (!onRevert) return;
@@ -62,13 +70,13 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
   		// Optimistically revert to pending status
   		const previousStatus = optimisticStatus;
   		setOptimisticStatus("pending");
-  		try {
-  			await onRevert(supplement.id, supplement.scheduledTime);
-  		} catch (error) {
-  			// Revert optimistic update on error
-  			setOptimisticStatus(previousStatus);
-  			throw error;
-  		} finally {
+   		try {
+   			await onRevert(supplement.id, supplement.reminderTime);
+   		} catch (error) {
+   			// Revert optimistic update on error
+   			setOptimisticStatus(previousStatus);
+   			throw error;
+   		} finally {
   			setIsLoading(false);
   		}
   	};
@@ -113,7 +121,7 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
   		}
   	};
 
-  	const scheduledDateTime = createScheduledDateTime(supplement.scheduledTime);
+   	const scheduledDateTime = createScheduledDateTime(supplement.reminderTime);
   	if (!scheduledDateTime) {
   		return { text: `🕒 Check Schedule`, color: "#666666", isWin: false };
   	}
@@ -236,7 +244,7 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
  						mb: 0.5,
  					}}
  				>
- 					{supplement.dosage} {supplement.unit} • {formatTime(supplement.scheduledTime)}
+  					{supplement.dosage} {supplement.unit} • {formatTime(supplement.reminderTime)}
  				</Typography>
 
  				{/* Line 3: Status */}

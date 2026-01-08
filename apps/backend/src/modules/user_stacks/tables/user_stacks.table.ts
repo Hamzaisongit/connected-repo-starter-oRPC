@@ -1,4 +1,5 @@
 import { BaseTable } from "@backend/db/base_table";
+import { UserAdherenceLogTable } from "@backend/modules/logs/tables/user_adherence_logs.table";
 import { UserTable } from "@backend/modules/users/tables/users.table";
 import { DaysOfWeek } from "@connected-repo/zod-schemas/enums.zod";
 
@@ -26,6 +27,10 @@ export class UserStackTable extends BaseTable {
     user: this.belongsTo(() => UserTable, {
       columns: ["userId"],
       references: ["id"],
+    }),
+    intakeLogs: this.hasMany(() => UserAdherenceLogTable, {
+      columns: ["id"],
+      references: ["supplementId"]
     })
   }
 }

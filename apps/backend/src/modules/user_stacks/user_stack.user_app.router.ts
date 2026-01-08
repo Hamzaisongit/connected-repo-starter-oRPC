@@ -1,15 +1,15 @@
+import { sql } from "@backend/db/base_table";
 import { db } from "@backend/db/db";
 import { rpcProtectedProcedure } from "@backend/procedures/protected.procedure";
+import { UserAdherenceStatus } from "@connected-repo/zod-schemas/enums.zod";
 import {
+	todaysPlanZod,
 	userStackCreateInputZod,
 	userStackDeleteZod,
 	userStackGetByIdZod,
 	userStackSelectAllZod,
 	userStackUpdateInputZod,
-	todaysPlanZod,
 } from "@connected-repo/zod-schemas/user_stack.zod";
-import { DAYS_OF_WEEK_ENUM } from "@connected-repo/zod-schemas/enums.zod";
-import { userAdherenceStatusZod } from "@connected-repo/zod-schemas/enums.zod";
 import z from "zod";
 
 // Get all user stacks for the authenticated user
@@ -86,64 +86,34 @@ const getTodaysPlan = rpcProtectedProcedure
 	.output(todaysPlanZod)
 	.handler(async ({ context: { user } }) => {
 		const now = new Date();
-		const today = DAYS_OF_WEEK_ENUM[now.getDay()] as (typeof DAYS_OF_WEEK_ENUM)[number];
-		const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
+		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		const tomorrow = new Date(today);
+		tomorrow.setDate(tomorrow.getDate() + 1);
+		const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+		const currentDayOfWeek = dayNames[now.getDay()];
 
 		// Get all user stacks
-		const userStacks = await db.userStacks
-			.selectAll()
-			.where({ userId: user.id, isActive: true });
+		const todaysSupplements = await db.userStacks
+			.select("*", {
+				todayIntakeLog: (q) => q.intakeLogs
+					.select("actualAt", "id", "status")
+					.where(sql`actual_at >= ${today} AND actual_at < ${tomorrow}`)
+					.takeOptional()
+			})
+			.where({ userId: user.id, isActive: true })
+			.where(sql`${currentDayOfWeek} = ANY(reminder_days)`);
 
-		// Filter to today's supplements
-		const todaysSupplements = userStacks
-			.filter(stack => stack.reminderDays.includes(today))
-			.map(stack => {
-				// Create an entry for the scheduled time
-				const scheduledTime = stack.reminderTime.slice(0, 5); // HH:MM from HH:MM:SS
-				return {
-					...stack,
-					scheduledTime,
-					isOverdue: scheduledTime < currentTime,
-				};
-			});
-
-		// Get today's adherence logs to determine status
-		const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-		const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-
-		const todaysLogs = await db.userAdherenceLogs
-			.selectAll()
-			.where({ userId: user.id })
-			.where({ scheduledFor: { gte: todayStart } })
-			.where({ scheduledFor: { lte: todayEnd } });
-
-		// Create a map of supplementId + scheduledTime to log data
-		const logStatusMap = new Map<string, { status: z.infer<typeof userAdherenceStatusZod>, logId: string }>();
-		todaysLogs.forEach(log => {
-			const key = `${log.supplementId}-${new Date(log.scheduledFor).toTimeString().slice(0, 5)}`;
-			logStatusMap.set(key, { status: log.status, logId: log.id });
-		});
+		
 
 		// Determine status for each supplement
 		const supplementsWithStatus = todaysSupplements.map(supplement => {
-			const key = `${supplement.id}-${supplement.scheduledTime}`;
-			const logData = logStatusMap.get(key);
 
-			let status: "pending" | "taken" | "missed" | "overdue";
-			let logId: string | null = null;
-			
-			if (logData) {
-				logId = logData.logId;
-				if (logData.status === "Taken on-time" || logData.status === "Taken late") {
-					status = "taken";
-				} else if (logData.status === "Missed") {
-					status = "missed";
-				} else if (supplement.isOverdue) {
-					status = "overdue";
-				} else {
-					status = "pending";
-				}
-			} else if (supplement.isOverdue) {
+			let status: UserAdherenceStatus | "pending" | "overdue";
+			const currentTime = new Date().toTimeString().slice(0, 5); // HH:MM format
+
+			if (supplement.todayIntakeLog) {
+				status = supplement.todayIntakeLog.status
+			} else if (currentTime > supplement.reminderTime) {
 				status = "overdue";
 			} else {
 				status = "pending";
@@ -152,14 +122,13 @@ const getTodaysPlan = rpcProtectedProcedure
 			return {
 				...supplement,
 				status,
-				logId,
 			};
 		});
 
 		// Calculate stats
 		const totalCount = supplementsWithStatus.length;
-		const takenCount = supplementsWithStatus.filter(s => s.status === "taken").length;
-		const overdueCount = supplementsWithStatus.filter(s => s.status === "overdue" || s.status === "missed").length;
+		const takenCount = supplementsWithStatus.filter(s => s.todayIntakeLog).length;
+		const overdueCount = supplementsWithStatus.filter(s => s.status === "overdue" || s.status === "Missed").length;
 		const compliancePercentage = totalCount > 0 ? Math.round((takenCount / totalCount) * 100) : 0;
 
 		return {

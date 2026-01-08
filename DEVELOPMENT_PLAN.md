@@ -944,15 +944,19 @@ If after 60 days:
   - Swipe gestures smooth
   - Mobile-optimized layout
 
-**8.1.6: Implement Today's Plan Endpoint** ✅ COMPLETED
+**8.1.6: Implement Today's Plan Endpoint** ✅ COMPLETED (ENHANCED)
 - Added getTodaysPlan oRPC endpoint for daily supplement overview
+- **Enhanced Implementation:** Refactored from multiple queries + client filtering to single efficient JOIN query
 - Calculates compliance percentage and overdue counts
 - Filters supplements by today's day and time, determines status from logs
+- **Database Relations:** Added intakeLogs relation between UserStackTable and UserAdherenceLogTable
+- **Performance:** Single SQL query with JOIN instead of separate queries
 - **Acceptance Criteria:**
   - Endpoint returns today's supplements with status
   - Compliance stats calculated accurately
   - Status includes pending, taken, overdue, missed
   - Timezone-aware calculations
+  - Efficient database queries with JOIN
 
 ---
 

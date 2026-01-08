@@ -59,20 +59,20 @@ const HomePage = () => {
 	// Delete mutation for reverting logs
 	const deleteMutation = useMutation(orpc.userAdherenceLogs.delete.mutationOptions());
 
-	const handleRevert = async (supplementId: string, scheduledTime: string) => {
+  const handleRevert = async (supplementId: string, reminderTime: string) => {
 		try {
 			// Find the log for this supplement
 			const supplement = todaysPlan?.supplements.find(
-				s => s.id === supplementId && s.scheduledTime === scheduledTime
+				s => s.id === supplementId && s.reminderTime === reminderTime
 			);
 
-			if (!supplement?.logId) {
+			if (!supplement?.todayIntakeLog?.id) {
 				console.error("No log ID found for supplement");
 				return;
 			}
 
 			// Delete the adherence log
-			await deleteMutation.mutateAsync({ id: supplement.logId });
+			await deleteMutation.mutateAsync({ id: supplement.todayIntakeLog.id });
 
 			// Invalidate queries to refresh the data
 			queryClient.invalidateQueries({ queryKey: orpc.userStacks.getTodaysPlan.queryKey() });
@@ -122,15 +122,34 @@ const HomePage = () => {
 		);
 	}
 
-	if (error) {
-		return (
-			<Container maxWidth="lg" sx={{ py: 4 }}>
-				<Typography color="error">
-					Error loading today's plan: {error.message}
-				</Typography>
-			</Container>
-		);
-	}
+  if (error) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Paper
+          sx={{
+            p: 3,
+            backgroundColor: '#ffebee',
+            border: '1px solid #f44336',
+            borderRadius: 2,
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              color: '#d32f2f',
+              fontWeight: 'bold',
+              mb: 1
+            }}
+          >
+            ⚠️ Unable to Load Today's Plan
+          </Typography>
+          <Typography sx={{ color: '#d32f2f' }}>
+            {error.message || 'Something went wrong. Please try refreshing the page.'}
+          </Typography>
+        </Paper>
+      </Container>
+    );
+  }
 
 	const hasSupplements = todaysPlan && todaysPlan.supplements.length > 0;
 	const takenCount = todaysPlan?.takenCount || 0;
@@ -275,7 +294,7 @@ const HomePage = () => {
  								<Stack spacing={0} divider={<Box sx={{ height: 1, backgroundColor: "#F0F0F0" }} />}>
  									{todaysPlan.supplements.map((supplement) => (
 										<SupplementCard
-											key={`${supplement.id}-${supplement.scheduledTime}`}
+											key={`${supplement.id}-${supplement.reminderTime}`}
 											supplement={supplement}
 											onLogTaken={handleLogTaken}
 											onRevert={handleRevert}
