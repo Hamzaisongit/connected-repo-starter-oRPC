@@ -12,18 +12,8 @@ export type UserCreatedEvent = z.infer<typeof userCreatedEventZod>;
 
 export const userStackScheduledEventZod = z.object({
 	userId: z.uuid(),
-	stackId: z.uuid(),
-	stackName: z.string(),
-	supplements: z.array(
-		z.object({
-			id: z.uuid(),
-			name: z.string(),
-			dosage: z.number(),
-			unit: z.string(),
-			timeOfDay: z.string(),
-			instructions: z.array(z.string()),
-		}),
-	),
+	supplementName: z.string(),
+	scheduledTime: z.string(),
 	scheduledFor: zTimestamps.createdAt,
 });
 

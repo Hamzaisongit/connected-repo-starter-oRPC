@@ -79,56 +79,93 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 			logger.info(
 				{
 					userId,
-					stackCount: stacks.length,
+					stackCount: (stacks as any[]).length,
 				},
-				"Publishing userstack.scheduled event for user...",
+				"Publishing userstack.scheduled events for user...",
 			);
 
-			for (const stack of stacks) {
+			for (const stack of stacks as any[]) {
 				try {
-					// For each <stack>, find all scheduled times in the window and publish one event per time
-					const upcomingTimes = Array.isArray(stack.timesOfDay)
-						? stack.timesOfDay.filter(time => {
-							const [hours, minutes] = time.split(":").map(Number);
-							const timeMs = new Date(
+					if (!Array.isArray(stack.timesOfDay) || stack.timesOfDay.length === 0) {
+						logger.info(
+							{
+								userId,
+								stackId: stack.id,
+								stackName: stack.name,
+							},
+							"Stack has no scheduled times, skipping",
+						);
+						continue;
+					}
+
+					const upcomingTimes = stack.timesOfDay.filter((time: string) => {
+						const [hours, minutes] = time.split(":").map(Number);
+						const timeMs = new Date(
+							now.getFullYear(),
+							now.getMonth(),
+							now.getDate(),
+							hours,
+							minutes,
+						).getTime();
+						return timeMs >= nowMs && timeMs <= endMs;
+					});
+
+					if (upcomingTimes.length === 0) {
+						logger.info(
+							{
+								userId,
+								stackId: stack.id,
+								stackName: stack.name,
+							},
+							"Stack has no times in the 15-minute window, skipping",
+						);
+						continue;
+					}
+
+					const earliestTime = upcomingTimes[0];
+					const [h, m] = earliestTime.split(":").map(Number);
+					const hourNum = h % 12 === 0 ? 12 : h % 12;
+					const ampm = h < 12 ? "AM" : "PM";
+					const minute = m.toString().padStart(2, "0");
+					const formattedTime = `${hourNum}:${minute} ${ampm}`;
+
+					// Only publish if there is NOT an adherence log in this 15-min window for this stack/user
+					const adherenceLog = await db.userAdherenceLogs.where({
+						userId: stack.userId,
+						supplementId: stack.id,
+						actualAt: {
+							gte: new Date(nowMs),
+							lt: new Date(endMs),
+						},
+					});
+
+					if (adherenceLog.length) {
+						logger.info(
+							{
+								userId,
+								stackId: stack.id,
+								stackName: stack.name,
+							},
+							"Adherence log already exists for this stack/time in 15-min window, skipping event publish",
+						);
+						continue;
+					}
+
+
+					await tbus.publish({
+						event_name: "userstack.scheduled",
+						data: {
+							userId: stack.userId,
+							supplementName: stack.name,
+							scheduledTime: formattedTime,
+							scheduledFor: new Date(
 								now.getFullYear(),
 								now.getMonth(),
 								now.getDate(),
-								hours,
-								minutes,
-							).getTime();
-							return timeMs >= nowMs && timeMs <= endMs;
-						})
-						: [];
-
-					for (const scheduledTime of upcomingTimes) {
-						await tbus.publish({
-							event_name: "userstack.scheduled",
-							data: {
-								userId: stack.userId,
-								stackId: stack.id,
-								stackName: stack.name,
-								supplements: [
-									{
-										id: stack.id,
-										name: stack.name,
-										dosage: stack.dosage,
-										unit: stack.unit,
-										timeOfDay: scheduledTime,
-										instructions: Array.isArray(stack.instructions) ? stack.instructions : [],
-									},
-								],
-								scheduledFor: (() => {
-									const [h, m] = scheduledTime.split(":").map(Number);
-									const hourNum = h % 12 === 0 ? 12 : h % 12;
-									const ampm = h < 12 ? "AM" : "PM";
-									const minute = m.toString().padStart(2, "0");
-									return `${hourNum}:${minute} ${ampm}`;
-								})(),
-							},
-						});
-						eventsPublished++;
-					}
+								...earliestTime.split(":").map(Number),
+							).getTime(),
+						},
+					});
 
 					eventsPublished++;
 
@@ -137,6 +174,7 @@ const scheduleSupplementReminders = cronJobAuthProcedure
 							userId,
 							stackId: stack.id,
 							stackName: stack.name,
+							scheduledTime: formattedTime,
 						},
 						"Published userstack.scheduled event",
 					);

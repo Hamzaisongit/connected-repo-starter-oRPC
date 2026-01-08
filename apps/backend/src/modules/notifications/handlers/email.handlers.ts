@@ -17,18 +17,8 @@ const userStackScheduledEventDef = defineEvent({
 	event_name: "userstack.scheduled",
 	schema: Type.Object({
 		userId: Type.String({ format: "uuid" }),
-		stackId: Type.String({ format: "uuid" }),
-		stackName: Type.String(),
-		supplements: Type.Array(
-			Type.Object({
-				id: Type.String({ format: "uuid" }),
-				name: Type.String(),
-				dosage: Type.Number(),
-				unit: Type.String(),
-				timeOfDay: Type.String(),
-				instructions: Type.Array(Type.String()),
-			}),
-		),
+		supplementName: Type.String(),
+		scheduledTime: Type.String(),
 		scheduledFor: Type.Number(),
 	}),
 });
@@ -126,14 +116,12 @@ export const userStackScheduledHandler = createEventHandler({
 	task_name: "send_reminder_email",
 	eventDef: userStackScheduledEventDef,
 	handler: async (props) => {
-		const { userId, stackId, stackName, scheduledFor } = props.input;
+		const { userId, supplementName, scheduledTime } = props.input;
 
 		logger.info(
 			{
 				userId,
-				stackId,
-				stackName,
-				supplementCount: supplements.length,
+				supplementName,
 				eventName: "userstack.scheduled",
 			},
 			"Processing userstack.scheduled event to send reminder email...",
@@ -146,7 +134,6 @@ export const userStackScheduledHandler = createEventHandler({
 				logger.error(
 					{
 						userId,
-						stackId,
 					},
 					"User not found in database, cannot send reminder email",
 				);
@@ -179,13 +166,8 @@ export const userStackScheduledHandler = createEventHandler({
 			const result = await sendReminderEmail({
 				email: user.email,
 				name: user.name,
-				stacks: [
-					{
-						stackName,
-						supplements,
-						scheduledFor
-					},
-				],
+				supplementName,
+				scheduledTime,
 			});
 
 			if (result.success) {
