@@ -83,11 +83,10 @@ export async function authLoader({ context }: LoaderFunctionArgs) {
 			data: {
 				userId: session.user.id,
 				userEmail: session.user.email,
-				sessionDbId: session.session.id,
-				// Use 'session_id' instead of 'token' to avoid Sentry scrubbing
-				sessionId_first8: session.session.token.substring(0, 8),
+				sessionId: session.session.id,
+				sessionTokenPrefix: session.session.token.substring(0, 8),
 				expiresAt: new Date(session.session.expiresAt).toISOString(),
-				cookieSessionMatches: !cookieTokenFull || (retrievedToken === cookieTokenFull),
+				cookieTokenMatches: !cookieTokenFull || (retrievedToken === cookieTokenFull),
 				// SESSION LEAKAGE: Track if new users have unexpected cookies
 				sessionState: {
 					hasCookie: !!sessionToken,

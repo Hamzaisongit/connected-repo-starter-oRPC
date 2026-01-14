@@ -13,7 +13,7 @@
 ### End-to-End Tracking
 
 **Backend:**
-1. **Auth Middleware** - Session retrieval, validation, and token mismatch detection
+1. **Auth Middleware** - Session retrieval, validation, and access pattern tracking
 2. **Orchid Adapter** - Complete tracking of ALL database operations:
    - `create` - Track session creation with all details
    - `findOne` - Track session retrieval, joins, and joined data
@@ -47,15 +47,14 @@
 
 Go to your Sentry project's **Issues** tab.
 
-### Step 2: Look for Critical Error
+### Step 2: Look for Critical Issues
 
-**Search for:** `SESSION TOKEN MISMATCH DETECTED`
+**Search for:** `error_type:auth_loader_error` or `error_type:theme_update_failed`
 
-This is the smoking gun. It means Better Auth returned a different session token than what was in the cookie.
-
-**If you see this error:**
-- This is CRITICAL - captures the exact moment wrong session is returned
-- Contains full context: both tokens, user IDs, emails, session IDs
+**Common issues to monitor:**
+- Authentication failures (look for auth loader errors)
+- Theme update failures (user preference issues)
+- Database operation failures (check for failed joins or queries)
 
 ### Step 3: Examine the Breadcrumbs
 
@@ -65,227 +64,62 @@ Click into any auth-related issue and go to the **Breadcrumbs** tab. You'll see 
 
 ```
 1. [auth] Frontend: Auth loader started - checking browser state
-   hasSessionCookie: true
-   sessionTokenPrefix: "ABC12345"
-   cookieCount: 3
-   localStorageKeys: []
-   userAgent: "Mozilla/5.0..."
+    hasSessionCookie: true
+    cookieTokenPrefix: "ABC12345"
+    cookieCount: 3
+    localStorageKeys: []
+    userAgent: "Mozilla/5.0..."
 
 2. [auth] Session retrieval started
-   cookieTokenPrefix: "ABC12345"
-   userAgent: "Mozilla/5.0..."
-   ipAddress: "192.168.1.1"
-   cookieCacheEnabled: true
+    cookieTokenPrefix: "ABC12345"
+    userAgent: "Mozilla/5.0..."
+    ipAddress: "192.168.1.1"
+    cookieCacheEnabled: true
 
 2. [database] Adapter: findOne sessions WITH JOINS
-   operation: "findOne"
-   model: "sessions"
-   whereClause: [{"field":"token","value":"ABC12345..."}]
-   hasJoins: true
-   joinModels: ["user"]
+    operation: "findOne"
+    model: "sessions"
+    whereClause: [{"field":"token","value":"ABC12345..."}]
+    hasJoins: true
+    joinModels: ["user"]
 
 3. [database] Applying joins to sessions
-   mainTable: "sessions"
-   joinModels: ["user"]
-   joinCount: 1
+    mainTable: "sessions"
+    joinModels: ["user"]
+    joinCount: 1
 
 4. [database] Joining user to sessions
-   mainTable: "sessions"
-   joinedTable: "user"
-   relation: "one-to-one"
-   joinOn: "sessions.userId = user.id"
+    mainTable: "sessions"
+    joinedTable: "user"
+    relation: "one-to-one"
+    joinOn: "sessions.userId = user.id"
 
 5. [database] Session retrieved from database
-   operation: "findOne"
-   model: "sessions"
-   found: true
-   sessionId: "01KEXW6W..."
-   userId: "user-a-id"
-   sessionTokenPrefix: "ABC12345"
-   hasJoins: true
-   hasJoinedUser: true
-   joinedUserData: {userId: "user-a-id", userEmail: "user-a@example.com"}
+    operation: "findOne"
+    model: "sessions"
+    found: true
+    sessionId: "01KEXW6W..."
+    userId: "user-a-id"
+    sessionTokenPrefix: "ABC12345"
+    hasJoins: true
+    hasJoinedUser: true
+    joinedUserData: {userId: "user-a-id", userEmail: "user-a@example.com"}
 
 6. [auth] Session validated successfully
-   sessionId: "01KEXW6W..."
-   userId: "user-a-id"
-   userEmail: "user-a@example.com"
-   sessionTokenPrefix: "ABC12345"
-   retrievalTimeMs: 25
-   likelyCacheHit: false
-   cacheNote: "Slower retrieval - likely from database"
+    sessionId: "01KEXW6W..."
+    userId: "user-a-id"
+    userEmail: "user-a@example.com"
+    sessionTokenPrefix: "ABC12345"
+    retrievalTimeMs: 25
+    likelyCacheHit: false
+    cacheNote: "Slower retrieval - likely from database"
 
 7. [auth] Frontend: Session retrieved successfully
-   userId: "user-a-id"
-   userEmail: "user-a@example.com"
-   sessionTokenPrefix: "ABC12345"
-   cookieTokenMatches: true
-```
-
-**✅ All tokens match, same user throughout, join data correct, everything working.**
-
-#### **Issue Pattern A: New User Has Existing Session Cookie**
-
-```
-1. [auth] Frontend: Auth loader started - checking browser state
-   hasSessionCookie: true ← NEW USER SHOULD NOT HAVE COOKIE!
-   sessionTokenPrefix: "ABC12345"
-   cookieCount: 3
-   userAgent: "Mozilla/5.0..."
-   
-2. [auth] Session retrieval started
-   cookieTokenPrefix: "ABC12345"
-
-3. [auth] Session validated successfully
-   userId: "existing-user-id"
-   userEmail: "existing@user.com"
-   sessionTokenPrefix: "ABC12345"
-
-4. [auth] Frontend: Session retrieved successfully
-   userId: "existing-user-id" ← New user sees existing user!
-   cookieTokenMatches: true
-```
-
-**🚨 New user's browser already has session cookie from another user**
-
-**Root Cause:** Cookie leakage/contamination
-- New user's browser has session cookie they shouldn't have
-- This could be from:
-  - Shared device/browser (multiple users on same computer)
-  - Cookie not properly scoped (domain/path issues)
-  - Browser cache/profile contamination
-  - Someone else used this browser before
-
-**Critical Questions:**
-1. Is this a shared device/kiosk?
-2. Are users using same browser profile?
-3. Check cookie domain/path settings in backend
-4. Check if users logged out properly before
-
-**Next Action:**
-1. Check backend cookie settings:
-   ```typescript
-   // apps/backend/src/modules/auth/auth.config.ts
-   defaultCookieAttributes: {
-     httpOnly: true,
-     secure: isProd,
-     path: "/",
-     // domain: ??? - Check if domain is too broad
-   }
-   ```
-2. Ask affected users if they're on shared devices
-3. Check if logout properly clears cookies
-
-#### **Issue Pattern B: Wrong Session from Cache**
-
-```
-1. [auth] Session retrieval started
-   cookieTokenPrefix: "ABC12345"
-   cookieCacheEnabled: true
-
-2. [auth] Session validated successfully
-   sessionTokenPrefix: "ABC12345"
-   userId: "wrong-user-id" ← WRONG USER!
-   userEmail: "wrong@user.com"
-   retrievalTimeMs: 2 ← VERY FAST
-   likelyCacheHit: true ← FROM CACHE
-   cacheNote: "Fast retrieval - likely from cookie cache"
-```
-
-**🚨 No database breadcrumb = Session came from cache**
-
-**Root Cause:** Cookie cache returned wrong session
-- Fast retrieval (< 5ms) proves it came from cache
-- No database query was made
-- Cache stored wrong session for this cookie token
-
-**Next Action:** Cache is the issue. Check for cache key collision or Better Auth cache bugs.
-
-#### **Issue Pattern C: Token Mismatch from Cache**
-
-```
-1. [auth] Session retrieval started
-   cookieTokenPrefix: "ABC12345"
-
-2. [ERROR] SESSION TOKEN MISMATCH DETECTED
-   cookieTokenPrefix: "ABC12345"
-   retrievedTokenPrefix: "XYZ67890" ← DIFFERENT TOKEN!
-   retrievalTimeMs: 1 ← EXTREMELY FAST
-   Context:
-     cookieTokenFull: "ABC12345full_token_here"
-     retrievedTokenFull: "XYZ67890different_token"
-     retrievedUserId: "wrong-user-id"
-     retrievedUserEmail: "wrong@user.com"
-```
-
-**🚨 Cookie requested "ABC123", Better Auth returned "XYZ789"**
-
-**Root Cause:** Cache returned completely different session
-- Extremely fast = definitely from cache
-- Token mismatch = cache corruption or key collision
-
-**Next Action:** 
-1. Check database for both tokens
-2. Verify if "XYZ789" session exists and belongs to wrong user
-3. File bug with Better Auth team - cache implementation issue
-
-#### **Issue Pattern D: Wrong Session from Database**
-
-```
-1. [auth] Session retrieval started
-   cookieTokenPrefix: "ABC12345"
-
-2. [database] Session retrieved from database
-   whereClause: [{"field":"token","value":"ABC12345..."}]
-   sessionTokenPrefix: "XYZ67890" ← DIFFERENT TOKEN!
-   userId: "wrong-user-id"
-
-3. [ERROR] SESSION TOKEN MISMATCH DETECTED
-   cookieTokenPrefix: "ABC12345"
-   retrievedTokenPrefix: "XYZ67890"
-```
-
-**🚨 Database query for "ABC123" returned session with token "XYZ789"**
-
-**Root Cause:** Database query bug
-- Database breadcrumb shows wrong session was retrieved
-- WHERE clause shows correct token was requested
-- Orchid adapter returned wrong result
-
-**Next Action:**
-1. Check `applyBetterAuthWhere` in `where_query_builder.orchid_adapter.ts`
-2. Query database directly to verify:
-   ```sql
-   SELECT * FROM sessions WHERE token = 'ABC12345full_token_here';
-   ```
-3. Check if WHERE clause is correctly filtering
-
-#### **Issue Pattern E: Join Returns Wrong User Data**
-
-```
-1. [auth] Session retrieval started
-   cookieTokenPrefix: "ABC12345"
-
-2. [database] Adapter: findOne sessions WITH JOINS
-   hasJoins: true
-   joinModels: ["user"]
-
-3. [database] Joining user to sessions
-   joinOn: "sessions.userId = user.id"
-
-4. [database] Session retrieved from database
-   operation: "findOne"
-   found: true
-   sessionId: "01KEXW6W..."
-   userId: "user-a-id"
-   sessionTokenPrefix: "ABC12345"
-   hasJoinedUser: true
-   joinedUserData: {
-     userId: "user-b-id" ← DIFFERENT USER IN JOIN!
-     userEmail: "user-b@example.com"
-   }
-
-5. [ERROR] SESSION TOKEN MISMATCH or wrong user displayed
+    userId: "user-a-id"
+    userEmail: "user-a@example.com"
+    sessionId: "01KEXW6W..."
+    sessionTokenPrefix: "ABC12345"
+    cookieTokenMatches: true
 ```
 
 **🚨 Session has user-a but joined user data is user-b**
@@ -312,15 +146,16 @@ Click into any auth-related issue and go to the **Breadcrumbs** tab. You'll see 
 ```
 Backend Breadcrumbs:
 1. [auth] Session validated successfully
-   userId: "user-a-id"
-   userEmail: "user-a@example.com"
-   sessionTokenPrefix: "ABC12345"
+    userId: "user-a-id"
+    userEmail: "user-a@example.com"
+    sessionTokenPrefix: "ABC12345"
 
 Frontend Breadcrumbs:
 2. [auth] Frontend: Session retrieved successfully
-   userId: "user-b-id" ← DIFFERENT USER!
-   userEmail: "user-b@example.com"
-   sessionTokenPrefix: "ABC12345"
+    userId: "user-b-id" ← DIFFERENT USER!
+    userEmail: "user-b@example.com"
+    sessionTokenPrefix: "ABC12345"
+    cookieTokenMatches: true
 ```
 
 **🚨 Backend had correct user, frontend received different user**
@@ -434,26 +269,28 @@ ORDER BY created_at DESC;
 **6. Root Cause Decision Tree**
 
 ```
-Is there a SESSION TOKEN MISMATCH error?
+Is there a "wrong user displayed" issue?
 │
-├─ YES
-│  │
-│  ├─ likelyCacheHit: true? (< 5ms, no DB breadcrumb)
-│  │  └─ ROOT CAUSE: Better Auth cache bug
-│  │     ACTION: Check Better Auth version, file bug report
-│  │
-│  └─ likelyCacheHit: false? (> 10ms, DB breadcrumb present)
+├─ YES - Backend shows correct user, frontend shows wrong user?
+│  └─ ROOT CAUSE: Frontend caching issue
+│     ACTION: Check TanStack Query cache, React context
+│
+├─ YES - Backend shows wrong user?
+│  └─ Check database breadcrumbs for join logic issues
+│     ACTION: Verify join conditions in join_query_builder.orchid_adapter.ts
+│
+├─ Is there a "Session retrieved from database" breadcrumb?
+│  └─ NO (but likelyCacheHit: true)?
+│     └─ ROOT CAUSE: Cache returned wrong session
+│        ACTION: Check Better Auth cache implementation
+│
+├─ Is there a "Session retrieved from database" breadcrumb?
+│  └─ YES (but wrong session returned)?
 │     └─ ROOT CAUSE: Orchid adapter WHERE clause bug
 │        ACTION: Debug applyBetterAuthWhere function
 │
-└─ NO (but wrong user displayed)
-   │
-   ├─ Backend shows correct user, frontend shows wrong user?
-   │  └─ ROOT CAUSE: Frontend caching issue
-   │     ACTION: Check TanStack Query cache, React context
-   │
-   └─ Backend shows wrong user?
-      └─ Return to step 2, check for earlier errors
+└─ Check frontend breadcrumbs for session state issues
+   └─ Look for potentialLeakage: true in auth loader breadcrumbs
 ```
 
 ---
@@ -497,7 +334,7 @@ Is there a SESSION TOKEN MISMATCH error?
 **What it shows:** Initial browser state when user visits app
 **Key data:**
 - `hasSessionCookie`: Does browser have session cookie? (true/false)
-- `sessionTokenPrefix`: Cookie token if present
+- `cookieTokenPrefix`: First 8 chars of session token from cookie
 - `cookieCount`: Total cookies in browser
 - `localStorageKeys`: Auth-related localStorage keys
 - `sessionStorageKeys`: Auth-related sessionStorage keys
@@ -516,17 +353,17 @@ Is there a SESSION TOKEN MISMATCH error?
 ### [auth] Session retrieval started
 **What it shows:** Beginning of backend session lookup
 **Key data:**
-- `cookieTokenPrefix`: First 8 chars of token from cookie
+- `cookieTokenPrefix`: First 8 chars of session token from cookie
 - `cookieCacheEnabled: true`: Cache is active
 - `userAgent`, `ipAddress`: Request metadata
 
-**Use:** Baseline - what token was requested
+**Use:** Baseline - what session was requested
 
 ### [database] Session retrieved from database
 **What it shows:** Database adapter returned a session
 **Key data:**
 - `whereClause`: What query was sent to database
-- `sessionTokenPrefix`: Token of session that was found
+- `sessionTokenPrefix`: First 8 chars of session token that was found
 - `userId`: User ID from session record
 - `hasJoins`: Whether user data was joined
 - `hasJoinedUser`: Whether joined user data exists
@@ -543,7 +380,7 @@ Is there a SESSION TOKEN MISMATCH error?
 ### [auth] Session validated successfully
 **What it shows:** Final validated session from Better Auth
 **Key data:**
-- `sessionTokenPrefix`: Final session token
+- `sessionTokenPrefix`: First 8 characters of final session token
 - `userId`, `userEmail`: Final user
 - `retrievalTimeMs`: How long `getSession()` took
 - `likelyCacheHit`: Was it fast enough to be cache? (< 5ms)
@@ -555,14 +392,13 @@ Is there a SESSION TOKEN MISMATCH error?
 **What it shows:** What session data frontend received
 **Key data:**
 - `userId`, `userEmail`: User the frontend thinks is logged in
-- `sessionTokenPrefix`: Session token frontend has
-- `cookieTokenMatches`: Does authClient token match browser cookie? (true/false)
+- `sessionId`: Database ID of the session
+- `sessionTokenPrefix`: First 8 characters of session token
+- `cookieTokenMatches`: Whether frontend session matches cookie state
 
 **Use:** Verify frontend received same user as backend validated
 
-**RED FLAG:** If `cookieTokenMatches: false`, authClient returned different token than cookie!
-
-**Also captures:** FRONTEND SESSION TOKEN MISMATCH error if mismatch detected
+**RED FLAG:** Check `sessionState.potentialLeakage` for possible shared device issues
 
 ### [ui.interaction] Frontend: Theme change initiated
 **What it shows:** User clicked theme toggle
@@ -607,16 +443,16 @@ document.cookie.split(';').filter(c => c.includes('better-auth'))
 3. Add session fingerprinting (IP + user agent validation)
 4. Consider adding "Switch User" detection
 
-### 2. Better Auth Client Cache Returns Wrong Session
+### 2. Frontend Caching Issues
 **Symptoms:**
-- Frontend breadcrumb shows session retrieved from authClient
-- But token doesn't match browser cookie
-- `cookieTokenMatches: false`
+- Backend logs show correct user
+- Frontend displays wrong user
+- Same session throughout flow
 
 **Verification:**
-Compare cookie vs authClient response in Sentry breadcrumbs
+Check browser DevTools → React components, TanStack Query cache
 
-**Fix:** Better Auth client caching bug, file issue with Better Auth team
+**Fix:** Clear TanStack Query cache on auth changes, check React Router context
 
 ### 4. Join Logic Returns Wrong User
 **Symptoms:**
@@ -695,14 +531,14 @@ SELECT token, COUNT(*) FROM sessions GROUP BY token HAVING COUNT(*) > 1;
 ### Sentry Search Queries
 
 ```
-// Find token mismatch errors
-error_type:session_token_mismatch
-
 // Find auth loader errors
 error_type:auth_loader_error
 
 // Find theme update failures
 error_type:theme_update_failed
+
+// Find session leakage indicators
+potentialLeakage:true
 
 // Find issues for specific user
 user.id:USER_ID_HERE
@@ -751,6 +587,6 @@ WHERE user_id = 'USER_ID'
 
 ---
 
-**Status:** Monitoring active  
-**Last Updated:** 2026-01-14  
-**When issue occurs:** Check Sentry → Issues → Search for "SESSION TOKEN MISMATCH"
+**Status:** Monitoring active - token comparison validation removed
+**Last Updated:** 2026-01-14
+**When issue occurs:** Check Sentry → Issues → Look for auth_loader_error or potentialLeakage:true

@@ -56,31 +56,7 @@ export const rpcAuthMiddleware = async ({
 		});
 	}
 
-	// CRITICAL: Validate session token matches cookie
-	if (cookieToken && sessionData.session.token !== cookieToken) {
-		Sentry.captureException(new Error('SESSION TOKEN MISMATCH DETECTED'), {
-			level: 'fatal',
-			tags: {
-				error_type: 'session_token_mismatch',
-			},
-			contexts: {
-				sessionMismatch: {
-					cookieTokenPrefix: cookieToken.substring(0, 8),
-					retrievedTokenPrefix: sessionData.session.token.substring(0, 8),
-					cookieTokenFull: cookieToken,
-					retrievedTokenFull: sessionData.session.token,
-					retrievedUserId: sessionData.user.id,
-					retrievedUserEmail: sessionData.user.email,
-					retrievedSessionId: sessionData.session.id,
-				},
-			},
-		});
 
-		throw new ORPCError('UNAUTHORIZED', {
-			status: 401,
-			message: 'Session validation failed - token mismatch'
-		});
-	}
 
 	const { session, user } = transformSessionAndUserData(sessionData);
 
@@ -94,11 +70,10 @@ export const rpcAuthMiddleware = async ({
 		message: 'Session validated successfully',
 		level: 'info',
 		data: {
-			sessionDbId: session.id,
+			sessionId: session.id,
 			userId: user.id,
 			userEmail: user.email,
-			// Use 'session_id' instead of 'token' to avoid Sentry scrubbing
-			sessionId_first8: session.token.substring(0, 8),
+			sessionTokenPrefix: session.token.substring(0, 8),
 			expiresAt: new Date(session.expiresAt).toISOString(),
 			retrievalTimeMs: retrievalTime,
 			likelyCacheHit: likelyCacheHit,
@@ -119,7 +94,7 @@ export const rpcAuthMiddleware = async ({
 		message: 'Session access pattern tracking',
 		level: 'debug',
 		data: {
-			sessionDbId: session.id,
+			sessionId: session.id,
 			userId: user.id,
 			accessIP: currentIP,
 			accessUserAgent: currentUserAgent.substring(0, 100),
