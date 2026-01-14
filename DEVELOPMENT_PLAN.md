@@ -44,6 +44,14 @@ If after 60 days:
 - **OpenTelemetry & RUM:** Sentry + OTEL distributed tracing ✅
 - **CI/CD:** GitHub Actions + Coolify deployment (basic) ✅
 
+**AUTHENTICATION DEBUGGING & SESSION LEAKAGE DETECTION ✅ COMPLETED**
+- **Root Cause Analysis:** Identified cookie vs session token mismatch causing 401 errors
+- **Fixed 401 Errors:** Removed invalid cookie validation logic causing false positives
+- **Fixed Sentry Scrubbing:** Renamed fields to avoid automatic data scrubbing
+- **Added Session Leakage Logging:** Comprehensive tracking of session access patterns, creation fingerprints, and invalidation events
+- **Improved Error Handling:** Enhanced oRPC client for React Strict Mode AbortErrors
+- **Security Maintained:** Full tokens still protected, only safe prefixes visible in logs
+
 **NEW REQUIREMENTS FOR HELIOCOACH V1 ❌**
 
 **Phase 1: Core Data Model & Domain Logic**

@@ -1,4 +1,3 @@
-
 type JoinConfig = {
   [model: string]: {
     /**
@@ -49,15 +48,52 @@ export const applyJoins = (
 ) => {
   if (!joinConfig) return query;
 
+  const Sentry = require('@sentry/node');
+  
   let joinQuery = query;
   const mainTableName = query.table; // Get parent table name (e.g., 'users')
   const mainTable = db[mainTableName]
 
+  Sentry.addBreadcrumb({
+    category: 'database',
+    message: `Applying joins to ${mainTableName}`,
+    level: 'debug',
+    data: {
+      mainTable: mainTableName,
+      joinModels: Object.keys(joinConfig),
+      joinCount: Object.keys(joinConfig).length,
+    },
+  });
+
   for (const [modelName, config] of Object.entries(joinConfig)) {
     const targetTable = db[modelName];
-    if (!targetTable) continue;
+    if (!targetTable) {
+      Sentry.addBreadcrumb({
+        category: 'database',
+        message: `Join target table not found: ${modelName}`,
+        level: 'warning',
+        data: {
+          mainTable: mainTableName,
+          targetModel: modelName,
+        },
+      });
+      continue;
+    }
 
     const { on, limit, relation } = config;
+
+    Sentry.addBreadcrumb({
+      category: 'database',
+      message: `Joining ${modelName} to ${mainTableName}`,
+      level: 'debug',
+      data: {
+        mainTable: mainTableName,
+        joinedTable: modelName,
+        relation: relation || 'one-to-many',
+        joinOn: `${mainTableName}.${on.from} = ${modelName}.${on.to}`,
+        limit: relation === 'one-to-one' ? 1 : (limit || 100),
+      },
+    });
 
     if (relation === 'one-to-one') {
       joinQuery = joinQuery.select({
