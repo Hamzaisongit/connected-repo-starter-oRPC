@@ -5,7 +5,7 @@ import { AppLayout } from "@frontend/components/layout/AppLayout";
 import { authLoader } from "@frontend/utils/auth.loader";
 import * as Sentry from "@sentry/react";
 import { lazy } from "react";
-import { createBrowserRouter, redirect, type RouteObject } from "react-router";
+import { createBrowserRouter, type RouteObject, redirect } from "react-router";
 
 type NavbarFields = {
 	nb_icon?: string;

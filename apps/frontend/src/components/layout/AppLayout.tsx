@@ -1,10 +1,12 @@
-import { useEffect } from "react";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
+import { useThemeMode } from "@connected-repo/ui-mui/theme/ThemeContext";
 import type { SessionInfo } from "@frontend/contexts/UserContext";
 import { useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { useEffect } from "react";
 import { Outlet, useLoaderData } from "react-router";
-import { useThemeMode } from "@connected-repo/ui-mui/theme/ThemeContext";
+import { PwaInstallPrompt } from "../pwa/PwaInstallPrompt.pwa";
+import { PwaUpdatePrompt } from "../pwa/PwaUpdatePrompt.pwa";
 import { DesktopNavbar } from "./DesktopNavbar";
 import { MobileNavbar } from "./MobileNavbar";
 
@@ -59,6 +61,8 @@ export const AppLayout = () => {
 				}}
 			>
 				<Outlet context={sessionInfo} />
+				<PwaInstallPrompt></PwaInstallPrompt>
+				<PwaUpdatePrompt></PwaUpdatePrompt>
 			</Box>
 		</Box>
 	);

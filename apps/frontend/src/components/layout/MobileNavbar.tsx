@@ -1,9 +1,9 @@
 import { Avatar } from "@connected-repo/ui-mui/data-display/Avatar";
-import { Paper } from "@connected-repo/ui-mui/layout/Paper";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
+import { Paper } from "@connected-repo/ui-mui/layout/Paper";
 import { IconButton } from "@connected-repo/ui-mui/navigation/IconButton";
-import type { SessionInfo } from "@frontend/contexts/UserContext";
 import { navItems } from "@frontend/config/nav.config";
+import type { SessionInfo } from "@frontend/contexts/UserContext";
 import { useLoaderData, useLocation, useNavigate } from "react-router";
 
 /**
@@ -52,6 +52,7 @@ export const MobileNavbar = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
 
+ 
   return (
 		<>
 			{/* Floating Glass Bottom Navigation - Pill Style */}

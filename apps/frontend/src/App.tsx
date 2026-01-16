@@ -9,6 +9,7 @@
 import { LoadingSpinner } from "@connected-repo/ui-mui/components/LoadingSpinner";
 import { ThemeContextProvider } from "@connected-repo/ui-mui/theme/ThemeContext";
 import { ErrorFallback } from "@frontend/components/error_fallback";
+import { OfflineFallback } from "@frontend/components/offline_fallback";
 import { router } from "@frontend/router";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -17,11 +18,15 @@ import { Suspense } from "react";
 import { RouterProvider } from "react-router";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { usePWAInstall } from "./hooks/usePwaInstall";
 
 // App focuses on rendering the router tree and error boundaries. Providers
 // (QueryClient + oRPC client) are created and mounted at the root in
 // `main.tsx` following the oRPC + TanStack React Query recommended setup.
 function App() {
+
+	usePWAInstall()
+
 	return (
 		<LocalizationProvider dateAdapter={AdapterDayjs}>
 			<ThemeContextProvider>
@@ -29,7 +34,9 @@ function App() {
 					<ErrorBoundary fallback={<ErrorFallback />} beforeCapture={(scope) => {
 	          scope.setTag("level", "top-level");
 	        }}>
-						<RouterProvider router={router} />
+						<OfflineFallback>
+							<RouterProvider router={router} />
+						</OfflineFallback>
 					</ErrorBoundary>
 				</Suspense>
 				<ToastContainer
