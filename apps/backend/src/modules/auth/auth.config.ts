@@ -148,9 +148,6 @@ export const auth = betterAuth({
 	verification: {
 		modelName: "verifications",
 	},
-	experimental: {
-		joins: true,
-	},
 	plugins: [
 		// Custom plugin to capture OAuth state_mismatch and other errors before redirect
 		{
