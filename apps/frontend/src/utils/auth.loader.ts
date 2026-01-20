@@ -1,5 +1,6 @@
 import { userContext } from "@frontend/contexts/UserContext";
 import { authClient } from "@frontend/utils/auth.client";
+import { logSessionEvent, logSessionException } from "@frontend/utils/session-logger.utils";
 import * as Sentry from "@sentry/react";
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
@@ -19,34 +20,24 @@ export async function authLoader({ context }: LoaderFunctionArgs) {
 		const localStorageKeys = Object.keys(localStorage);
 		const sessionStorageKeys = Object.keys(sessionStorage);
 		
-		Sentry.addBreadcrumb({
-			category: 'auth',
-			message: 'Frontend: Auth loader started - checking browser state',
-			level: 'info',
-			data: {
-				hasSessionCookie: !!sessionToken,
-				sessionTokenPrefix: sessionToken?.substring(0, 8) || 'NONE',
-				cookieCount: cookies.split(';').filter(c => c.trim()).length,
-				localStorageKeys: localStorageKeys.filter(k => k.includes('auth') || k.includes('session')),
-				sessionStorageKeys: sessionStorageKeys.filter(k => k.includes('auth') || k.includes('session')),
-				userAgent: navigator.userAgent.substring(0, 100),
-				timestamp: new Date().toISOString(),
-			},
+		logSessionEvent('log', 'Frontend: Auth loader started - checking browser state', {
+			hasSessionCookie: !!sessionToken,
+			sessionTokenPrefix: sessionToken?.substring(0, 8) || 'NONE',
+			cookieCount: cookies.split(';').filter(c => c.trim()).length,
+			localStorageKeys: localStorageKeys.filter(k => k.includes('auth') || k.includes('session')),
+			sessionStorageKeys: sessionStorageKeys.filter(k => k.includes('auth') || k.includes('session')),
+			userAgent: navigator.userAgent.substring(0, 100),
+			timestamp: new Date().toISOString(),
 		});
 
 		// Fetch session from better-auth client
 		const { data: session, error } = await authClient.getSession();
 
 		if (error || !session) {
-			Sentry.addBreadcrumb({
-				category: 'auth',
-				message: 'Frontend: Session fetch failed - redirecting to login',
-				level: 'warning',
-				data: {
-					error: error?.message || 'No session data',
-					hadCookie: !!sessionToken,
-					cookieTokenPrefix: sessionToken?.substring(0, 8) || 'NONE',
-				},
+			logSessionEvent('warn', 'Frontend: Session fetch failed - redirecting to login', {
+				error: error?.message || 'No session data',
+				hadCookie: !!sessionToken,
+				cookieTokenPrefix: sessionToken?.substring(0, 8) || 'NONE',
 			});
 
 			throw redirect("/auth/login");
@@ -57,43 +48,31 @@ export async function authLoader({ context }: LoaderFunctionArgs) {
 		const cookieTokenFull = sessionToken;
 		
 		if (cookieTokenFull && retrievedToken !== cookieTokenFull) {
-			Sentry.captureException(new Error('FRONTEND SESSION TOKEN MISMATCH'), {
-				level: 'fatal',
-				tags: {
-					error_type: 'frontend_session_token_mismatch',
-				},
-				contexts: {
-					sessionMismatch: {
-						cookieTokenPrefix: cookieTokenFull.substring(0, 8),
-						retrievedTokenPrefix: retrievedToken.substring(0, 8),
-						cookieTokenFull: cookieTokenFull,
-						retrievedTokenFull: retrievedToken,
-						retrievedUserId: session.user.id,
-						retrievedUserEmail: session.user.email,
-						retrievedSessionId: session.session.id,
-					},
-				},
-			});
+			logSessionException(new Error('FRONTEND SESSION TOKEN MISMATCH'), {
+				cookieTokenPrefix: cookieTokenFull.substring(0, 8),
+				retrievedTokenPrefix: retrievedToken.substring(0, 8),
+				cookieTokenFull: cookieTokenFull,
+				retrievedTokenFull: retrievedToken,
+				retrievedUserId: session.user.id,
+				retrievedUserEmail: session.user.email,
+				retrievedSessionId: session.session.id,
+				error_type: 'frontend_session_token_mismatch',
+			}, 'Frontend session token mismatch detected');
 		}
 
-		Sentry.addBreadcrumb({
-			category: 'auth',
-			message: 'Frontend: Session retrieved successfully',
-			level: 'info',
-			data: {
-				userId: session.user.id,
-				userEmail: session.user.email,
-				sessionId: session.session.id,
-				sessionTokenPrefix: session.session.token.substring(0, 8),
-				expiresAt: new Date(session.session.expiresAt).toISOString(),
-				cookieTokenMatches: !cookieTokenFull || (retrievedToken === cookieTokenFull),
-				// SESSION LEAKAGE: Track if new users have unexpected cookies
-				sessionState: {
-					hasCookie: !!sessionToken,
-					hasLocalStorage: localStorageKeys.some(k => k.includes('awc')),
-					// Flag if user might be seeing someone else's session
-					potentialLeakage: !sessionToken && localStorageKeys.some(k => k.includes('awc.session')),
-				},
+		logSessionEvent('log', 'Frontend: Session retrieved successfully', {
+			userId: session.user.id,
+			userEmail: session.user.email,
+			sessionId: session.session.id,
+			sessionTokenPrefix: session.session.token.substring(0, 8),
+			expiresAt: new Date(session.session.expiresAt).toISOString(),
+			cookieTokenMatches: !cookieTokenFull || (retrievedToken === cookieTokenFull),
+			// SESSION LEAKAGE: Track if new users have unexpected cookies
+			sessionState: {
+				hasCookie: !!sessionToken,
+				hasLocalStorage: localStorageKeys.some(k => k.includes('awc')),
+				// Flag if user might be seeing someone else's session
+				potentialLeakage: !sessionToken && localStorageKeys.some(k => k.includes('awc.session')),
 			},
 		});
 
@@ -116,11 +95,9 @@ export async function authLoader({ context }: LoaderFunctionArgs) {
 		return sessionInfo;
 
 	} catch (error) {
-		Sentry.captureException(error, {
-			tags: {
-				error_type: 'auth_loader_error',
-			},
-		});
+		logSessionException(error instanceof Error ? error : new Error(String(error)), {
+			error_type: 'auth_loader_error',
+		}, 'Auth loader error');
 		throw redirect("/auth/login");
 	}
 }

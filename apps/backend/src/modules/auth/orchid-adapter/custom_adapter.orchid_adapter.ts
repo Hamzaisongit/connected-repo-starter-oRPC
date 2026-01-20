@@ -3,8 +3,8 @@ import type { Db } from "@backend/db/db";
 import { applyJoins } from "@backend/modules/auth/orchid-adapter/join_query_builder.orchid_adapter";
 import { validateModel, validateSelect } from "@backend/modules/auth/orchid-adapter/model_table_map.orchid_adapter";
 import { applyBetterAuthWhere } from "@backend/modules/auth/orchid-adapter/where_query_builder.orchid_adapter";
-import type { AdapterFactoryCustomizeAdapterCreator } from "@better-auth/core/db/adapter";
-import * as Sentry from '@sentry/node';
+ import type { AdapterFactoryCustomizeAdapterCreator } from "@better-auth/core/db/adapter";
+ import { sessionLogger } from '@backend/utils/session-logger.utils';
 
 export const createCustomAdapterOrchid = (db: Db): AdapterFactoryCustomizeAdapterCreator =>
   () => ({
@@ -13,17 +13,12 @@ export const createCustomAdapterOrchid = (db: Db): AdapterFactoryCustomizeAdapte
       const modelName = validateModel(model);
       const validatedSelect = validateSelect(modelName, select);
       
-      Sentry.addBreadcrumb({
-        category: 'database',
-        message: `Adapter: create ${modelName}`,
-        level: 'debug',
-        data: {
-          operation: 'create',
-          model: modelName,
-          dataKeys: Object.keys(data),
-          selectFields: validatedSelect,
-        },
-      });
+       sessionLogger.debug(`Adapter: create ${modelName}`, null, {
+         operation: 'create',
+         model: modelName,
+         dataKeys: Object.keys(data),
+         selectFields: validatedSelect,
+       });
 
       const result = await db[modelName]
         .create(data)
@@ -33,24 +28,12 @@ export const createCustomAdapterOrchid = (db: Db): AdapterFactoryCustomizeAdapte
       // Track session creation in Sentry - CRITICAL for session leakage detection
       if (modelName === 'sessions' && result) {
         const sessionData = result as any;
-        Sentry.addBreadcrumb({
-          category: 'database',
-          message: 'Session created in database',
-          level: 'info',
-          data: {
-            operation: 'create',
-            model: 'sessions',
-            sessionId: sessionData.id,
-            userId: sessionData.userId,
-            // Use 'session_id' to avoid Sentry scrubbing
-            sessionTokenPrefix: sessionData.token?.substring(0, 8),
-            ipAddress: sessionData.ipAddress,
-            userAgent: sessionData.userAgent?.substring(0, 50),
-            createdAt: sessionData.createdAt,
-            // SESSION LEAKAGE: Track creation fingerprint for later correlation
-            sessionCreationFingerprint: `${sessionData.ipAddress}:${sessionData.userAgent?.substring(0, 20) || 'unknown'}`,
-          },
-        });
+         sessionLogger.debug('Session created in database', sessionData, {
+           operation: 'create',
+           model: 'sessions',
+           // SESSION LEAKAGE: Track creation fingerprint for later correlation
+           sessionCreationFingerprint: `${sessionData.ipAddress}:${sessionData.userAgent?.substring(0, 20) || 'unknown'}`,
+         });
       }
 
       return result;
@@ -58,67 +41,45 @@ export const createCustomAdapterOrchid = (db: Db): AdapterFactoryCustomizeAdapte
     update: async ({ model, where, update: values }) => {
       const modelName = validateModel(model);
       
-      Sentry.addBreadcrumb({
-        category: 'database',
-        message: `Adapter: update ${modelName}`,
-        level: 'debug',
-        data: {
-          operation: 'update',
-          model: modelName,
-          whereClause: JSON.stringify(where),
-          updateKeys: values ? Object.keys(values as object) : [],
-        },
-      });
+       sessionLogger.debug(`Adapter: update ${modelName}`, null, {
+         operation: 'update',
+         model: modelName,
+         whereClause: JSON.stringify(where),
+         updateKeys: values ? Object.keys(values as object) : [],
+       });
 
       const query = applyBetterAuthWhere(db[modelName], where);
       const result = await query.take().selectAll().update(values);
 
       if (modelName === 'sessions' && result) {
-        Sentry.addBreadcrumb({
-          category: 'database',
-          message: 'Session updated in database',
-          level: 'info',
-          data: {
-            operation: 'update',
-            model: 'sessions',
-            sessionId: (result as any).id,
-            userId: (result as any).userId,
-            updatedFields: values ? Object.keys(values as object) : [],
-          },
-        });
+         sessionLogger.debug('Session updated in database', result, {
+           operation: 'update',
+           model: 'sessions',
+           updatedFields: values ? Object.keys(values as object) : [],
+         });
       }
 
       return result;
     },
     updateMany: async ({ model, where, update: values }) => {
       const modelName = validateModel(model);
-      
-      Sentry.addBreadcrumb({
-        category: 'database',
-        message: `Adapter: updateMany ${modelName}`,
-        level: 'debug',
-        data: {
-          operation: 'updateMany',
-          model: modelName,
-          whereClause: JSON.stringify(where),
-          updateKeys: values ? Object.keys(values as object) : [],
-        },
+
+      sessionLogger.debug(`Adapter: updateMany ${modelName}`, null, {
+        operation: 'updateMany',
+        model: modelName,
+        whereClause: JSON.stringify(where),
+        updateKeys: values ? Object.keys(values as object) : [],
       });
 
       const query = applyBetterAuthWhere(db[modelName], where);
       const results = await query.selectAll().update(values);
 
       if (modelName === 'sessions' && Array.isArray(results)) {
-        Sentry.addBreadcrumb({
-          category: 'database',
-          message: `Updated ${results.length} sessions in database`,
-          level: 'info',
-          data: {
-            operation: 'updateMany',
-            model: 'sessions',
-            count: results.length,
-          },
-        });
+         sessionLogger.debug(`Updated ${results.length} sessions in database`, null, {
+           operation: 'updateMany',
+           model: 'sessions',
+           count: results.length,
+         });
       }
 
       return results;
@@ -126,31 +87,21 @@ export const createCustomAdapterOrchid = (db: Db): AdapterFactoryCustomizeAdapte
     delete: async ({ model, where }) => {
       const modelName = validateModel(model);
       
-      Sentry.addBreadcrumb({
-        category: 'database',
-        message: `Adapter: delete ${modelName}`,
-        level: 'debug',
-        data: {
-          operation: 'delete',
-          model: modelName,
-          whereClause: JSON.stringify(where),
-        },
-      });
+       sessionLogger.debug(`Adapter: delete ${modelName}`, null, {
+         operation: 'delete',
+         model: modelName,
+         whereClause: JSON.stringify(where),
+       });
 
       const query = applyBetterAuthWhere(db[modelName], where);
       const result = await query.delete();
 
       if (modelName === 'sessions') {
-        Sentry.addBreadcrumb({
-          category: 'database',
-          message: 'Session deleted from database',
-          level: 'info',
-          data: {
-            operation: 'delete',
-            model: 'sessions',
-            deletedCount: Array.isArray(result) ? result.length : 1,
-          },
-        });
+         sessionLogger.debug('Session deleted from database', null, {
+           operation: 'delete',
+           model: 'sessions',
+           deletedCount: Array.isArray(result) ? result.length : 1,
+         });
       }
 
       return result;
@@ -159,19 +110,14 @@ export const createCustomAdapterOrchid = (db: Db): AdapterFactoryCustomizeAdapte
       const modelName = validateModel(model);
       const validatedSelect = validateSelect(modelName, select);
       
-      Sentry.addBreadcrumb({
-        category: 'database',
-        message: `Adapter: findOne ${modelName}${join ? ' WITH JOINS' : ''}`,
-        level: 'debug',
-        data: {
-          operation: 'findOne',
-          model: modelName,
-          whereClause: JSON.stringify(where),
-          selectFields: validatedSelect,
-          hasJoins: !!join,
-          joinModels: join ? Object.keys(join) : [],
-        },
-      });
+       sessionLogger.debug(`Adapter: findOne ${modelName}`, null, {
+         operation: 'findOne',
+         model: modelName,
+         whereClause: JSON.stringify(where),
+         selectFields: validatedSelect,
+         hasJoins: !!join,
+         joinModels: join ? Object.keys(join) : [],
+       });
 
       const query = applyBetterAuthWhere(db[modelName], where);
       
@@ -182,29 +128,19 @@ export const createCustomAdapterOrchid = (db: Db): AdapterFactoryCustomizeAdapte
 
       // Track session retrieval in Sentry
       if (modelName === 'sessions') {
-        Sentry.addBreadcrumb({
-          category: 'database',
-          message: result ? 'Session retrieved from database' : 'Session NOT FOUND in database',
-          level: result ? 'info' : 'warning',
-          data: {
-            operation: 'findOne',
-            model: 'sessions',
-            whereClause: JSON.stringify(where),
-            found: !!result,
-            hasJoins: !!join,
-            joinModels: join ? Object.keys(join) : [],
-            ...(result && {
-              sessionId: (result as any).id,
-              userId: (result as any).userId,
-              sessionTokenPrefix: (result as any).token?.substring(0, 8),
-              // Check if joined data exists
-              hasJoinedUser: !!(result as any).user,
-              joinedUserData: (result as any).user ? {
-                userId: (result as any).user.id,
-                userEmail: (result as any).user.email,
-              } : undefined,
-            }),
-          },
+        sessionLogger[result ? 'debug' : 'warn'](result ? 'Session retrieved from database' : 'Session NOT FOUND in database', result, {
+          operation: 'findOne',
+          model: 'sessions',
+          whereClause: JSON.stringify(where),
+          found: !!result,
+          hasJoins: !!join,
+          joinModels: join ? Object.keys(join) : [],
+          // Check if joined data exists
+          hasJoinedUser: !!(result as any).user,
+          joinedUserData: (result as any).user ? {
+            userId: (result as any).user.id,
+            userEmail: (result as any).user.email,
+          } : undefined,
         });
       }
 
@@ -213,20 +149,15 @@ export const createCustomAdapterOrchid = (db: Db): AdapterFactoryCustomizeAdapte
     findMany: async ({ model, where, sortBy, limit, offset, join }) => {
       const modelName = validateModel(model);
       
-      Sentry.addBreadcrumb({
-        category: 'database',
-        message: `Adapter: findMany ${modelName}${join ? ' WITH JOINS' : ''}`,
-        level: 'debug',
-        data: {
-          operation: 'findMany',
-          model: modelName,
-          whereClause: JSON.stringify(where),
-          sortBy: sortBy ? `${sortBy.field} ${sortBy.direction}` : undefined,
-          limit,
-          offset,
-          hasJoins: !!join,
-          joinModels: join ? Object.keys(join) : [],
-        },
+      sessionLogger.debug(`Adapter: findMany ${modelName}${join ? ' WITH JOINS' : ''}`, null, {
+        operation: 'findMany',
+        model: modelName,
+        whereClause: JSON.stringify(where),
+        sortBy: sortBy ? `${sortBy.field} ${sortBy.direction}` : undefined,
+        limit,
+        offset,
+        hasJoins: !!join,
+        joinModels: join ? Object.keys(join) : [],
       });
 
       let query = applyBetterAuthWhere(db[modelName], where);
@@ -251,17 +182,12 @@ export const createCustomAdapterOrchid = (db: Db): AdapterFactoryCustomizeAdapte
       const results = await joinedQuery.selectAll();
 
       if (modelName === 'sessions' && Array.isArray(results)) {
-        Sentry.addBreadcrumb({
-          category: 'database',
-          message: `Found ${results.length} sessions in database`,
-          level: 'info',
-          data: {
-            operation: 'findMany',
-            model: 'sessions',
-            count: results.length,
-            hasJoins: !!join,
-            firstSessionTokenPrefix: results[0] ? (results[0] as any).token?.substring(0, 8) : undefined,
-          },
+        sessionLogger.debug(`Found ${results.length} sessions in database`, null, {
+          operation: 'findMany',
+          model: 'sessions',
+          count: results.length,
+          hasJoins: !!join,
+          firstSessionTokenPrefix: results[0] ? (results[0] as any).token?.substring(0, 8) : undefined,
         });
       }
 
@@ -270,30 +196,20 @@ export const createCustomAdapterOrchid = (db: Db): AdapterFactoryCustomizeAdapte
     count: async ({ model, where }) => {
       const modelName = validateModel(model);
       
-      Sentry.addBreadcrumb({
-        category: 'database',
-        message: `Adapter: count ${modelName}`,
-        level: 'debug',
-        data: {
-          operation: 'count',
-          model: modelName,
-          whereClause: JSON.stringify(where),
-        },
+      sessionLogger.debug(`Adapter: count ${modelName}`, null, {
+        operation: 'count',
+        model: modelName,
+        whereClause: JSON.stringify(where),
       });
 
       const query = applyBetterAuthWhere(db[modelName], where);
       const count = await query.count();
 
       if (modelName === 'sessions') {
-        Sentry.addBreadcrumb({
-          category: 'database',
-          message: `Counted ${count} sessions`,
-          level: 'info',
-          data: {
-            operation: 'count',
-            model: 'sessions',
-            count,
-          },
+        sessionLogger.debug(`Counted ${count} sessions`, null, {
+          operation: 'count',
+          model: 'sessions',
+          count,
         });
       }
 
@@ -302,16 +218,11 @@ export const createCustomAdapterOrchid = (db: Db): AdapterFactoryCustomizeAdapte
     deleteMany: async ({ model, where }) => {
       const modelName = validateModel(model);
       
-      Sentry.addBreadcrumb({
-        category: 'database',
-        message: `Adapter: deleteMany ${modelName}`,
-        level: 'debug',
-        data: {
-          operation: 'deleteMany',
-          model: modelName,
-          whereClause: JSON.stringify(where),
-          isSoftDelete: model === 'sessions',
-        },
+      sessionLogger.debug(`Adapter: deleteMany ${modelName}`, null, {
+        operation: 'deleteMany',
+        model: modelName,
+        whereClause: JSON.stringify(where),
+        isSoftDelete: model === 'sessions',
       });
 
       const query = applyBetterAuthWhere(db[modelName], where);
@@ -322,18 +233,13 @@ export const createCustomAdapterOrchid = (db: Db): AdapterFactoryCustomizeAdapte
         });
 
         // SESSION LEAKAGE: Track session invalidation (logout events)
-        Sentry.addBreadcrumb({
-          category: 'auth',
-          message: `Session invalidation detected (${Array.isArray(results) ? results.length : 1} sessions invalidated)`,
-          level: 'info',
-          data: {
-            operation: 'invalidateSessions',
-            model: 'sessions',
-            softDelete: true,
-            count: Array.isArray(results) ? results.length : 1,
-            // This helps detect if sessions are being invalidated but still used
-            invalidationReason: 'logout_or_session_cleanup',
-          },
+        sessionLogger.debug('Invalidated sessions in database', null, {
+          operation: 'invalidateSessions',
+          model: 'sessions',
+          softDelete: true,
+          count: Array.isArray(results) ? results.length : 1,
+          // This helps detect if sessions are being invalidated but still used
+          invalidationReason: 'logout_or_session_cleanup',
         });
 
         return results;
@@ -341,15 +247,10 @@ export const createCustomAdapterOrchid = (db: Db): AdapterFactoryCustomizeAdapte
       
       const results = await query.delete();
 
-      Sentry.addBreadcrumb({
-        category: 'database',
-        message: `Deleted ${Array.isArray(results) ? results.length : 'unknown'} ${modelName} records`,
-        level: 'info',
-        data: {
-          operation: 'deleteMany',
-          model: modelName,
-          count: Array.isArray(results) ? results.length : undefined,
-        },
+      sessionLogger.debug(`Deleted ${Array.isArray(results) ? results.length : 'unknown'} ${modelName} records`, null, {
+        operation: 'deleteMany',
+        model: modelName,
+        count: Array.isArray(results) ? results.length : undefined,
       });
 
       return results;

@@ -2,6 +2,7 @@ import type { ActiveSessionSelectAll } from "@backend/modules/auth/tables/sessio
 import type { UserSelectAll } from "@connected-repo/zod-schemas/user.zod";
 import { os } from "@orpc/server";
 import type { RequestHeadersPluginContext } from "@orpc/server/plugins";
+import { sessionLogger } from "@backend/utils/session-logger.utils";
 import z from "zod";
 
 /**
@@ -20,15 +21,34 @@ const rpcBaseOrpc = os.$context<RpcContext>()
 
 // Public procedure with context
 export const rpcPublicProcedure = rpcBaseOrpc
-	.use(({ context, next }) => {
+	.use(async ({ context, next, path }) => {
 		const reqHeaders = context.reqHeaders ?? new Headers();
-		// You can add any public middleware logic here if needed
-		return next({ 
-			context: {
-				...context, 
-				reqHeaders
-			} 
+		const requestUserId = context.user?.id || 'unauthenticated';
+
+		// Log request user-id
+		sessionLogger.debug(`Request: ${path}`, context.session, {
+			requestUserId,
+			method: 'RPC',
+			path
 		});
+
+		const result = await next({
+			context: {
+				...context,
+				reqHeaders
+			}
+		});
+
+		// Log response user-id (may differ if handler changes user context)
+		const responseUserId = result.context?.user?.id || requestUserId;
+		sessionLogger.debug(`Response: ${path}`, result.context?.session, {
+			requestUserId,
+			responseUserId,
+			method: 'RPC',
+			path
+		});
+
+		return result;
 	})
 	.errors({
 		INPUT_VALIDATION_FAILED: {

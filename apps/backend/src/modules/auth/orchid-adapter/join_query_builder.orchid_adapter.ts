@@ -1,38 +1,5 @@
-type JoinConfig = {
-  [model: string]: {
-    /**
-     * The joining column names.
-     */
-    on: {
-      /**
-       * Column name from the main table
-       */
-      from: string;
-      /**
-       * Column name from the joined table
-       */
-      to: string;
-    };
-    /**
-     * Limit the number of rows to return.
-     *
-     * If the relation has `unique` constraint, then this option will be ignored and limit will be set to 1.
-     *
-     * @default 100
-     */
-    limit?: number;
-    /**
-     * The relation type. Determines the output joined model data.
-     *
-     * `one-to-one` would have a single object in the output.
-     * `one-to-many` would have an array of objects in the output.
-     * `many-to-many` would have an array of objects in the output.
-     *
-     * @default "one-to-many"
-     */
-    relation?: "one-to-one" | "one-to-many" | "many-to-many";
-  };
-};
+ import { JoinConfig } from "@better-auth/core/db/adapter";
+import { sessionLogger } from '@backend/utils/session-logger.utils';
 
 /**
  * Applies better-auth JoinConfig to an Orchid ORM query.
@@ -42,57 +9,40 @@ type JoinConfig = {
  * @returns An object with the modified query and select objects for joined tables
  */
 export const applyJoins = (
-  query: any, 
+  query: any,
   joinConfig: JoinConfig | undefined,
   db: Record<string, any>
 ) => {
   if (!joinConfig) return query;
 
-  const Sentry = require('@sentry/node');
-  
   let joinQuery = query;
   const mainTableName = query.table; // Get parent table name (e.g., 'users')
   const mainTable = db[mainTableName]
 
-  Sentry.addBreadcrumb({
-    category: 'database',
-    message: `Applying joins to ${mainTableName}`,
-    level: 'debug',
-    data: {
-      mainTable: mainTableName,
-      joinModels: Object.keys(joinConfig),
-      joinCount: Object.keys(joinConfig).length,
-    },
+  sessionLogger.debug(`Applying joins to ${mainTableName}`, null, {
+    mainTable: mainTableName,
+    joinModels: Object.keys(joinConfig),
+    joinCount: Object.keys(joinConfig).length,
   });
 
   for (const [modelName, config] of Object.entries(joinConfig)) {
     const targetTable = db[modelName];
     if (!targetTable) {
-      Sentry.addBreadcrumb({
-        category: 'database',
-        message: `Join target table not found: ${modelName}`,
-        level: 'warning',
-        data: {
-          mainTable: mainTableName,
-          targetModel: modelName,
-        },
+      sessionLogger.warn(`Join target table not found: ${modelName}`, null, {
+        mainTable: mainTableName,
+        targetModel: modelName,
       });
       continue;
     }
 
     const { on, limit, relation } = config;
 
-    Sentry.addBreadcrumb({
-      category: 'database',
-      message: `Joining ${modelName} to ${mainTableName}`,
-      level: 'debug',
-      data: {
-        mainTable: mainTableName,
-        joinedTable: modelName,
-        relation: relation || 'one-to-many',
-        joinOn: `${mainTableName}.${on.from} = ${modelName}.${on.to}`,
-        limit: relation === 'one-to-one' ? 1 : (limit || 100),
-      },
+    sessionLogger.debug(`Joining ${modelName} to ${mainTableName}`, null, {
+      mainTable: mainTableName,
+      joinedTable: modelName,
+      relation: relation || 'one-to-many',
+      joinOn: `${mainTableName}.${on.from} = ${modelName}.${on.to}`,
+      limit: relation === 'one-to-one' ? 1 : (limit || 100),
     });
 
     if (relation === 'one-to-one') {

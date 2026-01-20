@@ -15,7 +15,7 @@ export const logger = isDev
 		)
 	: isProd
 		? pino({
-				level: "info",
+				level: "trace",
 			})
 		: pino();
 

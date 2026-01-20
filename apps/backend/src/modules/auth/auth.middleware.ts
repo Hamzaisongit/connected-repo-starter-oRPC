@@ -1,7 +1,9 @@
-import * as Sentry from '@sentry/node';
 import type { RpcContextWithHeaders } from '@backend/procedures/public.procedure';
+import { getClientIpAddress } from '@backend/utils/client-info.utils';
+import { sessionLogger } from '@backend/utils/session-logger.utils';
 import { transformSessionAndUserData } from '@backend/utils/session.utils';
 import { type MiddlewareNextFn, ORPCError } from '@orpc/server';
+import * as Sentry from '@sentry/node';
 import { auth } from './auth.config';
 
 export const rpcAuthMiddleware = async ({ 
@@ -21,17 +23,12 @@ export const rpcAuthMiddleware = async ({
 	// Track timing to help detect cache hits (cache should be <5ms, DB ~10-50ms)
 	const startTime = Date.now();
 
-	Sentry.addBreadcrumb({
-		category: 'auth',
-		message: 'Session retrieval started',
-		level: 'info',
-		data: {
-			cookieTokenPrefix: cookieToken?.substring(0, 8) || 'NONE',
-			userAgent: reqHeaders.get('user-agent')?.substring(0, 100),
-			ipAddress: reqHeaders.get('x-forwarded-for') || reqHeaders.get('x-real-ip') || 'unknown',
-			cookieCacheEnabled: true,
-			cookieCacheMaxAge: '5 minutes',
-		},
+	sessionLogger.debug('Session retrieval started', null, {
+		cookieTokenPrefix: cookieToken?.substring(0, 8) || 'NONE',
+		userAgent: reqHeaders.get('user-agent')?.substring(0, 100),
+		ipAddress: getClientIpAddress(reqHeaders),
+		cookieCacheEnabled: true,
+		cookieCacheMaxAge: '5 minutes',
 	});
 
 	const sessionData = await auth.api.getSession({
@@ -41,13 +38,8 @@ export const rpcAuthMiddleware = async ({
 	const retrievalTime = Date.now() - startTime;
 
 	if (!sessionData?.session.id || !sessionData?.user.id) {
-		Sentry.addBreadcrumb({
-			category: 'auth',
-			message: 'Session retrieval failed - no session data',
-			level: 'warning',
-			data: {
-				cookieTokenPrefix: cookieToken?.substring(0, 8) || 'NONE',
-			},
+		sessionLogger.warn('Session retrieval failed - no session data', null, {
+			cookieTokenPrefix: cookieToken?.substring(0, 8) || 'NONE',
 		});
 
 		throw new ORPCError('UNAUTHORIZED', {
@@ -65,22 +57,12 @@ export const rpcAuthMiddleware = async ({
 	// If no DB breadcrumb and fast, it's likely a cache hit
 	const likelyCacheHit = retrievalTime < 5;
 
-	Sentry.addBreadcrumb({
-		category: 'auth',
-		message: 'Session validated successfully',
-		level: 'info',
-		data: {
-			sessionId: session.id,
-			userId: user.id,
-			userEmail: user.email,
-			sessionTokenPrefix: session.token.substring(0, 8),
-			expiresAt: new Date(session.expiresAt).toISOString(),
-			retrievalTimeMs: retrievalTime,
-			likelyCacheHit: likelyCacheHit,
-			cacheNote: likelyCacheHit
-				? 'Fast retrieval - likely from cookie cache'
-				: 'Slower retrieval - likely from database',
-		},
+	sessionLogger.debug('Session validated successfully', session, {
+		retrievalTimeMs: retrievalTime,
+		likelyCacheHit: likelyCacheHit,
+		cacheNote: likelyCacheHit
+			? 'Fast retrieval - likely from cookie cache'
+			: 'Slower retrieval - likely from database',
 	});
 
 	// SESSION LEAKAGE DETECTION: Track session usage patterns
@@ -89,19 +71,12 @@ export const rpcAuthMiddleware = async ({
 	const currentUserAgent = reqHeaders.get('user-agent') || 'unknown';
 
 	// Track session access from different IPs (suspicious activity)
-	Sentry.addBreadcrumb({
-		category: 'auth',
-		message: 'Session access pattern tracking',
-		level: 'debug',
-		data: {
-			sessionId: session.id,
-			userId: user.id,
+		sessionLogger.debug('Session access pattern tracking', session, {
 			accessIP: currentIP,
 			accessUserAgent: currentUserAgent.substring(0, 100),
 			// This will help detect if the same session is used from multiple locations
 			sessionAccessFingerprint: `${currentIP}:${currentUserAgent.substring(0, 20)}`,
-		},
-	});
+		});
 
 	// Set user context in Sentry for this request
 	Sentry.setUser({

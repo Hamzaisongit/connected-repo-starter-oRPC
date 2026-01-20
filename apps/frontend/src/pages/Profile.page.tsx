@@ -26,7 +26,7 @@ import { useThemeMode } from "@connected-repo/ui-mui/theme/ThemeContext";
 import { SessionInfo } from "@frontend/contexts/UserContext";
 import { authClient } from "@frontend/utils/auth.client";
 import { orpc } from "@frontend/utils/orpc.client";
-import * as Sentry from "@sentry/react";
+import { logSessionEvent, logSessionException } from "@frontend/utils/session-logger.utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -77,49 +77,32 @@ const ProfilePage = () => {
 			newMode = "light";
 		}
 
-		Sentry.addBreadcrumb({
-			category: 'ui.interaction',
-			message: 'Frontend: Theme change initiated',
-			level: 'info',
-			data: {
-				userId: user.id,
-				userEmail: user.email,
-				oldMode: mode,
-				newMode: newMode,
-			},
+		logSessionEvent('log', 'Frontend: Theme change initiated', {
+			userId: user.id,
+			userEmail: user.email,
+			oldMode: mode,
+			newMode: newMode,
 		});
 
 		setThemeMode(newMode);
 		try {
 			await authClient.updateUser({ themeSetting: newMode });
 			
-			Sentry.addBreadcrumb({
-				category: 'ui.interaction',
-				message: 'Frontend: Theme update successful',
-				level: 'info',
-				data: {
-					userId: user.id,
-					newMode: newMode,
-				},
+			logSessionEvent('log', 'Frontend: Theme update successful', {
+				userId: user.id,
+				newMode: newMode,
 			});
 
 			queryClient.invalidateQueries({ queryKey: orpc.profile.getProfile.queryOptions().queryKey });
 			revalidator.revalidate();
 		} catch (error) {
-			Sentry.captureException(error, {
-				level: 'error',
-				tags: {
-					error_type: 'theme_update_failed',
-				},
-				contexts: {
-					theme: {
-						userId: user.id,
-						userEmail: user.email,
-						oldMode: mode,
-						newMode: newMode,
-					},
-				},
-			});
+			logSessionException(error instanceof Error ? error : new Error(String(error)), {
+				error_type: 'theme_update_failed',
+				userId: user.id,
+				userEmail: user.email,
+				oldMode: mode,
+				newMode: newMode,
+			}, 'Theme update failed');
 			setThemeMode(mode);
 		}
 	};

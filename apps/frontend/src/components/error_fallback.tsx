@@ -1,4 +1,4 @@
-import * as Sentry from "@sentry/react";
+import { logSessionException } from "@frontend/utils/session-logger.utils";
 import { useEffect } from "react";
 import { useRouteError } from "react-router";
 
@@ -10,7 +10,9 @@ export const CustomErrorBoundary = () => {
 	const error = useRouteError() as Error;
 
   useEffect(() => {
-    Sentry.captureException(error);
+    logSessionException(error, {
+      error_type: 'route_error',
+    }, 'Route error occurred');
   }, [error]);
 
 	return <ErrorFallback />;

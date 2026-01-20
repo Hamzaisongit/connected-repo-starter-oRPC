@@ -1,10 +1,10 @@
-import { env, isDev } from "@frontend/configs/env.config";
+import { env } from "@frontend/configs/env.config";
 import { authClient } from "@frontend/utils/auth.client";
+import { logSessionException } from "@frontend/utils/session-logger.utils";
 import { createORPCClient, onError } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
 import { SimpleCsrfProtectionLinkPlugin } from '@orpc/client/plugins';
 import { createTanstackQueryUtils } from '@orpc/tanstack-query';
-import * as Sentry from "@sentry/react";
 import { toast } from "react-toastify";
 import type { UserAppRouter, UserAppRouterInputs, UserAppRouterOutputs } from "../../../backend/src/routers/user_app.router";
 
@@ -34,8 +34,8 @@ const link = new RPCLink<ClientContext>({
       
       // IMPORTANT: Ignore AbortErrors - these are normal in React Strict Mode (dev only)
       // React 19 double-mounts components in dev, causing queries to abort on first render
-      if (isDev && (err.name === "AbortError" || errorMessage.includes("signal is aborted"))) {
-        console.log("oRPC query aborted (React Strict Mode - this is normal in development)");
+      if (err.name === "AbortError" || errorMessage.includes("signal is aborted")) {
+        console.info("oRPC query aborted (React Strict Mode - this is normal in development)");
         return;
       }
       
@@ -49,20 +49,15 @@ const link = new RPCLink<ClientContext>({
         errorMessage.toLowerCase().includes("unauthenticated") ||
         errorMessage.toLowerCase().includes("authentication required");
       
-      // Record error in Sentry with appropriate level
-      Sentry.captureException(error, {
-        tags: {
-          errorType: "oRPC",
-          statusCode: err.status,
-          errorCode: err.code,
-        },
-        extra: {
-          errorMessage,
-          errorPath: err.path,
-          fullError: error,
-        },
-        level: isAuthError ? "info" : "error",
-      });
+      // Record error with session logging
+      logSessionException(error instanceof Error ? error : new Error(String(error)), {
+        errorType: "oRPC",
+        statusCode: err.status,
+        errorCode: err.code,
+        errorMessage,
+        errorPath: err.path,
+        isAuthError,
+      }, `oRPC Error: ${errorMessage}`);
       
       // Only show toast for non-auth errors or persistent auth errors
       // Don't show toast on initial 401s which might be timing issues during page load

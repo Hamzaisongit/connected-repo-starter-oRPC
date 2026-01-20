@@ -1,5 +1,6 @@
 import { RpcAuthenticatedContext } from '@backend/procedures/protected.procedure';
 import { generateDeviceFingerprint, getClientIpAddress } from '@backend/utils/client-info.utils';
+import { sessionLogger } from '@backend/utils/session-logger.utils';
 import { MiddlewareNextFn, ORPCError } from '@orpc/server';
 
 export interface SessionSecurityResult {
@@ -66,7 +67,13 @@ export const rpcSessionSecurityMiddleware = (securityLevel: 'low' | 'moderate' |
 				case 'moderate':
 					result.action = 'warn';
 					// Log warning but allow access
-					console.warn('Session security warning:', result.reasons);
+					sessionLogger.warn('Session security warning', session, {
+						reasons: result.reasons,
+						storedFingerprint: session.deviceFingerprint,
+						currentFingerprint,
+						storedIP: session.ipAddress,
+						currentIP,
+					});
 					break;
 				case 'low':
 					result.action = 'allow';

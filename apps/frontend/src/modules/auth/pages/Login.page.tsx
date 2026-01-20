@@ -10,7 +10,7 @@ import { Stack } from "@connected-repo/ui-mui/layout/Stack";
 import { userCreateFixture } from "@connected-repo/zod-schemas/user.fixture";
 import { env, isTest } from "@frontend/configs/env.config";
 import { authClient } from "@frontend/utils/auth.client";
-import * as Sentry from "@sentry/react";
+import { logSessionEvent } from "@frontend/utils/session-logger.utils";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 
@@ -25,19 +25,12 @@ export const LoginPage = () => {
 		if (error) {
 			const errorMessage = decodeURIComponent(error);
 			
-			// Capture OAuth error in Sentry for monitoring
-			Sentry.captureMessage(`OAuth Error: ${errorMessage}`, {
-				level: "warning",
-				tags: {
-					error_type: "oauth_error_frontend",
-					error_code: error,
-				},
-				contexts: {
-					auth: {
-						error_message: errorMessage,
-						location: "login_page",
-					},
-				},
+			// Log OAuth error for monitoring
+			logSessionEvent('warn', `OAuth Error: ${errorMessage}`, {
+				error_type: "oauth_error_frontend",
+				error_code: error,
+				error_message: errorMessage,
+				location: "login_page",
 			});
 		}
 	}, [error]);
