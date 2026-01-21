@@ -25,7 +25,7 @@ async function isDailyComplianceUpdated(userId: string, scheduledDate: number): 
 		.where({ userId })
 		.where({ date: { gte: new Date(dayStart) } })
 		.where({ date: { lte: new Date(dayEnd) } })
-		.take();
+		.takeOptional();
 
 	if (!dailyCompliance) {
 		return false;
