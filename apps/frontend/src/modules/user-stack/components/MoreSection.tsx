@@ -1,6 +1,7 @@
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Switch } from "@connected-repo/ui-mui/form/Switch";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
+import { alpha, useTheme } from "@mui/material/styles";
 import { memo, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { InstructionsFieldArray } from "./InstructionsFieldArray";
@@ -12,6 +13,7 @@ export const MoreSection = memo(() => {
 	
 	const [showMore, setShowMore] = useState(false);
 	const { control } = useFormContext();
+	const theme = useTheme();
 	
 	const prevControlRef = useRef(control);
 	const prevShowMoreRef = useRef(showMore);
@@ -61,11 +63,11 @@ export const MoreSection = memo(() => {
 							py: 1, 
 							px: 2.5, 
 							borderRadius: "100px", 
-							backgroundColor: "rgba(248, 250, 252, 0.8)", 
-							border: "1px solid rgba(0, 0, 0, 0.06)" 
+							backgroundColor: alpha(theme.palette.background.default, 0.8),
+							border: `1px solid ${alpha(theme.palette.common.black, 0.06)}`
 						}}
 					>
-						<Typography variant="body2" sx={{ color: "#1A1C2E", fontWeight: 500, fontSize: "0.875rem" }}>
+						<Typography variant="body2" sx={{ color: theme.palette.text.primary, fontWeight: 500, fontSize: "0.875rem" }}>
 							Active in my stack
 						</Typography>
 						<Controller

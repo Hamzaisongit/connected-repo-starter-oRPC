@@ -1,6 +1,7 @@
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
+import { alpha, useTheme } from "@mui/material/styles";
 import { memo } from "react";
 import { Controller, type UseFormReturn } from "react-hook-form";
 
@@ -21,37 +22,40 @@ const ALTERNATE_DAYS_1 = ["Monday", "Wednesday", "Friday"]; // Starting from Mon
 const ALTERNATE_DAYS_2 = ["Sunday", "Tuesday", "Thursday", "Saturday"]; // Starting from Sunday
 
 const DayButton = memo<{ day: typeof DAYS_OF_WEEK[number]; isSelected: boolean; onClick: () => void }>(
-	({ day, isSelected, onClick }) => (
-		<Box
-			onClick={onClick}
-			sx={{
-				width: 40,
-				height: 40,
-				borderRadius: "50%",
-				display: "flex",
-				alignItems: "center",
-				justifyContent: "center",
-				cursor: "pointer",
-				fontSize: "0.875rem",
-				fontWeight: 600,
-				transition: "all 0.3s ease-in-out",
-				backgroundColor: isSelected ? "#E0F2FE" : "#F1F5F9",
-				color: isSelected ? "#0369A1" : "#64748B",
-				border: isSelected ? "none" : "1px solid rgba(0, 0, 0, 0.06)",
-				boxShadow: isSelected 
-					? "0 0 20px rgba(224, 242, 254, 0.8), 0 0 35px rgba(186, 230, 253, 0.5), 0 4px 12px rgba(186, 230, 253, 0.4)" 
-					: "none",
-				"&:hover": {
-					transform: "scale(1.08)",
-					boxShadow: isSelected 
-						? "0 0 25px rgba(224, 242, 254, 0.9), 0 0 45px rgba(186, 230, 253, 0.6), 0 6px 16px rgba(186, 230, 253, 0.5)" 
+	({ day, isSelected, onClick }) => {
+		const theme = useTheme();
+		return (
+			<Box
+				onClick={onClick}
+				sx={{
+					width: 40,
+					height: 40,
+					borderRadius: "50%",
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+					cursor: "pointer",
+					fontSize: "0.875rem",
+					fontWeight: 600,
+					transition: "all 0.3s ease-in-out",
+					backgroundColor: isSelected ? alpha(theme.palette.info.main, 1) : theme.palette.background.default,
+					color: isSelected ? theme.palette.info.contrastText : theme.palette.text.secondary,
+					border: isSelected ? "none" : `1px solid ${alpha(theme.palette.common.black, 0.06)}`,
+					boxShadow: isSelected
+						? `0 0 20px ${alpha(theme.palette.info.main, 0.8)}, 0 0 35px ${alpha(theme.palette.info.light, 0.5)}, 0 4px 12px ${alpha(theme.palette.info.light, 0.4)}`
 						: "none",
-				},
-			}}
-		>
-			{day.label}
-		</Box>
-	)
+					"&:hover": {
+						transform: "scale(1.08)",
+						boxShadow: isSelected
+							? `0 0 25px ${alpha(theme.palette.info.main, 0.9)}, 0 0 45px ${alpha(theme.palette.info.light, 0.6)}, 0 6px 16px ${alpha(theme.palette.info.light, 0.5)}`
+							: "none",
+					},
+				}}
+			>
+				{day.label}
+			</Box>
+		);
+	}
 );
 
 DayButton.displayName = "DayButton";
@@ -61,9 +65,10 @@ interface FrequencySelectorProps {
 }
 
 export const FrequencySelector = memo<FrequencySelectorProps>(({ formMethods }) => {
+	const theme = useTheme();
 	return (
 		<Stack direction="column" gap={1} sx={{ m: 0, mt: 0 }}>
-			<Typography variant="body2" sx={{ color: "#64748B", fontSize: "0.875rem", fontWeight: 500 }}>
+			<Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontSize: "0.875rem", fontWeight: 500 }}>
 				Frequency
 			</Typography>
 			<Controller
@@ -138,17 +143,14 @@ export const FrequencySelector = memo<FrequencySelectorProps>(({ formMethods }) 
 									sx={{
 										px: 1.25,
 										py: 0.4,
-										borderRadius: "12px",
+										borderRadius: 1.5,
 										cursor: "pointer",
 										fontSize: "0.7rem",
 										fontWeight: 500,
-										backgroundColor: isDaily ? "#E0F2FE" : "#F8FAFC",
-										color: isDaily ? "#0369A1" : "#64748B",
-										border: `1px solid ${isDaily ? "#BAE6FD" : "rgba(0, 0, 0, 0.06)"}`,
-										transition: "all 0.2s ease-in-out",
-										"&:hover": {
-											backgroundColor: isDaily ? "#E0F2FE" : "#F1F5F9",
-										},
+										backgroundColor: isDaily ? alpha(theme.palette.info.main, 0.75) : theme.palette.background.default,
+										color: isDaily ? theme.palette.info.contrastText : theme.palette.text.secondary,
+										border: `1px solid ${isDaily ? alpha(theme.palette.info.light, 0.6) : alpha(theme.palette.common.black, 0.06)}`,
+										transition: "all 0.2s ease-in-out"
 									}}
 								>
 									Daily
@@ -158,17 +160,14 @@ export const FrequencySelector = memo<FrequencySelectorProps>(({ formMethods }) 
 									sx={{
 										px: 1.25,
 										py: 0.4,
-										borderRadius: "12px",
+										borderRadius: 1.5,
 										cursor: "pointer",
 										fontSize: "0.7rem",
 										fontWeight: 500,
-										backgroundColor: isAlternate ? "#E0F2FE" : "#F8FAFC",
-										color: isAlternate ? "#0369A1" : "#64748B",
-										border: `1px solid ${isAlternate ? "#BAE6FD" : "rgba(0, 0, 0, 0.06)"}`,
-										transition: "all 0.2s ease-in-out",
-										"&:hover": {
-											backgroundColor: isAlternate ? "#E0F2FE" : "#F1F5F9",
-										},
+										backgroundColor: isAlternate ? alpha(theme.palette.info.main, 0.75) : theme.palette.background.default,
+										color: isAlternate ? theme.palette.info.contrastText : theme.palette.text.secondary,
+										border: `1px solid ${isAlternate ? alpha(theme.palette.info.light, 0.6) : alpha(theme.palette.common.black, 0.06)}`,
+										transition: "all 0.2s ease-in-out"
 									}}
 								>
 									Alternate
@@ -178,17 +177,14 @@ export const FrequencySelector = memo<FrequencySelectorProps>(({ formMethods }) 
 									sx={{
 										px: 1.25,
 										py: 0.4,
-										borderRadius: "12px",
+										borderRadius: 1.5,
 										cursor: "pointer",
 										fontSize: "0.7rem",
 										fontWeight: 500,
-										backgroundColor: isWeekdays ? "#E0F2FE" : "#F8FAFC",
-										color: isWeekdays ? "#0369A1" : "#64748B",
-										border: `1px solid ${isWeekdays ? "#BAE6FD" : "rgba(0, 0, 0, 0.06)"}`,
-										transition: "all 0.2s ease-in-out",
-										"&:hover": {
-											backgroundColor: isWeekdays ? "#E0F2FE" : "#F1F5F9",
-										},
+										backgroundColor: isWeekdays ? alpha(theme.palette.info.main, 0.75) : theme.palette.background.default,
+										color: isWeekdays ? theme.palette.info.contrastText : theme.palette.text.secondary,
+										border: `1px solid ${isWeekdays ? alpha(theme.palette.info.light, 0.6) : alpha(theme.palette.common.black, 0.06)}`,
+										transition: "all 0.2s ease-in-out"
 									}}
 								>
 									Weekdays
@@ -198,24 +194,21 @@ export const FrequencySelector = memo<FrequencySelectorProps>(({ formMethods }) 
 									sx={{
 										px: 1.25,
 										py: 0.4,
-										borderRadius: "12px",
+										borderRadius: 1.5,
 										cursor: "pointer",
 										fontSize: "0.7rem",
 										fontWeight: 500,
-										backgroundColor: isWeekend ? "#E0F2FE" : "#F8FAFC",
-										color: isWeekend ? "#0369A1" : "#64748B",
-										border: `1px solid ${isWeekend ? "#BAE6FD" : "rgba(0, 0, 0, 0.06)"}`,
-										transition: "all 0.2s ease-in-out",
-										"&:hover": {
-											backgroundColor: isWeekend ? "#E0F2FE" : "#F1F5F9",
-										},
+										backgroundColor: isWeekend ? alpha(theme.palette.info.main, 0.75) : theme.palette.background.default,
+										color: isWeekend ? theme.palette.info.contrastText : theme.palette.text.secondary,
+										border: `1px solid ${isWeekend ? alpha(theme.palette.info.light, 0.6) : alpha(theme.palette.common.black, 0.06)}`,
+										transition: "all 0.2s ease-in-out"
 									}}
 								>
 									Weekends
 								</Box>
 							</Stack>
 							{error && (
-								<Typography sx={{ fontSize: "0.75rem", color: "#EF4444", mt: 0.75, ml: 1.75 }}>
+								<Typography sx={{ fontSize: "0.75rem", color: theme.palette.error.main, mt: 0.75, ml: 1.75 }}>
 									{error.message}
 								</Typography>
 							)}

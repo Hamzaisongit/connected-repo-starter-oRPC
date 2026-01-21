@@ -7,10 +7,12 @@ import { ToggleButton } from "@connected-repo/ui-mui/form/ToggleButton";
 import { ToggleButtonGroup } from "@connected-repo/ui-mui/form/ToggleButtonGroup";
 import { AddIcon } from "@connected-repo/ui-mui/icons/AddIcon";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
+import { Card } from "@connected-repo/ui-mui/layout/Card"
 import { Container } from "@connected-repo/ui-mui/layout/Container";
 import { UserStackEmptyState } from "@frontend/modules/user-stack/components/UserStackEmptyState";
 import { orpc } from "@frontend/utils/orpc.client";
 import { getStockIconAndColor } from "@frontend/utils/supplement.utils";
+import { alpha, useTheme } from "@mui/material/styles";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -34,6 +36,8 @@ export default function UserStackPage() {
 	const [searchParams] = useSearchParams();
 	const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 	const highlightedStackId = searchParams.get("highlight");
+
+	const theme = useTheme();
 
 	const queryClient = useQueryClient();
 	const { data: userStacks, isLoading, error } = useQuery(orpc.userStacks.getAll.queryOptions());
@@ -103,317 +107,273 @@ export default function UserStackPage() {
 		);
 	}
 
-	return (
-		<Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 }, pb: 12 }}> {/* Reasonable bottom padding */}
-			{/* Background Shape */}
-			<Box
-				sx={{
-					position: "absolute",
-					top: 0,
-					left: 0,
-					right: 0,
-					height: "300px",
-					background: "radial-gradient(ellipse 80% 50% at 20% 30%, rgba(173, 216, 230, 0.3) 0%, rgba(221, 160, 221, 0.2) 50%, transparent 100%)",
-					filter: "blur(40px)",
-					zIndex: -1,
-					borderRadius: "0 0 50% 50%",
-				}}
-			/>
+    return (
+        <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 }, pb: 12, minHeight: "100vh", position: "relative", overflow: "hidden" }}>
+            {/* Background Shape - Theme Aware */}
+            <Box
+                sx={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: "300px",
+                    // Dynamic gradient using theme primary/secondary colors
+                    background: `radial-gradient(ellipse 80% 50% at 20% 30%, ${alpha(theme.palette.secondary.main, 0.15)} 0%, ${alpha(theme.palette.primary.main, 0.1)} 50%, transparent 100%)`,
+                    filter: "blur(40px)",
+                    zIndex: -1,
+                    borderRadius: "0 0 50% 50%",
+                }}
+            />
 
-			{/* Header */}
-			<Box sx={{ mb: 3, textAlign: "center" }}>
-				<Typography
-					variant="h4"
-					component="h1"
-					sx={{
-						fontFamily: '"Playfair Display", Georgia, serif',
-						fontSize: "1.75rem",
-						fontWeight: 700,
-						color: "#1A1C2E",
-						mb: 0.5,
-					}}
-				>
-					My Stack
-				</Typography>
-				<Typography
-					sx={{
-						fontSize: "0.875rem",
-						color: "#64748B",
-						lineHeight: 1.5,
-					}}
-				>
-					Manage your supplements.
-				</Typography>
-			</Box>
+            {/* Header */}
+            <Box sx={{ mb: 3, textAlign: "center" }}>
+                <Typography
+                    variant="h4"
+                    component="h1"
+                    sx={{
+                        fontFamily: 'serif',
+                        fontSize: "1.75rem",
+                        fontWeight: 700,
+                        color: "text.primary",
+                        mb: 0.5,
+                    }}
+                >
+                    My Stack
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    Manage your supplements.
+                </Typography>
+            </Box>
 
-			{/* Filters */}
-			<Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
-				<ToggleButtonGroup
-					value={statusFilter}
-					exclusive
-					onChange={handleStatusFilterChange}
-					aria-label="status filter"
-					sx={{
-						backgroundColor: "rgba(255, 255, 255, 0.8)",
-						borderRadius: "24px",
-						boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.1)",
-						p: 0.25,
-						"& .MuiToggleButton-root": {
-							borderRadius: "20px",
-							border: "none",
-							color: "#666666",
-							textTransform: "none",
-							fontWeight: 500,
-							fontSize: "0.75rem",
-							px: 2,
-							py: 1,
-							minWidth: "auto",
-							flex: 1,
-							transition: "all 0.2s ease",
-							"&.Mui-selected": {
-								backgroundColor: "#1A1C2E",
-								color: "#ffffff",
-								"&:hover": {
-									backgroundColor: "#2D3047",
-								},
-							},
-							"&:hover": {
-								backgroundColor: "rgba(0, 0, 0, 0.05)",
-							},
-						},
-					}}
-				>
-					<ToggleButton value="all">All</ToggleButton>
-					<ToggleButton value="active">Active</ToggleButton>
-					<ToggleButton value="inactive">Inactive</ToggleButton>
-				</ToggleButtonGroup>
-			</Box>
+            {/* Filters */}
+            <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
+                <ToggleButtonGroup
+                    value={statusFilter}
+                    exclusive
+                    onChange={handleStatusFilterChange}
+                    aria-label="status filter"
+                    sx={{
+                        backgroundColor: alpha(theme.palette.background.paper, 0.8),
+                        borderRadius: "24px",
+                        boxShadow: theme.shadows[1],
+                        p: 0.25,
+                        "& .MuiToggleButton-root": {
+                            borderRadius: "20px",
+                            border: "none",
+                            color: "text.secondary",
+                            textTransform: "none",
+                            fontWeight: 500,
+                            fontSize: "0.75rem",
+                            px: 2,
+                            py: 1,
+                            minWidth: "auto",
+                            flex: 1,
+                            transition: "all 0.2s ease",
+                            "&.Mui-selected": {
+                                backgroundColor: "primary.main",
+                                color: "primary.contrastText",
+                            }
+                        },
+                    }}
+                >
+                    <ToggleButton value="all">All</ToggleButton>
+                    <ToggleButton value="active">Active</ToggleButton>
+                    <ToggleButton value="inactive">Inactive</ToggleButton>
+                </ToggleButtonGroup>
+            </Box>
 
-			{/* Uniform Stack Gallery */}
-			<Box
-				sx={{
-					display: "grid",
-					gridTemplateColumns: {
-						xs: "1fr",
-						sm: "repeat(2, 1fr)",
-						md: "repeat(3, 1fr)",
-					},
-					gap: 3,
-				}}
-			>
-				{filteredStacks.map((stack) => {
-					const isInactive = !stack.isActive;
-					const isHighlighted = stack.id === highlightedStackId;
-					const stockIconData = getStockIconAndColor(stack.name);
-					return (
-						<motion.div
-							key={stack.id}
-							id={`stack-${stack.id}`}
-							initial={isHighlighted ? { scale: 0.95, opacity: 0.8 } : { scale: 1, opacity: 1 }}
-							animate={isHighlighted ? { scale: 1, opacity: 1 } : { scale: 1, opacity: 1 }}
-							transition={{ duration: 0.6, ease: "easeOut" }}
-						>
-							<Box
-								sx={{
-									position: "relative",
-								}}
-							>
-							{/* 3D Overlapping Circular Image with Themed Background - Positioned outside card */}
-							<Box
-								sx={{
-									position: "absolute",
-									top: -15,
-									left: 35,
-									width: 70,
-									height: 70,
-									borderRadius: "50%",
-									backgroundColor: stockIconData.bgColor,
-									border: "4px solid rgba(255, 255, 255, 0.9)",
-									display: "flex",
-									alignItems: "center",
-									justifyContent: "center",
-									fontSize: "2rem",
-									boxShadow: "0px 6px 20px rgba(0, 0, 0, 0.2)",
-									zIndex: 3,
-									transition: "all 0.3s ease-in-out",
-								}}
-							>
-								{stockIconData.icon}
-							</Box>
+            {/* Uniform Stack Gallery */}
+            <Box
+                sx={{
+                    display: "grid",
+                    gridTemplateColumns: {
+                        xs: "1fr",
+                        sm: "repeat(2, 1fr)",
+                        md: "repeat(3, 1fr)",
+                    },
+                    gap: 3,
+                }}
+            >
+                {filteredStacks.map((stack) => {
+                    const isInactive = !stack.isActive;
+                    const isHighlighted = stack.id === highlightedStackId;
+                    const stockIconData = getStockIconAndColor(stack.name);
+                    
+                    return (
+                        <motion.div
+                            key={stack.id}
+                            id={`stack-${stack.id}`}
+                            initial={isHighlighted ? { scale: 0.95, opacity: 0.8 } : { scale: 1, opacity: 1 }}
+                            animate={isHighlighted ? { scale: 1, opacity: 1 } : { scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.6, ease: "easeOut" }}
+                        >
+                            <Box sx={{ position: "relative", mt: 2 }}> {/* Margin top for the overlapping icon */}
+                                
+                                {/* 3D Overlapping Circular Image */}
+                                <Box
+                                    sx={{
+                                        position: "absolute",
+                                        top: -35,
+                                        left: 35,
+                                        width: 70,
+                                        height: 70,
+                                        borderRadius: "50%",
+                                        backgroundColor: stockIconData.bgColor,
+                                        border: "4px solid",
+                                        borderColor: "background.paper", // Seamless blend with card bg
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        fontSize: "2rem",
+                                        boxShadow: (theme) => theme.shadows[3],
+                                        zIndex: 3,
+                                    }}
+                                >
+                                    {stockIconData.icon}
+                                </Box>
 
-							<Box
-								onClick={() => handleStackClick(stack.id)}
-								sx={{
-									borderRadius: "32px", // Larger radius for premium feel
-									backgroundColor: isHighlighted ? "rgba(255, 255, 255, 0.8)" : "rgba(255, 255, 255, 0.5)", // Highlighted cards are more opaque
-									backdropFilter: "blur(15px)",
-									WebkitBackdropFilter: "blur(15px)",
-									boxShadow: isHighlighted
-										? "0px 12px 40px rgba(26, 28, 46, 0.3), 0px 0px 20px rgba(135, 206, 235, 0.4)" // Special glow for highlighted
-										: "0px 8px 32px rgba(0, 0, 0, 0.1)",
-									p: 3,
-									height: "100%",
-									cursor: "pointer",
-									transition: "all 0.3s ease-in-out",
-									filter: isInactive ? "grayscale(0.6)" : "none",
-									opacity: isInactive ? 0.4 : 1, // More pronounced inactive state
-									position: "relative",
-									border: isHighlighted ? "2px solid rgba(26, 28, 46, 0.2)" : "none", // Subtle border for highlighted
-									"&:hover": {
-										transform: "translateY(-5px) scale(1.02)", // More pronounced lift
-										boxShadow: "0px 16px 48px rgba(0, 0, 0, 0.15)",
-									},
-								}}
-							>
+                                {/* Main Card Area */}
+                                <Card
+                                    onClick={() => handleStackClick(stack.id)}
+                                    sx={{
+                                        height: "100%",
+                                        cursor: "pointer",
+                                        position: "relative",
+                                        overflow: "visible", // Allow icon overlap
+                                        transition: "all 0.3s ease-in-out",
+                                        p: 3,
+                                        pt: 5, // Extra padding top to clear the icon
+                                        
+                                        // Highlight Logic
+                                        border: isHighlighted ? "2px solid" : "1px solid",
+                                        borderColor: isHighlighted ? alpha(theme.palette.primary.main, 0.5) : "divider",
+                                        boxShadow: isHighlighted ? (theme) => `0px 12px 40px ${alpha(theme.palette.primary.main, 0.15)}` : undefined,
+                                        
+                                        // Inactive Logic
+                                        filter: isInactive ? "grayscale(1)" : "none",
+                                        opacity: isInactive ? 0.6 : 1,
 
-								{/* Active/Inactive Toggle Switch */}
-								<Box
-									sx={{
-										position: "absolute",
-										top: 20,
-										right: 20,
-										zIndex: 3, // Higher z-index to ensure it's above card
-									}}
-									onClick={(event) => {
-										event.stopPropagation();
-										event.preventDefault();
-										handleToggleActive(stack.id, stack.isActive);
-									}}
-									onMouseDown={(event) => {
-										event.stopPropagation();
-									}}
-									onMouseUp={(event) => {
-										event.stopPropagation();
-									}}
-								>
-									<Switch
-										checked={stack.isActive}
-										disabled={updateStackMutation.isPending}
-										sx={{
-											"& .MuiSwitch-switchBase.Mui-checked": {
-												color: "#4CAF50",
-												"&:hover": {
-													backgroundColor: "rgba(76, 175, 80, 0.08)",
-												},
-											},
-											"& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-												backgroundColor: "#4CAF50",
-											},
-											"& .MuiSwitch-track": {
-												backgroundColor: "#9E9E9E",
-											},
-											pointerEvents: "none", // Disable pointer events on switch itself
-										}}
-									/>
-								</Box>
+                                        "&:hover": {
+                                            transform: "translateY(-5px)",
+                                            boxShadow: (theme) => theme.shadows[8],
+                                        },
+                                    }}
+                                >
+                                    {/* Active/Inactive Toggle Switch */}
+                                    <Box
+                                        sx={{
+                                            position: "absolute",
+                                            top: 20,
+                                            right: 20,
+                                            zIndex: 3,
+                                        }}
+                                        onClick={(e) => e.stopPropagation()}
+                                        onMouseDown={(e) => e.stopPropagation()}
+                                    >
+                                        <Switch
+                                            checked={stack.isActive}
+                                            onChange={() => handleToggleActive(stack.id, stack.isActive)}
+                                            disabled={updateStackMutation.isPending}
+                                            color="success"
+                                        />
+                                    </Box>
 
-								{/* Content Area */}
-								<Box sx={{ pt: 5 }}> {/* Standard padding for uniform cards */}
-									{/* Line 1: Supplement Name (Bold Serif) */}
-									<Typography
-										sx={{
-											fontFamily: '"Playfair Display", Georgia, serif',
-											fontWeight: 700,
-											fontSize: "1.4rem",
-											color: "#000000",
-											mb: 1.5,
-											lineHeight: 1.2,
-										}}
-									>
-										{stack.name}
-									</Typography>
+                                    {/* Content Area */}
+                                    <Box>
+                                        {/* Supplement Name */}
+                                        <Typography
+                                            variant="h6"
+                                            sx={{
+                                                fontFamily: 'serif',
+                                                fontWeight: 700,
+                                                lineHeight: 1.2,
+                                                mb: 1.5,
+                                                pr: 4, // Space for toggle
+                                            }}
+                                        >
+                                            {stack.name}
+                                        </Typography>
 
-									{/* Line 2: Dosage */}
-									<Typography
-										sx={{
-											fontSize: "1.1rem",
-											fontWeight: 600,
-											color: "#333333",
-											mb: 1.5,
-										}}
-									>
-										{stack.dosage} {stack.unit}
-									</Typography>
+                                        {/* Dosage */}
+                                        <Typography
+                                            variant="body1"
+                                            sx={{
+                                                fontWeight: 600,
+                                                color: "text.primary",
+                                                mb: 1.5,
+                                            }}
+                                        >
+                                            {stack.dosage} {stack.unit}
+                                        </Typography>
 
-									{/* Line 3: Frequency with days and times */}
-									<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-										<span style={{ fontSize: "1.1rem" }}>
-											{stack.reminderDays.length === 7 ? "📅" : "⏰"}
-										</span>
-										<Typography
-											sx={{
-												fontSize: "1rem",
-												color: "#666666",
-												fontWeight: 500,
-											}}
-										>
-											{stack.reminderDays.length === 7
-												? `Daily • ${stack.reminderTime.slice(0, 5)}`
-												: `${formatDaysShort(stack.reminderDays)} • ${stack.reminderTime.slice(0, 5)}`}
-										</Typography>
-									</Box>
+                                        {/* Frequency Line */}
+                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                            <Typography sx={{ fontSize: "1.1rem" }}>
+                                                {stack.reminderDays.length === 7 ? "📅" : "⏰"}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                                                {stack.reminderDays.length === 7
+                                                    ? `Daily • ${stack.reminderTime.slice(0, 5)}`
+                                                    : `${formatDaysShort(stack.reminderDays)} • ${stack.reminderTime.slice(0, 5)}`}
+                                            </Typography>
+                                        </Box>
 
-									{/* Tap indicator */}
-									<Box
-										sx={{
-											position: "absolute",
-											bottom: 16,
-											right: 16,
-											display: "flex",
-											alignItems: "center",
-											gap: 0.5,
-											opacity: 0.7,
-										}}
-									>
-										<Typography
-											sx={{
-												fontSize: "0.75rem",
-												color: "#666666",
-												fontWeight: 500,
-											}}
-										>
-											View
-										</Typography>
-										<span style={{ fontSize: "0.875rem", color: "#666666" }}>→</span>
-									</Box>
-								</Box>
-							</Box>
-						</Box>
-						</motion.div>
-					);
-				})}
-			</Box>
+                                        {/* View Indicator */}
+                                        <Box
+                                            sx={{
+                                                position: "absolute",
+                                                bottom: 16,
+                                                right: 16,
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 0.5,
+                                                opacity: 0.7,
+                                            }}
+                                        >
+                                            <Typography variant="caption" fontWeight={600} color="text.secondary">
+                                                View
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">→</Typography>
+                                        </Box>
+                                    </Box>
+                                </Card>
+                            </Box>
+                        </motion.div>
+                    );
+                })}
+            </Box>
 
-			{/* Floating Action Button with Soft Glow */}
-			<motion.div
-				whileHover={{ y: -2, scale: 1.05 }}
-				whileTap={{ scale: 0.95 }}
-				style={{
-					position: "fixed",
-					bottom: 100,
-					right: 24,
-					zIndex: 1000,
-				}}
-			>
-				<Button
-					onClick={() => navigate("/user-stack/new")}
-					sx={{
-						width: 64,
-						height: 64,
-						borderRadius: "50%",
-						background: "linear-gradient(135deg, #1A1C2E 0%, #2D3154 100%)",
-						color: "#ffffff",
-						boxShadow: "0px 8px 32px rgba(26, 28, 46, 0.4), 0px 0px 24px rgba(135, 206, 235, 0.3)",
-						"&:hover": {
-							background: "linear-gradient(135deg, #2D3047 0%, #3D4166 100%)",
-							boxShadow: "0px 12px 48px rgba(26, 28, 46, 0.6), 0px 0px 32px rgba(135, 206, 235, 0.5)",
-						},
-						transition: "all 0.3s ease",
-					}}
-				>
-					<AddIcon sx={{ fontSize: 28 }} />
-				</Button>
-			</motion.div>
-		</Container>
-	);
+            {/* Floating Action Button */}
+            <motion.div
+                whileHover={{ y: -2, scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                style={{
+                    position: "fixed",
+                    bottom: 110, 
+                    right: 24,
+                    zIndex: 1000,
+                }}
+            >
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => navigate("/user-stack/new")}
+                    sx={{
+                        width: 64,
+                        height: 64,
+                        borderRadius: "50%",
+                        minWidth: 64,
+                        p: 0,
+                        // Custom shadow using primary color for glow
+                        boxShadow: (theme) => `0px 8px 32px ${alpha(theme.palette.primary.main, 0.4)}`,
+                        "&:hover": {
+                            boxShadow: (theme) => `0px 12px 48px ${alpha(theme.palette.primary.main, 0.6)}`,
+                        },
+                    }}
+                >
+                    <AddIcon sx={{ fontSize: 28 }} />
+                </Button>
+            </motion.div>
+        </Container>
+    );
 }

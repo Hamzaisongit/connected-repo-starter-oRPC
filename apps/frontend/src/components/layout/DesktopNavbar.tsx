@@ -5,8 +5,9 @@ import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { AppBar } from "@connected-repo/ui-mui/navigation/AppBar";
 import { IconButton } from "@connected-repo/ui-mui/navigation/IconButton";
 import { Toolbar } from "@connected-repo/ui-mui/navigation/Toolbar";
-import type { SessionInfo } from "@frontend/contexts/UserContext";
 import { navItems } from "@frontend/config/nav.config";
+import type { SessionInfo } from "@frontend/contexts/UserContext";
+import { useTheme } from "@mui/material/styles";
 import { useLoaderData, useLocation, useNavigate } from "react-router";
 
 /**
@@ -16,6 +17,7 @@ const ProfileAvatar = () => {
 	const navigate = useNavigate();
 	const sessionInfo = useLoaderData() as SessionInfo | undefined;
 	const user = sessionInfo?.user;
+	const theme = useTheme();
 
 	return (
 		<IconButton
@@ -36,12 +38,12 @@ const ProfileAvatar = () => {
 					width: 40,
 					height: 40,
 					border: "2px solid",
-					borderColor: "#ffffff",
-					background: user?.image ? "transparent" : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-					boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
+					borderColor: theme.palette.divider,
+					background: user?.image ? "transparent" : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+					boxShadow: theme.shadows[2],
 					transition: "all 0.2s ease-in-out",
 					"&:hover": {
-						boxShadow: "0px 6px 16px rgba(0, 0, 0, 0.12)",
+						boxShadow: theme.shadows[3],
 					},
 				}}
 			>
@@ -63,6 +65,7 @@ const ProfileAvatar = () => {
 export const DesktopNavbar = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
+	const theme = useTheme();
 
 	const isActive = (path: string) => location.pathname === path;
 

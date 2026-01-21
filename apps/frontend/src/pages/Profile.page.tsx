@@ -23,10 +23,11 @@ import { Divider } from "@connected-repo/ui-mui/layout/Divider";
 import { Paper } from "@connected-repo/ui-mui/layout/Paper";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
 import { useThemeMode } from "@connected-repo/ui-mui/theme/ThemeContext";
-import { SessionInfo } from "@frontend/contexts/UserContext";
+import type { SessionInfo } from "@frontend/contexts/UserContext";
 import { authClient } from "@frontend/utils/auth.client";
 import { orpc } from "@frontend/utils/orpc.client";
 import { logSessionEvent, logSessionException } from "@frontend/utils/session-logger.utils";
+import { alpha, useTheme } from "@mui/material/styles";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -39,6 +40,7 @@ const ProfilePage = () => {
 	const { mode, setThemeMode } = useThemeMode();
 	const queryClient = useQueryClient();
 	const revalidator = useRevalidator();
+	const theme = useTheme();
 
 	// Dialog states
 	const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
@@ -110,25 +112,25 @@ const ProfilePage = () => {
 	const getThemeDisplay = () => {
 		if (mode === "light") {
 			return {
-				icon: <DarkModeIcon sx={{ color: "#667eea", fontSize: "1.5rem" }} />,
+				icon: <DarkModeIcon sx={{ color: theme.palette.secondary.contrastText, fontSize: "1.5rem" }} />,
 				title: "Switch to Dark Mode",
 				subtitle: "Currently using light theme",
-				bgColor: "rgba(102, 126, 234, 0.1)",
+				bgColor: alpha(theme.palette.background.paper, 0.5),
 			};
 		}
 		if (mode === "dark") {
 			return {
-				icon: <SettingsIcon sx={{ color: "#667eea", fontSize: "1.5rem" }} />,
+				icon: <SettingsIcon sx={{ color: theme.palette.secondary.contrastText, fontSize: "1.5rem" }} />,
 				title: "Switch to System Mode",
 				subtitle: "Currently using dark theme",
-				bgColor: "rgba(102, 126, 234, 0.1)",
+				bgColor: alpha(theme.palette.background.paper, 0.5),
 			};
 		}
 		return {
-			icon: <LightModeIcon sx={{ color: "#FFC107", fontSize: "1.5rem" }} />,
+			icon: <LightModeIcon sx={{ color: theme.palette.secondary.contrastText, fontSize: "1.5rem" }} />,
 			title: "Switch to Light Mode",
 			subtitle: "Currently using system theme",
-			bgColor: "rgba(255, 193, 7, 0.1)",
+			bgColor: alpha(theme.palette.background.paper, 0.5),
 		};
 	};
 
@@ -157,7 +159,7 @@ const ProfilePage = () => {
 		<Box
 			sx={{
 				py: { xs: 2, md: 3 },
-				background: "linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%)",
+				background: `linear-gradient(180deg, ${theme.palette.background.default} 0%, ${theme.palette.mode === 'light' ? '#E2E8F0' : '#1a1a1a'} 100%)`,
 				minHeight: "100vh",
 			}}
 		>
@@ -171,7 +173,7 @@ const ProfilePage = () => {
 								sx={{
 									fontFamily: '"Playfair Display", Georgia, serif',
 									fontWeight: 700,
-									color: "#000000",
+									color: theme.palette.text.primary,
 									mb: 1,
 									fontSize: { xs: "1.75rem", md: "2.125rem" },
 								}}
@@ -181,7 +183,7 @@ const ProfilePage = () => {
 							<Typography
 								variant="body1"
 								sx={{
-									color: "#666666",
+									color: theme.palette.text.secondary,
 									fontSize: "1rem",
 								}}
 							>
@@ -198,10 +200,10 @@ const ProfilePage = () => {
 							<Paper
 								sx={{
 									borderRadius: "32px",
-									backgroundColor: "rgba(255, 255, 255, 0.95)",
+									backgroundColor: alpha(theme.palette.background.paper, 0.95),
 									backdropFilter: "blur(10px)",
 									WebkitBackdropFilter: "blur(10px)",
-									boxShadow: "0px 4px 24px rgba(0, 0, 0, 0.08)",
+									boxShadow: theme.shadows[4],
 									p: { xs: 3, md: 4 },
 									mb: 3,
 								}}
@@ -217,11 +219,11 @@ const ProfilePage = () => {
 											mx: "auto",
 											mb: 2,
 											border: "4px solid",
-											borderColor: "#ffffff",
+											borderColor: theme.palette.divider,
 											background: user.image
 												? "transparent"
-												: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-											boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.12)",
+												: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+											boxShadow: theme.shadows[4],
 											fontSize: "2.5rem",
 											fontWeight: 600,
 										}}
@@ -233,7 +235,7 @@ const ProfilePage = () => {
 										sx={{
 											fontFamily: '"Playfair Display", Georgia, serif',
 											fontWeight: 600,
-											color: "#000000",
+											color: theme.palette.text.primary,
 											mb: 0.5,
 										}}
 									>
@@ -242,7 +244,7 @@ const ProfilePage = () => {
 									<Typography
 										variant="body2"
 										sx={{
-											color: "#666666",
+											color: theme.palette.text.secondary,
 											fontSize: "0.95rem",
 										}}
 									>
@@ -258,7 +260,7 @@ const ProfilePage = () => {
 										<Typography
 											variant="subtitle2"
 											sx={{
-												color: "#000000",
+												color: theme.palette.text.primary,
 												fontWeight: 600,
 												mb: 2,
 												fontSize: "1rem",
@@ -276,10 +278,10 @@ const ProfilePage = () => {
 												py: 1.5,
 												px: 2,
 												mt: 1.5,
-												borderRadius: "12px",
+												borderRadius: 1.5,
 												backgroundColor: user.emailVerified
-													? "rgba(16, 185, 129, 0.05)"
-													: "rgba(239, 68, 68, 0.05)",
+													? alpha(theme.palette.success.main, 0.2)
+													: alpha(theme.palette.error.main, 0.2),
 											}}
 										>
 											<Box
@@ -289,10 +291,10 @@ const ProfilePage = () => {
 													justifyContent: "center",
 													width: 40,
 													height: 40,
-													borderRadius: "12px",
+													borderRadius: 1.5,
 													backgroundColor: user.emailVerified
-														? "rgba(16, 185, 129, 0.1)"
-														: "rgba(239, 68, 68, 0.1)",
+														? alpha(theme.palette.success.main, 0.5)
+														: alpha(theme.palette.error.main, 0.5),
 												}}
 											>
 												<Box
@@ -307,7 +309,7 @@ const ProfilePage = () => {
 												<Typography
 													variant="caption"
 													sx={{
-														color: "#666666",
+														color: theme.palette.text.secondary,
 														fontSize: "0.75rem",
 														display: "block",
 														mb: 0.25,
@@ -318,7 +320,7 @@ const ProfilePage = () => {
 												<Typography
 													variant="body2"
 													sx={{
-														color: user.emailVerified ? "#10B981" : "#EF4444",
+														color: user.emailVerified ? theme.palette.success.main : theme.palette.error.main,
 														fontWeight: 500,
 														fontSize: "0.95rem",
 													}}
@@ -337,8 +339,8 @@ const ProfilePage = () => {
 												py: 1.5,
 												px: 2,
 												mt: 1.5,
-												borderRadius: "12px",
-												backgroundColor: "rgba(102, 126, 234, 0.05)",
+												borderRadius: 1.5,
+												backgroundColor: alpha(theme.palette.secondary.light, 0.2)
 											}}
 										>
 											<Box
@@ -348,17 +350,17 @@ const ProfilePage = () => {
 													justifyContent: "center",
 													width: 40,
 													height: 40,
-													borderRadius: "12px",
-													backgroundColor: "rgba(102, 126, 234, 0.1)",
+													borderRadius: 1.5,
+													backgroundColor: alpha(theme.palette.background.paper, 0.5),
 												}}
 											>
-												<CalendarTodayIcon sx={{ color: "#667eea", fontSize: "1.25rem" }} />
+												<CalendarTodayIcon sx={{ color: theme.palette.secondary.contrastText, fontSize: "1.25rem" }} />
 											</Box>
 											<Box sx={{ flex: 1 }}>
 												<Typography
 													variant="caption"
 													sx={{
-														color: "#666666",
+														color: theme.palette.text.secondary,
 														fontSize: "0.75rem",
 														display: "block",
 														mb: 0.25,
@@ -369,7 +371,7 @@ const ProfilePage = () => {
 												<Typography
 													variant="body2"
 													sx={{
-														color: "#000000",
+														color: theme.palette.text.primary,
 														fontWeight: 500,
 														fontSize: "0.95rem",
 													}}
@@ -388,8 +390,8 @@ const ProfilePage = () => {
 												py: 1.5,
 												px: 2,
 												mt: 1.5,
-												borderRadius: "12px",
-												backgroundColor: "rgba(102, 126, 234, 0.05)",
+												borderRadius: 1.5,
+												backgroundColor: alpha(theme.palette.secondary.light, 0.2),
 											}}
 										>
 											<Box
@@ -398,18 +400,18 @@ const ProfilePage = () => {
 													alignItems: "center",
 													justifyContent: "center",
 													width: 40,
-													height: 48,
-													borderRadius: "12px",
-													backgroundColor: "rgba(102, 126, 234, 0.1)",
+													height: 40,
+													borderRadius: 1.5,
+													backgroundColor: alpha(theme.palette.background.paper, 0.5),
 												}}
 											>
-												<SettingsIcon sx={{ color: "#667eea", fontSize: "1.25rem" }} />
+												<SettingsIcon sx={{ color: theme.palette.secondary.contrastText, fontSize: "1.25rem" }} />
 											</Box>
 											<Box sx={{ flex: 1 }}>
 												<Typography
 													variant="caption"
 													sx={{
-														color: "#666666",
+														color: theme.palette.text.secondary,
 														fontSize: "0.75rem",
 														display: "block",
 														mb: 0.25,
@@ -420,7 +422,7 @@ const ProfilePage = () => {
 												<Typography
 													variant="body2"
 													sx={{
-														color: "#000000",
+														color: theme.palette.text.primary,
 														fontWeight: 500,
 														fontSize: "0.95rem",
 													}}
@@ -444,7 +446,7 @@ const ProfilePage = () => {
 								<Typography
 									variant="subtitle2"
 									sx={{
-										color: "#000000",
+										color: theme.palette.text.primary,
 										fontWeight: 600,
 										mb: 2,
 										fontSize: "1rem",
@@ -462,16 +464,16 @@ const ProfilePage = () => {
 											alignItems: "center",
 											gap: 2,
 											p: 2.5,
-											borderRadius: "20px",
-											backgroundColor: "rgba(255, 255, 255, 0.8)",
+											borderRadius: 2.5,
+											backgroundColor: alpha(theme.palette.background.paper, 0.8),
 											backdropFilter: "blur(10px)",
 											WebkitBackdropFilter: "blur(10px)",
-											boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.04)",
+											boxShadow: theme.shadows[1],
 											cursor: "pointer",
 											transition: "all 0.2s ease-in-out",
 											"&:hover": {
-												backgroundColor: "rgba(255, 255, 255, 0.95)",
-												boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
+												backgroundColor: alpha(theme.palette.background.paper, 0.95),
+												boxShadow: theme.shadows[2],
 												transform: "translateY(-2px)",
 											},
 											"&:active": {
@@ -486,7 +488,7 @@ const ProfilePage = () => {
 												justifyContent: "center",
 												width: 48,
 												height: 48,
-												borderRadius: "12px",
+												borderRadius: 1.5,
 												backgroundColor: themeDisplay.bgColor,
 											}}
 										>
@@ -496,7 +498,7 @@ const ProfilePage = () => {
 											<Typography
 												variant="body2"
 												sx={{
-													color: "#000000",
+													color: theme.palette.text.primary,
 													fontWeight: 500,
 													fontSize: "1rem",
 												}}
@@ -506,7 +508,7 @@ const ProfilePage = () => {
 											<Typography
 												variant="caption"
 												sx={{
-													color: "#666666",
+													color: theme.palette.text.secondary,
 													fontSize: "0.8rem",
 												}}
 											>
@@ -523,16 +525,16 @@ const ProfilePage = () => {
 											alignItems: "center",
 											gap: 2,
 											p: 2.5,
-											borderRadius: "20px",
-											backgroundColor: "rgba(255, 255, 255, 0.8)",
+											borderRadius: 2.5,
+											backgroundColor: alpha(theme.palette.background.paper, 0.5),
 											backdropFilter: "blur(10px)",
 											WebkitBackdropFilter: "blur(10px)",
-											boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.04)",
+											boxShadow: theme.shadows[1],
 											cursor: "pointer",
 											transition: "all 0.2s ease-in-out",
 											"&:hover": {
-												backgroundColor: "rgba(255, 255, 255, 0.95)",
-												boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
+												backgroundColor: alpha(theme.palette.background.paper, 0.95),
+												boxShadow: theme.shadows[2],
 												transform: "translateY(-2px)",
 											},
 											"&:active": {
@@ -547,17 +549,17 @@ const ProfilePage = () => {
 												justifyContent: "center",
 												width: 48,
 												height: 48,
-												borderRadius: "12px",
-												backgroundColor: "rgba(102, 126, 234, 0.1)",
+												borderRadius: 1.5,
+												backgroundColor: alpha(theme.palette.background.paper, 0.5),
 											}}
 										>
-											<LogoutIcon sx={{ color: "#667eea", fontSize: "1.5rem" }} />
+											<LogoutIcon sx={{ color: theme.palette.secondary.contrastText, fontSize: "1.5rem" }} />
 										</Box>
 										<Box sx={{ flex: 1 }}>
 											<Typography
 												variant="body2"
 												sx={{
-													color: "#000000",
+													color: theme.palette.text.primary,
 													fontWeight: 500,
 													fontSize: "1rem",
 												}}
@@ -567,7 +569,7 @@ const ProfilePage = () => {
 											<Typography
 												variant="caption"
 												sx={{
-													color: "#666666",
+													color: theme.palette.text.secondary,
 													fontSize: "0.8rem",
 												}}
 											>
@@ -587,8 +589,8 @@ const ProfilePage = () => {
 								<Typography
 									variant="subtitle2"
 									sx={{
-										color: "#EF4444",
-										fontWeight: 600,
+										color: theme.palette.error.main,
+										fontWeight: 500,
 										mb: 2,
 										mt: 4,
 										fontSize: "1rem",
@@ -606,18 +608,18 @@ const ProfilePage = () => {
 											alignItems: "center",
 											gap: 2,
 											p: 2.5,
-											borderRadius: "20px",
-											backgroundColor: "rgba(255, 255, 255, 0.8)",
+											borderRadius: 2.5,
+											backgroundColor: alpha(theme.palette.background.paper, 0.8),
 											backdropFilter: "blur(10px)",
 											WebkitBackdropFilter: "blur(10px)",
-											border: "1px solid rgba(239, 68, 68, 0.2)",
-											boxShadow: "0px 2px 8px rgba(239, 68, 68, 0.08)",
+											border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`,
+											boxShadow: `0px 2px 8px ${alpha(theme.palette.error.main, 0.08)}`,
 											cursor: "pointer",
 											transition: "all 0.2s ease-in-out",
 											"&:hover": {
-												backgroundColor: "rgba(254, 242, 242, 0.95)",
-												borderColor: "rgba(239, 68, 68, 0.4)",
-												boxShadow: "0px 4px 12px rgba(239, 68, 68, 0.16)",
+												backgroundColor: alpha(theme.palette.error.light, 0.95),
+												borderColor: alpha(theme.palette.error.main, 0.4),
+												boxShadow: `0px 4px 12px ${alpha(theme.palette.error.main, 0.16)}`,
 												transform: "translateY(-2px)",
 											},
 											"&:active": {
@@ -632,17 +634,17 @@ const ProfilePage = () => {
 												justifyContent: "center",
 												width: 48,
 												height: 48,
-												borderRadius: "12px",
-												backgroundColor: "rgba(239, 68, 68, 0.1)",
+												borderRadius: 1.5,
+												backgroundColor: alpha(theme.palette.error.main, 0.1),
 											}}
 										>
-											<DeleteIcon sx={{ color: "#EF4444", fontSize: "1.5rem" }} />
+											<DeleteIcon sx={{ color: theme.palette.error.main, fontSize: "1.5rem" }} />
 										</Box>
 										<Box sx={{ flex: 1 }}>
 											<Typography
 												variant="body2"
 												sx={{
-													color: "#EF4444",
+													color: theme.palette.error.main,
 													fontWeight: 600,
 													fontSize: "1rem",
 												}}
@@ -652,7 +654,7 @@ const ProfilePage = () => {
 											<Typography
 												variant="caption"
 												sx={{
-													color: "#666666",
+													color: theme.palette.text.secondary,
 													fontSize: "0.8rem",
 												}}
 											>
@@ -687,7 +689,7 @@ const ProfilePage = () => {
 							handleLogout();
 						}}
 						sx={{
-							color: "#d32f2f",
+							color: theme.palette.error.main,
 						}}
 					>
 						Logout
@@ -730,7 +732,7 @@ const ProfilePage = () => {
 						onClick={handleDeleteAccount}
 						disabled={deleteConfirmText !== "DELETE"}
 						sx={{
-							color: "#d32f2f",
+							color: theme.palette.error.main,
 						}}
 					>
 						Delete Account

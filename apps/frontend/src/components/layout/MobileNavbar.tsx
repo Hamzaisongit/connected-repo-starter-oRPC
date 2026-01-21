@@ -4,6 +4,7 @@ import { Paper } from "@connected-repo/ui-mui/layout/Paper";
 import { IconButton } from "@connected-repo/ui-mui/navigation/IconButton";
 import { navItems } from "@frontend/config/nav.config";
 import type { SessionInfo } from "@frontend/contexts/UserContext";
+import { alpha, useTheme } from "@mui/material/styles";
 import { useLoaderData, useLocation, useNavigate } from "react-router";
 
 /**
@@ -13,6 +14,7 @@ const ProfileAvatar = () => {
 	const navigate = useNavigate();
 	const sessionInfo = useLoaderData() as SessionInfo | undefined;
 	const user = sessionInfo?.user;
+	const theme = useTheme();
 
 	return (
 		<IconButton
@@ -33,12 +35,12 @@ const ProfileAvatar = () => {
 					width: 40,
 					height: 40,
 					border: "2px solid",
-					borderColor: "#ffffff",
-					background: user?.image ? "transparent" : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-					boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
+					borderColor: theme.palette.divider,
+					background: user?.image ? "transparent" : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+					boxShadow: theme.shadows[2],
 					transition: "all 0.2s ease-in-out",
 					"&:hover": {
-						boxShadow: "0px 6px 16px rgba(0, 0, 0, 0.12)",
+						boxShadow: theme.shadows[3],
 					},
 				}}
 			>
@@ -51,8 +53,9 @@ const ProfileAvatar = () => {
 export const MobileNavbar = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
+	const theme = useTheme();
 
- 
+
   return (
 		<>
 			{/* Floating Glass Bottom Navigation - Pill Style */}
@@ -64,11 +67,11 @@ export const MobileNavbar = () => {
 					right: 16,
 					zIndex: 1000,
 					borderRadius: "100px",
-					background: "rgba(255, 255, 255, 0.7)",
+					background: alpha(theme.palette.background.paper, 0.7),
 					backdropFilter: "blur(20px)",
 					WebkitBackdropFilter: "blur(20px)", // Safari support
-					boxShadow: "0px 10px 40px rgba(0, 0, 0, 0.06)",
-					border: "1px solid rgba(255, 255, 255, 0.3)",
+					boxShadow: theme.shadows[5],
+					border: `1px solid ${alpha(theme.palette.background.paper, 0.3)}`,
 					overflow: "hidden",
 				}}
 				elevation={0}
@@ -92,7 +95,7 @@ export const MobileNavbar = () => {
 								flex: 1,
 								height: "100%",
 								cursor: "pointer",
-								color: location.pathname === item.path ? "#1A1C2E" : "#CBD5E1",
+								color: location.pathname === item.path ? theme.palette.text.primary : theme.palette.text.disabled,
 								transition: "all 0.3s ease-in-out",
 								"&:active": {
 									transform: "scale(0.95)",

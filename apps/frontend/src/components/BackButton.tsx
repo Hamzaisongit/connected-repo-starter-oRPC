@@ -1,6 +1,7 @@
 import { Button } from "@connected-repo/ui-mui/form/Button";
 import { ArrowBackIcon } from "@connected-repo/ui-mui/icons/ArrowBackIcon";
 import { IconButton } from "@connected-repo/ui-mui/navigation/IconButton";
+import { alpha, useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router";
 
 type BackButtonProps = {
@@ -39,6 +40,7 @@ type BackButtonProps = {
  */
 export const BackButton = ({ to, iconOnly = false, label, onClick, sx }: BackButtonProps) => {
 	const navigate = useNavigate();
+	const theme = useTheme();
 
 	const handleClick = () => {
 		if (onClick) {
@@ -51,11 +53,11 @@ export const BackButton = ({ to, iconOnly = false, label, onClick, sx }: BackBut
 	};
 
 	const defaultButtonSx = {
-		color: "#1A1C2E",
+		color: theme.palette.text.primary,
 		minWidth: "auto",
 		p: 1,
 		"&:hover": {
-			bgcolor: "rgba(26, 28, 46, 0.04)",
+			bgcolor: alpha(theme.palette.action.hover, 0.04),
 		},
 		...sx,
 	};

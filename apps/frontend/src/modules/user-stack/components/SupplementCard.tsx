@@ -4,6 +4,7 @@ import { Button } from "@connected-repo/ui-mui/form/Button";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import type { TodaysPlanSupplement } from "@connected-repo/zod-schemas/user_stack.zod";
 import { getStockIconAndColor } from "@frontend/utils/supplement.utils";
+import { alpha, useTheme } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 
 interface SupplementCardProps {
@@ -25,6 +26,7 @@ const normalizeStatus = (status: string): "pending" | "taken" | "missed" | "over
 };
 
 export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, isLogging }: SupplementCardProps) {
+  	const theme = useTheme();
   	const [isLoading, setIsLoading] = useState(false);
   	const [revertDialogOpen, setRevertDialogOpen] = useState(false);
   	// Optimistic status state - starts with prop value and updates immediately on user action
@@ -99,7 +101,7 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
   // Calculate status text and color with robust date handling
   const getStatusInfo = () => {
   	if (isTaken) {
-  		return { text: `🌟 Taken on time!`, color: "#4CAF50", isWin: true };
+  		return { text: `🌟 Taken on time!`, color: theme.palette.success.main, isWin: true };
   	}
 
   	// Helper function to create today's date with scheduled time
@@ -123,206 +125,216 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
 
    	const scheduledDateTime = createScheduledDateTime(supplement.reminderTime);
   	if (!scheduledDateTime) {
-  		return { text: `🕒 Check Schedule`, color: "#666666", isWin: false };
+  		return { text: `🕒 Check Schedule`, color: theme.palette.text.secondary, isWin: false };
   	}
 
   	const now = new Date();
   	const isOverdue = supplement.status === "overdue";
 
-  	if (isOverdue) {
+   	if (isOverdue) {
   		const timeDiff = now.getTime() - scheduledDateTime.getTime();
 
   		if (timeDiff < 0) {
-  			return { text: `🔔 Due Now`, color: "#FF9800", isWin: false };
+  			return { text: `🔔 Due Now`, color: theme.palette.warning.main, isWin: false };
   		}
 
   		const minutesOverdue = Math.floor(timeDiff / (1000 * 60));
   		if (minutesOverdue < 60) {
-  			return { text: `⚠️ Overdue by ${minutesOverdue} mins`, color: "#FA8072", isWin: false };
+  			return { text: `⚠️ Overdue by ${minutesOverdue} mins`, color: theme.palette.error.main, isWin: false };
   		}
   		const hoursOverdue = Math.floor(minutesOverdue / 60);
-  		return { text: `⚠️ Overdue by ${hoursOverdue}h`, color: "#FA8072", isWin: false };
+  		return { text: `⚠️ Overdue by ${hoursOverdue}h`, color: theme.palette.error.main, isWin: false };
   	}
 
   	const timeDiff = scheduledDateTime.getTime() - now.getTime();
 
-  	if (timeDiff <= 0) {
-  		return { text: `🔔 Due Now`, color: "#FF9800", isWin: false };
+   	if (timeDiff <= 0) {
+  		return { text: `🔔 Due Now`, color: theme.palette.warning.main, isWin: false };
   	}
 
   	const minutesLeft = Math.floor(timeDiff / (1000 * 60));
   	if (minutesLeft <= 60) {
-  		return { text: `🕒 Due in ${minutesLeft}m`, color: "#666666", isWin: false };
+  		return { text: `🕒 Due in ${minutesLeft}m`, color: theme.palette.text.secondary, isWin: false };
   	}
   	const hoursLeft = Math.floor(minutesLeft / 60);
-  	return { text: `🕒 Due in ${hoursLeft}h`, color: "#666666", isWin: false };
+  	return { text: `🕒 Due in ${hoursLeft}h`, color: theme.palette.text.secondary, isWin: false };
   };
 
   const statusInfo = getStatusInfo();
   const stockIconData = getStockIconAndColor(supplement.name);
 
   return (
-  		<Box
-  			sx={{
-  				display: "flex",
-  				alignItems: "center",
-  				gap: 2,
-  				py: 3,
-  				px: 1,
-  				cursor: onCardClick ? "pointer" : "default",
-  				borderRadius: 2,
-  				transition: "background-color 0.2s ease",
-  				"&:hover": onCardClick ? {
-  					backgroundColor: "rgba(0, 0, 0, 0.02)",
-  				} : {},
-  			}}
-  			onClick={() => onCardClick && onCardClick(supplement.id)}
-  		>
-  			{/* Left: Circular Thumbnail - 40px with themed background */}
-  			<Box
-  				sx={{
-  					width: 40,
-  					height: 40,
-  					borderRadius: "50%",
-  					border: "1px solid #e0e0e0",
-  					display: "flex",
-  					alignItems: "center",
-  					justifyContent: "center",
-  					backgroundColor: stockIconData.bgColor,
-  					overflow: "hidden",
-  				}}
-  			>
-  				{supplement.imageUrl ? (
-  					<img
-  						src={supplement.imageUrl}
-  						alt={supplement.name}
-  						style={{
-  							width: "100%",
-  							height: "100%",
-  							objectFit: "cover",
-  							borderRadius: "50%",
-  						}}
-  						onError={(e) => {
-  							// Fallback to emoji if image fails to load
-  							const target = e.target as HTMLImageElement;
-  							target.style.display = "none";
-  							const parent = target.parentElement;
-  							if (parent) {
-  								parent.innerHTML = `<span style="font-size: 1.2rem;">${stockIconData.icon}</span>`;
-  							}
-  						}}
-  					/>
-  				) : (
-  					<span style={{ fontSize: "1.2rem" }}>
-  						{stockIconData.icon}
-  					</span>
-  				)}
-  			</Box>
+	<Box
+		sx={{
+			display: "flex",
+			alignItems: "center",
+			gap: 2,
+			py: 2, // Adjusted padding for better density
+			px: 2,
+			cursor: onCardClick ? "pointer" : "default",
+			// Airy Compliance: Round borders for list items
+			borderRadius: "24px", 
+			transition: "all 0.2s ease",
+			"&:hover": onCardClick ? {
+				backgroundColor: alpha(theme.palette.action.hover, 0.04),
+				transform: "translateY(-1px)",
+			} : {},
+		}}
+		onClick={() => onCardClick && onCardClick(supplement.id)}
+	>
+		{/* Left: Circular Thumbnail */}
+		<Box
+			sx={{
+				width: 48,
+				height: 48,
+				borderRadius: "50%",
+				border: "1px solid",
+				borderColor: "divider",
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "center",
+				backgroundColor: stockIconData.bgColor,
+				overflow: "hidden",
+				flexShrink: 0,
+			}}
+		>
+			{supplement.imageUrl ? (
+				<img
+					src={supplement.imageUrl}
+					alt={supplement.name}
+					style={{
+						width: "100%",
+						height: "100%",
+						objectFit: "cover",
+					}}
+					onError={(e) => {
+						const target = e.target as HTMLImageElement;
+						target.style.display = "none";
+						const parent = target.parentElement;
+						if (parent) parent.innerHTML = `<span style="font-size: 1.5rem;">${stockIconData.icon}</span>`;
+					}}
+				/>
+			) : (
+				<Box sx={{ fontSize: "1.5rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
+					{stockIconData.icon}
+				</Box>
+			)}
+		</Box>
 
- 			{/* Center: 3-Line Info */}
- 			<Box sx={{ flex: 1, minWidth: 0 }}>
- 				{/* Line 1: Name - Serif font */}
- 				<Typography
- 					sx={{
- 						fontFamily: '"Playfair Display", Georgia, serif',
- 						fontWeight: 600,
- 						fontSize: "1rem",
- 						lineHeight: 1.3,
- 						color: "#000000",
- 						mb: 0.5,
- 					}}
- 				>
- 					{supplement.name}
- 				</Typography>
+		{/* Center: Info */}
+		<Box sx={{ flex: 1, minWidth: 0 }}>
+			<Typography
+				sx={{
+					fontFamily: '"Playfair Display", Georgia, serif',
+					fontWeight: 600,
+					fontSize: "1rem",
+					lineHeight: 1.3,
+					color: "text.primary",
+					mb: 0.5,
+				}}
+			>
+				{supplement.name}
+			</Typography>
 
- 				{/* Line 2: Dosage + Time */}
- 				<Typography
- 					sx={{
- 						fontSize: "0.875rem",
- 						color: "#666666",
- 						fontWeight: 500,
- 						mb: 0.5,
- 					}}
- 				>
-  					{supplement.dosage} {supplement.unit} • {formatTime(supplement.reminderTime)}
- 				</Typography>
+			<Typography
+				sx={{
+					fontSize: "0.875rem",
+					color: "text.secondary",
+					fontWeight: 500,
+					mb: 0.5,
+				}}
+			>
+				{supplement.dosage} {supplement.unit} • {formatTime(supplement.reminderTime)}
+			</Typography>
 
- 				{/* Line 3: Status */}
- 				<Typography
- 					sx={{
- 						fontSize: "0.8rem",
- 						color: statusInfo.color,
- 						fontWeight: 500,
- 					}}
- 				>
- 					{statusInfo.text}
- 				</Typography>
- 			</Box>
+			<Typography
+				sx={{
+					fontSize: "0.8rem",
+					color: statusInfo.color,
+					fontWeight: 600,
+				}}
+			>
+				{statusInfo.text}
+			</Typography>
+		</Box>
 
- 			{/* Right: Circular Outline Button */}
-  			<Button
-  				variant="outlined"
-  				onClick={(e) => {
-  					e.stopPropagation();
-  					handleLogClick();
-  				}}
-  				disabled={isLogging || isLoading}
-  				sx={{
-  					minWidth: 48,
-  					width: 48,
-  					height: 48,
-  					borderRadius: "50%",
-  					border: `2px solid ${isTaken ? "#9CAF88" : "#000000"}`, // Sage green when taken
-  					color: isTaken ? "#ffffff" : "#000000", // White text on green background when taken
-  					fontSize: "1.4rem",
-  					fontWeight: 600,
-  					backgroundColor: isTaken ? "#9CAF88" : "transparent",
-  					"&:hover": {
-  						backgroundColor: isTaken ? "#8BAF77" : "rgba(0, 0, 0, 0.04)",
-  						borderColor: isTaken ? "#8BAF77" : "#333333",
-  					},
-  					"&:disabled": {
-  						backgroundColor: "#9CAF88",
-  						borderColor: "#9CAF88",
-  						color: "#ffffff",
-  					},
-  				}}
- 			>
- 				{isLoading ? "..." : isTaken ? "✓" : "+"}
-  			</Button>
+		{/* Right: Circular Action Button */}
+		<Button
+			variant="outlined"
+			onClick={(e) => {
+				e.stopPropagation();
+				handleLogClick();
+			}}
+			disabled={isLogging || isLoading}
+			sx={{
+				minWidth: 48,
+				width: 48,
+				height: 48,
+				borderRadius: "50%", // Full circle
+				fontSize: "1.4rem",
+				fontWeight: 600,
+				p: 0,
+				// Dynamic Theme Styling
+				borderColor: isTaken ? theme.palette.success.main : theme.palette.text.secondary,
+				backgroundColor: isTaken ? theme.palette.success.main : "transparent",
+				color: isTaken ? theme.palette.success.contrastText : theme.palette.text.secondary,
+				"&:hover": {
+					backgroundColor: isTaken ? theme.palette.success.dark : theme.palette.action.hover,
+					borderColor: isTaken ? theme.palette.success.dark : theme.palette.text.primary,
+					color: isTaken ? theme.palette.success.contrastText : theme.palette.text.primary,
+				},
+				"&:disabled": {
+					backgroundColor: isTaken ? theme.palette.success.light : theme.palette.action.disabledBackground,
+					borderColor: "transparent",
+					color: "white",
+				},
+			}}
+		>
+			{isLoading ? "..." : isTaken ? "✓" : "+"}
+		</Button>
 
-  			{/* Revert Confirmation Dialog */}
-  			<Dialog
-  				open={revertDialogOpen}
-  				onClose={handleRevertCancel}
-  				maxWidth="sm"
-  				fullWidth
-  			>
-  				<DialogTitle>⚠️ Revert Supplement Log?</DialogTitle>
-				<DialogContent>
-					<DialogContentText sx={{ mb: 2 }}>
-						Did you mark <strong>{supplement.name}</strong> as taken by mistake? This will remove today's log entry.
-					</DialogContentText>
-				</DialogContent>
-				<DialogActions>
-					<Button
-						onClick={handleRevertConfirm}
-						disabled={isLoading}
-						sx={{
-							color: "#d32f2f", // Red text color
-						}}
-					>
-						{isLoading ? "Reverting..." : "Yes, Revert"}
-					</Button>
-					<Button 
-						onClick={handleRevertCancel} 
-						color="secondary"
-						variant="contained"
-					>
-						Cancel
-					</Button>
-				</DialogActions>
-  			</Dialog>
-  		</Box>
-  	);
+		{/* Revert Dialog */}
+		<Dialog
+			open={revertDialogOpen}
+			onClose={handleRevertCancel}
+			maxWidth="xs"
+			fullWidth
+			PaperProps={{
+				sx: { borderRadius: 1.5 } // Ensure dialog matches theme
+			}}
+		>
+			<DialogTitle sx={{ fontWeight: 600 }}>⚠️ Revert Log?</DialogTitle>
+			<DialogContent>
+				<DialogContentText color="text.secondary">
+					Did you mark <strong>{supplement.name}</strong> as taken by mistake? This will remove today's entry.
+				</DialogContentText>
+			</DialogContent>
+			<DialogActions sx={{ p: 2 }}>
+				<Button 
+					onClick={handleRevertCancel} 
+					variant="text"
+					sx={{
+						color: theme.palette.secondary.contrastText,
+						backgroundColor: theme.palette.secondary.main,
+						fontWeight: 600,
+					}}
+				>
+					Cancel
+				</Button>
+				<Button
+					onClick={handleRevertConfirm}
+					disabled={isLoading}
+					variant="contained"
+					disableElevation
+					sx={{
+						backgroundColor: theme.palette.error.main,
+						fontWeight: 600,
+					}}
+				>
+					{isLoading ? "Reverting..." : "Yes, Revert"}
+				</Button>
+			</DialogActions>
+		</Dialog>
+	</Box>
+);
  }

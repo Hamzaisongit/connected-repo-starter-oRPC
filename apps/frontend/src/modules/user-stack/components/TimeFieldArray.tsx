@@ -1,5 +1,6 @@
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
+import { useTheme } from "@mui/material/styles";
 import { TimePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { Controller, type UseFormReturn } from "react-hook-form";
@@ -9,10 +10,11 @@ interface TimeFieldArrayProps {
 }
 
 export const TimeFieldArray = ({ formMethods }: TimeFieldArrayProps) => {
+	const theme = useTheme();
 	return (
 		<Box
 		>
-			<Typography variant="body2" sx={{ color: "#64748B", fontSize: "0.875rem", fontWeight: 500, mb: 1.5 }}>
+			<Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontSize: "0.875rem", fontWeight: 500, mb: 1.5 }}>
 				Time
 			</Typography>
 			<Box
@@ -53,7 +55,7 @@ export const TimeFieldArray = ({ formMethods }: TimeFieldArrayProps) => {
 				/>
 			</Box>
 			{formMethods.formState.errors.reminderTime && (
-				<Typography sx={{ fontSize: "0.75rem", color: "#EF4444", mt: 0.75, ml: 1.75 }}>
+				<Typography sx={{ fontSize: "0.75rem", color: theme.palette.error.main, mt: 0.75, ml: 1.75 }}>
 					{String(formMethods.formState.errors.reminderTime?.message)}
 				</Typography>
 			)}

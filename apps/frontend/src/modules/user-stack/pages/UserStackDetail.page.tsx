@@ -8,18 +8,20 @@ import { Switch } from "@connected-repo/ui-mui/form/Switch";
 import { TextField } from "@connected-repo/ui-mui/form/TextField";
 import { EditIcon } from "@connected-repo/ui-mui/icons/EditIcon";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
+import { Card } from "@connected-repo/ui-mui/layout/Card"
 import { Container } from "@connected-repo/ui-mui/layout/Container";
-import { Paper } from "@connected-repo/ui-mui/layout/Paper";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
 import { BackButton } from "@frontend/components/BackButton";
 import { orpc } from "@frontend/utils/orpc.client";
 import { getStockIconAndColor } from "@frontend/utils/supplement.utils";
+import { alpha, useTheme } from "@mui/material/styles";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 export default function UserStackDetailPage() {
+	const theme = useTheme();
 	const navigate = useNavigate();
 	const { stackId } = useParams<{ stackId: string }>();
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -107,402 +109,326 @@ export default function UserStackDetailPage() {
 		days.push({ date, log });
 	}
 
-	return (
-		<Container maxWidth="sm" sx={{ pb: 12 }}>
-			{/* Header */}
-			<Box sx={{ mb: 2, textAlign: "center", position: "relative" }}>
-				<BackButton
-					sx={{
-						position: "absolute",
-						left: 0,
-						top: "50%",
-						transform: "translateY(-50%)",
-					}}
-				/>
-				<motion.div
-					initial={{ opacity: 0, y: -10 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.4, delay: 0.1 }}
-				>
-					<Typography
-						variant="h4"
-						component="h1"
-						sx={{
-							fontFamily: '"Playfair Display", Georgia, serif',
-							fontSize: "1.75rem",
-							fontWeight: 700,
-							color: "#1A1C2E",
-							mb: 0.5,
-						}}
-					>
-						Supplement Details
-					</Typography>
-					<Typography
-						sx={{
-							fontSize: "0.875rem",
-							color: "#64748B",
-							lineHeight: 1.5,
-						}}
-					>
-						View and manage your supplement.
-					</Typography>
-				</motion.div>
-			</Box>
 
-			{/* Hero Card */}
-			<motion.div
-				initial={{ opacity: 0, y: 20 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.5, delay: 0.2 }}
-			>
-				<Paper
-					sx={{
-						borderRadius: "24px",
-						backgroundColor: "rgba(255, 255, 255, 0.85)",
-						backdropFilter: "blur(10px)",
-						WebkitBackdropFilter: "blur(10px)",
-						boxShadow: "0px 4px 24px rgba(0, 0, 0, 0.08)",
-						position: "relative",
-						overflow: "visible",
-						p: { xs: 3, md: 4 },
-						mt: 5,
-					}}
-				>
-					{/* Large Icon overlapping top edge - 50% larger */}
-					<Box
-						sx={{
-							position: "absolute",
-							top: -40,
-							left: "50%",
-							transform: "translateX(-50%)",
-							width: 96,
-							height: 96,
-							borderRadius: "50%",
-							backgroundColor: stockIconData.bgColor,
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							boxShadow: "0px 8px 32px rgba(0, 0, 0, 0.15)",
-							border: "4px solid rgba(255, 255, 255, 0.9)",
-							zIndex: 2,
-						}}
-					>
-						<span style={{ fontSize: "3rem" }}>{stockIconData.icon}</span>
-					</Box>
+return (
+    <Container maxWidth="sm" sx={{ pb: 12 }}>
+        {/* Header */}
+        <Box sx={{ mb: 2, textAlign: "center", position: "relative" }}>
+            <BackButton
+                sx={{
+                    position: "absolute",
+                    left: 0,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                }}
+            />
+            <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+            >
+                <Typography
+                    variant="h4"
+                    component="h1"
+                    sx={{
+                        fontFamily: 'serif',
+                        fontWeight: 700,
+                        color: theme.palette.text.primary,
+                        mb: 0.5,
+                    }}
+                >
+                    Supplement Details
+                </Typography>
+                <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                    View and manage your supplement.
+                </Typography>
+            </motion.div>
+        </Box>
 
-					{/* Name and Toggle Row - Left Aligned */}
-					<Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mt: 5, mb: 3 }}>
-						<Typography
-							sx={{
-								fontFamily: '"Playfair Display", Georgia, serif',
-								fontWeight: 700,
-								fontSize: "1.5rem",
-								color: "#000000",
-								lineHeight: 1.3,
-								flex: 1,
-							}}
-						>
-							{userStack.name}
-						</Typography>
-						<Switch
-							checked={userStack.isActive}
-							onChange={() => {}} // TODO: implement toggle
-							sx={{
-								"& .MuiSwitch-switchBase.Mui-checked": {
-									color: "#4CAF50",
-									"&:hover": {
-										backgroundColor: "rgba(76, 175, 80, 0.08)",
-									},
-								},
-								"& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-									backgroundColor: "#4CAF50",
-								},
-								"& .MuiSwitch-track": {
-									backgroundColor: "#9E9E9E",
-								},
-							}}
-						/>
-					</Box>
+        {/* Hero Card */}
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+        >
+            <Card
+                sx={{
+                    position: "relative",
+                    overflow: "visible",
+                    p: { xs: 3, md: 4 },
+                    mt: 6,
+                }}
+            >
+                {/* Floating Icon */}
+                <Box
+                    sx={{
+                        position: "absolute",
+                        top: -40,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        width: 96,
+                        height: 96,
+                        borderRadius: "50%",
+                        backgroundColor: stockIconData.bgColor,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        // Using theme.shadows directly
+                        boxShadow: theme.shadows[4],
+                        border: "4px solid",
+                        borderColor: theme.palette.background.paper,
+                        zIndex: 2,
+                    }}
+                >
+                    <span style={{ fontSize: "3rem" }}>{stockIconData.icon}</span>
+                </Box>
 
-						{/* Glass Pills */}
-						<Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-							<Box
-								sx={{
-									flex: 1,
-									backgroundColor: "rgba(255, 255, 255, 0.4)",
-									border: "1px solid rgba(255, 255, 255, 0.6)",
-									backdropFilter: "blur(10px)",
-									WebkitBackdropFilter: "blur(10px)",
-									borderRadius: "16px",
-									p: 2,
-									textAlign: "center",
-									boxShadow: "0px 2px 12px rgba(0, 0, 0, 0.05)",
-								}}
-							>
-								<Typography variant="body2" sx={{ color: "#64748B", fontWeight: 600, mb: 0.5 }}>
-									Dosage
-								</Typography>
-								<Typography sx={{ fontWeight: 700, fontSize: "1.1rem", color: "#000000" }}>
-									{userStack.dosage} {userStack.unit}
-								</Typography>
-							</Box>
-							<Box
-								sx={{
-									flex: 1,
-									backgroundColor: "rgba(255, 255, 255, 0.4)",
-									border: "1px solid rgba(255, 255, 255, 0.6)",
-									backdropFilter: "blur(10px)",
-									WebkitBackdropFilter: "blur(10px)",
-									borderRadius: "16px",
-									p: 2,
-									textAlign: "center",
-									boxShadow: "0px 2px 12px rgba(0, 0, 0, 0.05)",
-								}}
-							>
-								<Typography variant="body2" sx={{ color: "#64748B", fontWeight: 600, mb: 0.5 }}>
-									Times
-								</Typography>
-								<Typography sx={{ fontWeight: 700, fontSize: "1.1rem", color: "#000000" }}>
-									{formatTime(userStack.reminderTime)}
-								</Typography>
-							</Box>
-						</Box>
+                {/* Name and Toggle Row */}
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mt: 5, mb: 3 }}>
+                    <Typography
+                        variant="h5"
+                        sx={{
+                            fontFamily: 'serif',
+                            fontWeight: 700,
+                            color: theme.palette.text.primary,
+                            lineHeight: 1.3,
+                            flex: 1,
+                        }}
+                    >
+                        {userStack.name}
+                    </Typography>
+                    <Switch
+                        checked={userStack.isActive}
+                        onChange={() => {}} 
+                        color="success"
+                    />
+                </Box>
 
-					{/* Days Display */}
-					{userStack.reminderDays && userStack.reminderDays.length > 0 && (
-						<Box sx={{ mb: 3, textAlign: "center" }}>
-							<Typography variant="body2" sx={{ color: "#64748B", fontWeight: 600, mb: 1 }}>
-								Schedule
-							</Typography>
-							<Typography sx={{ fontWeight: 600, fontSize: "1rem", color: "#666666" }}>
-								{formatDays(userStack.reminderDays)}
-							</Typography>
-						</Box>
-					)}
+                {/* Stats Pills */}
+                <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+                    <Box
+                        sx={{
+                            flex: 1,
+                            border: "1px solid",
+                            borderColor: theme.palette.divider,
+                            borderRadius: "16px",
+                            p: 2,
+                            textAlign: "center",
+                            // Using theme variable for alpha
+                            bgcolor: alpha(theme.palette.background.default, 0.5),
+                        }}
+                    >
+                        <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 600, mb: 0.5 }}>
+                            Dosage
+                        </Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                            {userStack.dosage} {userStack.unit}
+                        </Typography>
+                    </Box>
+                    <Box
+                        sx={{
+                            flex: 1,
+                            border: "1px solid",
+                            borderColor: theme.palette.divider,
+                            borderRadius: "16px",
+                            p: 2,
+                            textAlign: "center",
+                            bgcolor: alpha(theme.palette.background.default, 0.5),
+                        }}
+                    >
+                        <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 600, mb: 0.5 }}>
+                            Times
+                        </Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                            {formatTime(userStack.reminderTime)}
+                        </Typography>
+                    </Box>
+                </Box>
 
-						{/* Instructions Section */}
-						{userStack.instructions && userStack.instructions.length > 0 && (
-							<Box sx={{ mt: 3 }}>
-								<Typography
-									variant="body2"
-									sx={{
-										color: "#64748B",
-										fontWeight: 600,
-										mb: 1.5,
-									}}
-								>
-									Instructions
-								</Typography>
-								<Box
-									sx={{
-										bgcolor: "#F8FAFC",
-										borderLeft: "3px solid #1A1C2E",
-										p: 2,
-										borderRadius: "8px",
-									}}
-								>
-									{userStack.instructions.map((instruction, index) => (
-										<Typography
-											key={`${index}-${instruction}`}
-											variant="body2"
-											sx={{
-												color: "#333333",
-												lineHeight: 1.6,
-												mb: index < userStack.instructions.length - 1 ? 1 : 0,
-											}}
-										>
-											• {instruction}
-										</Typography>
-									))}
-								</Box>
-							</Box>
-						)}
+                {/* Days Display */}
+                {userStack.reminderDays && userStack.reminderDays.length > 0 && (
+                    <Box sx={{ mb: 3, textAlign: "center" }}>
+                        <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 600, mb: 1 }}>
+                            Schedule
+                        </Typography>
+                        <Typography variant="body1" sx={{ fontWeight: 600, color: theme.palette.text.secondary }}>
+                            {formatDays(userStack.reminderDays)}
+                        </Typography>
+                    </Box>
+                )}
 
-						{/* Edit Button with Deep Gloss */}
-						<Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-							<motion.div
-								whileHover={{ y: -2 }}
-								whileTap={{ scale: 0.95 }}
-							>
-								<Button
-									startIcon={<EditIcon />}
-									onClick={() => navigate(`/user-stack/edit/${stackId}`)}
-									sx={{
-										px: 3,
-										py: 1,
-										borderRadius: "20px",
-										background: "linear-gradient(135deg, #1A1C2E 0%, #2D3154 100%)",
-										color: "#ffffff",
-										fontSize: "0.875rem",
-										fontWeight: 600,
-										textTransform: "none",
-										boxShadow: "0px 4px 16px rgba(26, 28, 46, 0.3)",
-										"&:hover": {
-											background: "linear-gradient(135deg, #2D3047 0%, #3D4166 100%)",
-											boxShadow: "0px 6px 24px rgba(26, 28, 46, 0.4)",
-										},
-									}}
-								>
-									Edit Supplement
-								</Button>
-							</motion.div>
-						</Box>
-				</Paper>
-			</motion.div>
+                {/* Instructions Section */}
+                {userStack.instructions && userStack.instructions.length > 0 && (
+                    <Box sx={{ mt: 3 }}>
+                        <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 600, mb: 1.5 }}>
+                            Instructions
+                        </Typography>
+                        <Box
+                            sx={{
+                                bgcolor: theme.palette.action.hover,
+                                borderLeft: "3px solid",
+                                borderColor: theme.palette.primary.main,
+                                p: 2,
+                                borderRadius: 2,
+                            }}
+                        >
+                            {userStack.instructions.map((instruction, index) => (
+                                <Typography
+                                    key={`${index}-${instruction}`}
+                                    variant="body2"
+                                    sx={{
+                                        color: theme.palette.text.primary,
+                                        lineHeight: 1.6,
+                                        mb: index < userStack.instructions.length - 1 ? 1 : 0,
+                                    }}
+                                >
+                                    • {instruction}
+                                </Typography>
+                            ))}
+                        </Box>
+                    </Box>
+                )}
 
-			{/* Intake History & Logs Section */}
-			<Box sx={{ mt: 4 }}>
-				<Typography
-					sx={{
-						fontFamily: "sans-serif",
-						fontVariant: "small-caps",
-						fontWeight: 600,
-						fontSize: "0.9rem",
-						color: "#000000",
-						mb: 3,
-					}}
-				>
-					Intake Logs
-				</Typography>
+                {/* Edit Button */}
+                <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
+                    <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                            variant="contained"
+                            startIcon={<EditIcon />}
+                            onClick={() => navigate(`/user-stack/edit/${stackId}`)}
+                            sx={{ px: 3, borderRadius: "20px" }}
+                        >
+                            Edit Supplement
+                        </Button>
+                    </motion.div>
+                </Box>
+            </Card>
+        </motion.div>
 
-				{/* Vertical Timeline with Stagger Animation */}
-				<Stack spacing={2.5}>
-					{days.map(({ date, log }, index) => {
-						const isTaken = log && (log.status === "Taken on-time" || log.status === "Taken late");
-						return (
-							<motion.div
-								key={date.toISOString()}
-								initial={{ opacity: 0, y: 20 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ duration: 0.4, delay: 0.4 + index * 0.1 }}
-							>
-								<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-									<Typography sx={{ fontWeight: 500, fontSize: "0.95rem", color: "#000000", minWidth: 100 }}>
-										{date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
-									</Typography>
-									
-									{/* Circular Liquid Fill */}
-									<Box
-										sx={{
-											width: 32,
-											height: 32,
-											borderRadius: "50%",
-											display: "flex",
-											alignItems: "center",
-											justifyContent: "center",
-											position: "relative",
-											backgroundColor: isTaken ? "#4CAF50" : "transparent",
-											border: isTaken ? "none" : "2px solid #FA8072",
-											boxShadow: isTaken ? "0px 2px 8px rgba(76, 175, 80, 0.3)" : "none",
-											transition: "all 0.3s ease",
-										}}
-									>
-										{isTaken && (
-											<Typography sx={{ color: "#ffffff", fontSize: "1.2rem", fontWeight: "bold" }}>
-												✓
-											</Typography>
-										)}
-									</Box>
+        {/* Intake History & Logs Section */}
+        <Box sx={{ mt: 4 }}>
+            <Typography
+                variant="overline"
+                sx={{
+                    fontWeight: 600,
+                    fontSize: "0.9rem",
+                    color: theme.palette.text.primary,
+                    display: "block",
+                    mb: 3,
+                }}
+            >
+                Intake Logs
+            </Typography>
 
-									<Typography sx={{ fontSize: "0.9rem", color: "#666666", flex: 1 }}>
-										{log?.actualAt ? `Logged at ${new Date(log.actualAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}` : "No intake recorded"}
-									</Typography>
-								</Box>
-							</motion.div>
-						);
-					})}
-				</Stack>
-			</Box>
+            {/* Timeline */}
+            <Stack spacing={2.5}>
+                {days.map(({ date, log }, index) => {
+                    const isTaken = log && (log.status === "Taken on-time" || log.status === "Taken late");
+                    return (
+                        <motion.div
+                            key={date.toISOString()}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, delay: 0.4 + index * 0.1 }}
+                        >
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                                <Typography sx={{ fontWeight: 500, fontSize: "0.95rem", color: theme.palette.text.primary, minWidth: 100 }}>
+                                    {date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                                </Typography>
+                                
+                                {/* Circular Status Indicator */}
+                                <Box
+                                    sx={{
+                                        width: 32,
+                                        height: 32,
+                                        borderRadius: "50%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        bgcolor: isTaken ? theme.palette.success.main : "transparent",
+                                        border: isTaken ? "none" : "2px solid",
+                                        borderColor: isTaken ? "transparent" : theme.palette.error.light,
+                                        boxShadow: isTaken ? `0px 2px 8px ${alpha(theme.palette.success.main, 0.4)}` : "none",
+                                        transition: "all 0.3s ease",
+                                    }}
+                                >
+                                    {isTaken && (
+                                        <Typography sx={{ color: theme.palette.success.contrastText, fontSize: "1.2rem", fontWeight: "bold" }}>
+                                            ✓
+                                        </Typography>
+                                    )}
+                                </Box>
 
-			{/* Delete Text Link */}
-			<Box sx={{ mt: 6, display: "flex", justifyContent: "center", pb: 2 }}>
-				<motion.div
-					whileHover={{ scale: 1.05 }}
-					whileTap={{ scale: 0.95 }}
-				>
-					<Button
-						onClick={handleDeleteClick}
-						sx={{
-							color: "text.secondary",
-							fontSize: "0.9rem",
-							fontWeight: 500,
-							textDecoration: "underline",
-							textDecorationColor: "rgba(0, 0, 0, 0.3)",
-							backgroundColor: "transparent",
-							border: "none",
-							"&:hover": {
-								color: "error.main",
-								textDecorationColor: "error.main",
-								backgroundColor: "transparent",
-							},
-						}}
-					>
-						Delete this supplement
-					</Button>
-				</motion.div>
-			</Box>
+                                <Typography variant="body2" sx={{ color: theme.palette.text.secondary, flex: 1 }}>
+                                    {log?.actualAt ? `Logged at ${new Date(log.actualAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}` : "No intake recorded"}
+                                </Typography>
+                            </Box>
+                        </motion.div>
+                    );
+                })}
+            </Stack>
+        </Box>
 
-			{/* Delete Confirmation Dialog */}
-			<Dialog
-				open={deleteDialogOpen}
-				onClose={handleDeleteCancel}
-				maxWidth="sm"
-				fullWidth
-			>
-				<DialogTitle>Delete Stack Item?</DialogTitle>
-				<DialogContent>
-					<DialogContentText sx={{ mb: 3 }}>
-						This action cannot be undone. To confirm deletion, please type{" "}
-						<Typography component="span" fontWeight={600} color="error.main">
-							DELETE
-						</Typography>{" "}
-						below.
-					</DialogContentText>
-					<TextField
-						fullWidth
-						label="Type DELETE to confirm"
-						value={confirmationText}
-						onChange={(e) => setConfirmationText(e.target.value)}
-						error={!!deleteError}
-						helperText={deleteError}
-						autoFocus
-						sx={{
-							"& .MuiOutlinedInput-root": {
-								"&.Mui-focused fieldset": {
-									borderWidth: 2,
-								},
-							},
-						}}
-					/>
-				</DialogContent>
-				<DialogActions sx={{ px: 3, pb: 3 }}>
-					<motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
-						<Button
-							onClick={handleDeleteCancel}
-							disabled={deleteMutation.isPending}
-						>
-							Cancel
-						</Button>
-					</motion.div>
-					<motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
-						<Button
-							onClick={handleDeleteConfirm}
-							color="error"
-							variant="contained"
-							disabled={deleteMutation.isPending}
-							sx={{
-								background: "linear-gradient(135deg, #d32f2f 0%, #f44336 100%)",
-								"&:hover": {
-									background: "linear-gradient(135deg, #c62828 0%, #e53935 100%)",
-									boxShadow: "0px 4px 16px rgba(211, 47, 47, 0.4)",
-								},
-							}}
-						>
-							{deleteMutation.isPending ? "Deleting..." : "Delete Item"}
-						</Button>
-					</motion.div>
-				</DialogActions>
-			</Dialog>
-		</Container>
-	);
+        {/* Delete Link */}
+        <Box sx={{ mt: 6, display: "flex", justifyContent: "center", pb: 2 }}>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                    onClick={handleDeleteClick}
+                    sx={{
+                        color: theme.palette.error.main,
+                        textDecoration: "underline",
+                        textDecorationColor: alpha(theme.palette.error.main, 0.3),
+                        "&:hover": {
+                            textDecorationColor: theme.palette.error.main,
+                            bgcolor: "transparent",
+                        },
+                    }}
+                >
+                    Delete this supplement
+                </Button>
+            </motion.div>
+        </Box>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+            open={deleteDialogOpen}
+            onClose={handleDeleteCancel}
+            maxWidth="sm"
+            fullWidth
+        >
+            <DialogTitle>Delete Stack Item?</DialogTitle>
+            <DialogContent>
+                <DialogContentText sx={{ mb: 3 }}>
+                    This action cannot be undone. To confirm deletion, please type{" "}
+                    <Typography component="span" fontWeight={600} sx={{ color: theme.palette.error.main }}>
+                        DELETE
+                    </Typography>{" "}
+                    below.
+                </DialogContentText>
+                <TextField
+                    fullWidth
+                    label="Type DELETE to confirm"
+                    value={confirmationText}
+                    onChange={(e) => setConfirmationText(e.target.value)}
+                    error={!!deleteError}
+                    helperText={deleteError}
+                    autoFocus
+                />
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 3 }}>
+                <Button onClick={handleDeleteCancel} disabled={deleteMutation.isPending} color="inherit">
+                    Cancel
+                </Button>
+                <Button
+                    onClick={handleDeleteConfirm}
+                    color="error"
+                    variant="contained"
+                    disabled={deleteMutation.isPending}
+                >
+                    {deleteMutation.isPending ? "Deleting..." : "Delete Item"}
+                </Button>
+            </DialogActions>
+        </Dialog>
+    </Container>
+);
 }

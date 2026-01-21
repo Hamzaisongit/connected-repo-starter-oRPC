@@ -2,6 +2,7 @@ import { LoadingSpinner } from "@connected-repo/ui-mui/components/LoadingSpinner
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Button } from "@connected-repo/ui-mui/form/Button";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
+import { Card } from "@connected-repo/ui-mui/layout/Card";
 import { Container } from "@connected-repo/ui-mui/layout/Container";
 import { Paper } from "@connected-repo/ui-mui/layout/Paper";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
@@ -9,6 +10,7 @@ import { useSessionInfo } from "@frontend/contexts/UserContext";
 import ComplianceCalendar from "@frontend/modules/user-stack/components/ComplianceCalendar";
 import { SupplementCard } from "@frontend/modules/user-stack/components/SupplementCard";
 import { orpc } from "@frontend/utils/orpc.client";
+import { useTheme } from "@mui/material/styles";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
@@ -17,6 +19,7 @@ const HomePage = () => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const { user } = useSessionInfo();
+	const theme = useTheme();
 
 	// Get today's plan
 	const { data: todaysPlan, isLoading, error } = useQuery(
@@ -128,22 +131,22 @@ const HomePage = () => {
         <Paper
           sx={{
             p: 3,
-            backgroundColor: '#ffebee',
-            border: '1px solid #f44336',
-            borderRadius: 2,
+            backgroundColor: theme.palette.error.light,
+            border: `1px solid ${theme.palette.error.main}`,
+            borderRadius: 1,
           }}
         >
           <Typography
             variant="h6"
             sx={{
-              color: '#d32f2f',
+              color: theme.palette.error.main,
               fontWeight: 'bold',
               mb: 1
             }}
           >
             ⚠️ Unable to Load Today's Plan
           </Typography>
-          <Typography sx={{ color: '#d32f2f' }}>
+          <Typography sx={{ color: theme.palette.error.main }}>
             {error.message || 'Something went wrong. Please try refreshing the page.'}
           </Typography>
         </Paper>
@@ -155,215 +158,107 @@ const HomePage = () => {
 	const takenCount = todaysPlan?.takenCount || 0;
 	const totalCount = todaysPlan?.totalCount || 0;
 
-   return (
-  		<Box
-  			sx={{
-  				py: { xs: 2, md: 3 },
-  				background: "linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%)",
-  			}}
-  		>
-  			<Container
-  				maxWidth="lg"
-  			>
-  				<Box sx={{ width: "100%", maxWidth: "100%", m: "auto"}}>
-						{/* Profile & Progress Hero Box */}
-						<Paper
-							sx={{
-								borderRadius: "32px",
-								backgroundColor: "rgba(255, 255, 255, 0.85)",
-								backdropFilter: "blur(10px)",
-								WebkitBackdropFilter: "blur(10px)",
-								boxShadow: "0px 4px 24px rgba(0, 0, 0, 0.08)",
-								p: 3,
-								mb: 2,
-								maxWidth: 600,
-								mx: "auto",
-								width: "100%",
-							}}
-						>
-							{/* Personalized Greeting */}
-							<Typography
-								variant="h5"
-								sx={{
-									fontFamily: '"Playfair Display", Georgia, serif',
-									fontWeight: 600,
-									color: "#000000",
-									mb: 1,
-									lineHeight: 1.3,
-									textAlign: "center",
-								}}
+	return (
+		<Box sx={{
+			py: { xs: 2, md: 4 },
+			minHeight: "100vh",
+			bgcolor: "background.default"
+		}}>
+			<Container maxWidth="sm">
+				
+				{/* Profile & Progress Hero */}
+				<Card sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
+					<Typography variant="h5" sx={{ fontFamily: 'serif', fontWeight: 600, textAlign: "center", mb: 1 }}>
+						{getGreeting()}, {user?.name?.split(" ")[0] || "there"}!
+						<Typography component="span" sx={{ fontSize: "0.8em" }}>
+							👋
+						</Typography>
+					</Typography>
+	
+					<Typography variant="body1" color="text.secondary" sx={{ textAlign: "center", mb: 3 }}>
+						{getFlavorText()}
+					</Typography>
+	
+					{hasSupplements && (
+						<Box sx={{ maxWidth: 300, mx: "auto" }}>
+							<Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+								<Typography variant="caption" color="text.secondary">Today's Progress</Typography>
+								<Typography variant="caption" fontWeight={600} color="text.primary">{takenCount} of {totalCount}</Typography>
+							</Box>
+							{/* Progress Track */}
+							<Box sx={{ width: "100%", height: 8, bgcolor: "action.selected", borderRadius: 4, overflow: "hidden" }}>
+								{/* Progress Indicator */}
+								<Box sx={{
+									width: `${totalCount > 0 ? (takenCount / totalCount) * 100 : 0}%`,
+									height: "100%",
+									bgcolor: "primary.main",
+									borderRadius: 4,
+									transition: "width 0.3s ease",
+								}} />
+							</Box>
+						</Box>
+					)}
+				</Card>
+	
+				{/* Calendar Section */}
+				<Card sx={{ p: 2, mb: 3 }}>
+					<ComplianceCalendar />
+				</Card>
+	
+				{/* Supplements Section */}
+				{hasSupplements ? (
+					<>
+						{takenCount === totalCount && totalCount > 0 && (
+							<Box sx={{ textAlign: "center", py: 2, mb: 2 }}>
+								<Typography variant="h6" color="success.main" fontWeight={700}>
+									🎉 All done for today!
+								</Typography>
+								<Typography variant="body2" color="text.secondary">
+									Great job maintaining your streak. See you tomorrow!
+								</Typography>
+							</Box>
+						)}
+	
+						<Card sx={{ p: 0 }}>
+							<Stack spacing={0} divider={<Box sx={{ height: 1, bgcolor: "divider" }} />}>
+								{todaysPlan.supplements.map((supplement) => (
+									<SupplementCard
+										key={`${supplement.id}-${supplement.reminderTime}`}
+										supplement={supplement}
+										onLogTaken={handleLogTaken}
+										onRevert={handleRevert}
+										onCardClick={handleCardClick}
+										isLogging={logMutation.isPending}
+									/>
+								))}
+							</Stack>
+						</Card>
+					</>
+				) : (
+					/* Empty State */
+					<Box sx={{ textAlign: "center", py: 8 }}>
+						<Typography sx={{ fontSize: "4rem", mb: 2, opacity: 0.5 }}>💊</Typography>
+						<Typography variant="h5" sx={{ fontFamily: 'serif', fontWeight: 600, mb: 2 }}>
+							Start your stack
+						</Typography>
+						<Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+							Build healthy habits by adding your first supplement
+						</Typography>
+						
+						<motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
+							<Button
+								variant="contained"
+								size="large"
+								onClick={() => navigate("/user-stack/new")}
 							>
-								{getGreeting()}, {user?.name?.split(" ")[0] || "there"}!{" "}
-								<span style={{ fontSize: "0.8em" }}>👋</span>
-							</Typography>
-
-							{/* Dynamic Flavor Text */}
-							<Typography
-								variant="body1"
-								sx={{
-									color: "#666666",
-									fontSize: "1rem",
-									fontWeight: 500,
-									mb: 3,
-									textAlign: "center",
-								}}
-							>
-								{getFlavorText()}
-							</Typography>
-
-							{/* Today's Progress Bar */}
-							{hasSupplements && (
-								<Box sx={{ maxWidth: 300, mx: "auto" }}>
-									<Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
-										<Typography variant="caption" sx={{ color: "#666666", fontSize: "0.8rem" }}>
-											Today's Progress
-										</Typography>
-										<Typography variant="caption" sx={{ color: "#000000", fontWeight: 600, fontSize: "0.8rem" }}>
-											{takenCount} of {totalCount}
-										</Typography>
-									</Box>
-									<Box sx={{
-										width: "100%",
-										height: 8,
-										backgroundColor: "#f0f0f0",
-										borderRadius: 4,
-										overflow: "hidden",
-									}}>
-										<Box sx={{
-											width: `${totalCount > 0 ? (takenCount / totalCount) * 100 : 0}%`,
-											height: "100%",
-											background: "linear-gradient(90deg, #87CEEB 0%, #20B2AA 100%)", // Soft blue to teal
-											borderRadius: 4,
-											transition: "width 0.3s ease",
-										}} />
-									</Box>
-								</Box>
-							)}
-						</Paper>
-
-						{/* Mini-Calendar Compact Box */}
-						<Paper
-							sx={{
-								borderRadius: "24px",
-								backgroundColor: "#F8FAFC",
-								boxShadow: "0px 2px 12px rgba(0, 0, 0, 0.04)",
-								p: 2,
-								mb: 3,
-								maxWidth: 600,
-								mx: "auto",
-								width: "100%",
-							}}
-						>
-							<ComplianceCalendar />
-						</Paper>
-
-  					{/* Today's Supplements */}
-  					{hasSupplements ? (
-  						<>
-  							{/* Completion Message - Show above supplements when all done */}
-							{takenCount === totalCount && totalCount > 0 && (
-								<Box sx={{ textAlign: "center", py: 3, mb: 2, maxWidth: 600, mx: "auto" }}>
- 									<Typography
- 										variant="h6"
- 										sx={{
- 											color: "#4F6F52",
- 											fontWeight: 700,
- 											fontSize: "1.2rem",
- 										}}
- 									>
- 										🎉 All done for today!
- 									</Typography>
- 									<Typography variant="body2" sx={{ color: "#666666", fontSize: "0.9rem" }}>
- 										Great job maintaining your streak. See you tomorrow!
- 									</Typography>
- 								</Box>
- 							)}
-
-  							{/* Supplements List - High-density journal style */}
-							<Paper
-								sx={{
-									borderRadius: "32px",
-									backgroundColor: "#FFFFFF",
-									boxShadow: "0px 4px 24px rgba(0, 0, 0, 0.08)",
-									p: 1,
-									maxWidth: 600,
-									mx: "auto",
-									width: "100%",
-								}}
-							>
- 								<Stack spacing={0} divider={<Box sx={{ height: 1, backgroundColor: "#F0F0F0" }} />}>
- 									{todaysPlan.supplements.map((supplement) => (
-										<SupplementCard
-											key={`${supplement.id}-${supplement.reminderTime}`}
-											supplement={supplement}
-											onLogTaken={handleLogTaken}
-											onRevert={handleRevert}
-											onCardClick={handleCardClick}
-											isLogging={logMutation.isPending}
-										/>
- 									))}
- 								</Stack>
- 							</Paper>
-  						</>
-  					) : (
- 						/* Empty State - Simplified */
- 						<Box sx={{ textAlign: "center", py: 8, maxWidth: 400, mx: "auto", width: "100%" }}>
- 							<Box sx={{ fontSize: "4rem", mb: 3, opacity: 0.6 }}>
- 								💊
- 							</Box>
- 							<Typography
- 								variant="h5"
- 								sx={{
- 									fontFamily: '"Playfair Display", Georgia, serif',
- 									fontWeight: 600,
- 									color: "#000000",
- 									mb: 2,
- 								}}
- 							>
- 								Start your stack
- 							</Typography>
- 							<Typography
- 								variant="body1"
- 								sx={{
- 									color: "#666666",
- 									mb: 4,
- 									lineHeight: 1.6,
- 								}}
- 							>
- 								Build healthy habits by adding your first supplement
- 							</Typography>
- 							<motion.div
- 								whileHover={{ y: -2 }}
- 								whileTap={{ scale: 0.95 }}
- 							>
- 								<Button
- 									variant="contained"
- 									size="large"
- 									onClick={() => navigate("/user-stack/new")}
- 									sx={{
- 										px: 4,
- 										height: "48px",
- 										fontSize: "1rem",
- 										fontWeight: 600,
- 										borderRadius: "24px",
- 										background: "linear-gradient(135deg, #1A1C2E 0%, #2D3154 100%)",
- 										color: "#ffffff",
- 										boxShadow: "0px 4px 16px rgba(26, 28, 46, 0.3)",
- 										"&:hover": {
- 											background: "linear-gradient(135deg, #2D3047 0%, #3D4166 100%)",
- 											boxShadow: "0px 6px 24px rgba(26, 28, 46, 0.4)",
- 										},
- 									}}
- 								>
- 									Add Supplement
- 								</Button>
- 							</motion.div>
- 						</Box>
- 					)}
-  			</Box>
-  			</Container>
-  		</Box>
- 	);
+								Add Supplement
+							</Button>
+						</motion.div>
+					</Box>
+				)}
+			</Container>
+		</Box>
+	);
  };
 
 export default HomePage;

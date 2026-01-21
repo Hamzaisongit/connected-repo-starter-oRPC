@@ -1,10 +1,12 @@
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { orpc } from "@frontend/utils/orpc.client";
+import { useTheme } from "@mui/material/styles";
 import { useQuery } from "@tanstack/react-query";
 
 const ComplianceCalendar = () => {
 	const { data: todaysPlan } = useQuery(orpc.userStacks.getTodaysPlan.queryOptions());
+	const theme = useTheme();
 
 	// Generate a simple 7-day calendar view
 	const today = new Date();
@@ -47,7 +49,7 @@ const ComplianceCalendar = () => {
  						}}
  					>
  						{/* Day abbreviation */}
- 						<Typography variant="caption" sx={{ fontSize: "0.7rem", color: "#666666", fontWeight: 500, mb: 0.5 }}>
+  						<Typography variant="caption" sx={{ fontSize: "0.7rem", color: theme.palette.text.secondary, fontWeight: 500, mb: 0.5 }}>
  							{dayAbbrev}
  						</Typography>
  						{/* Solid colored dot */}

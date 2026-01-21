@@ -41,7 +41,7 @@ export const AppLayout = () => {
 				display: "flex",
 				flexDirection: "column",
 				minHeight: "100vh",
-				background: "linear-gradient(180deg, #F8FAFC 0%, #E2E8F0 100%)",
+				background: `linear-gradient(180deg, ${theme.palette.background.default} 0%, ${theme.palette.mode === 'light' ? '#E2E8F0' : '#1a1a1a'} 100%)`,
 				position: "relative",
 			}}
 		>

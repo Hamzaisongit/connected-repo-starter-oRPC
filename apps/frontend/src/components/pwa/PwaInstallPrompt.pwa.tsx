@@ -1,26 +1,20 @@
+import { List, ListItem, ListItemIcon, ListItemText } from "@connected-repo/ui-mui/data-display/List";
+import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
+import { Dialog, DialogActions, DialogContent, DialogTitle } from "@connected-repo/ui-mui/feedback/Dialog";
+import { Snackbar } from "@connected-repo/ui-mui/feedback/Snackbar";
+import { Button } from "@connected-repo/ui-mui/form/Button";
+import { Divider } from "@connected-repo/ui-mui/layout/Divider";
+import { Stack } from "@connected-repo/ui-mui/layout/Stack";
 import { usePwaInstallStore } from "@frontend/stores/usePwaInstallStore";
-import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
-import HomeScreenIcon from '@mui/icons-material/Home';
-import IosShareIcon from '@mui/icons-material/IosShare';
-import { 
-  Button, 
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Snackbar,
-  Stack, 
-  Typography
-} from "@mui/material";
+import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
+import HomeScreenIcon from "@mui/icons-material/Home"
+import IosShareIcon from "@mui/icons-material/IosShare";
+import { useTheme } from "@mui/material/styles";
 import { useState } from "react";
 
 export function PwaInstallPrompt() {
-	//TODO: is there a better way of doing this? 
+	const theme = useTheme();
+	//TODO: is there a better way of doing this?
 	const showPwaInstallationPrompt = usePwaInstallStore((state) => state.showPwaInstallationPrompt);
 	const deferredInstallationPrompt = usePwaInstallStore((state) => state.deferredInstallationPrompt);
 	const dismissInstallationFlow = usePwaInstallStore((state) => state.dismissInstallationFlow);
@@ -52,7 +46,7 @@ export function PwaInstallPrompt() {
             sx={{
               bottom: { xs: 100, sm: 100 },
               "& .MuiSnackbarContent-root": {
-              borderRadius: 1, // Pill shape
+              borderRadius: theme.spacing(4), // Pill shape
               flexWrap: "nowrap", // FORCE SINGLE LINE
               minWidth: "auto",
               maxWidth: "95vw",
@@ -78,7 +72,7 @@ export function PwaInstallPrompt() {
                 <Button
                   onClick={() => dismissInstallationFlow()}
                   size="small"
-                  sx={{ fontWeight: 'bold', color: '#aaa', textTransform: 'none', fontSize: '0.75rem', minWidth: 'auto' }}
+                  sx={{ fontWeight: 'bold', color: theme.palette.text.disabled, textTransform: 'none', fontSize: '0.75rem', minWidth: 'auto' }}
                 >
                   Later
                 </Button>
@@ -158,7 +152,7 @@ export function PwaInstallPrompt() {
               <Button
                 onClick={() => dismissInstallationFlow()}
                 size="small"
-                sx={{ fontWeight: 'bold', color: '#aaa', textTransform: 'none', fontSize: '0.75rem', minWidth: 'auto' }}
+                sx={{ fontWeight: 'bold', color: theme.palette.text.disabled, textTransform: 'none', fontSize: '0.75rem', minWidth: 'auto' }}
               >
                 Later
               </Button>

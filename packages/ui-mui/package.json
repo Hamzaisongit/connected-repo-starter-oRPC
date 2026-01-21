@@ -74,6 +74,7 @@
 	"repository": "git@github.com:shipmyapp/connected-repo.git",
 	"scripts": {
 		"build": "tsc && npx tsc-alias",
+		"build:windows": "tsc && tsc-alias",
 		"check-types": "tsc --noEmit",
 		"clean": "rm -rf node_modules && rm -rf dist",
 		"dev": "concurrently --kill-others \"tsc -w\" \"tsc-alias -w\"",

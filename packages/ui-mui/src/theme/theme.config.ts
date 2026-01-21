@@ -1,5 +1,5 @@
-import { createTheme } from "@mui/material/styles";
 import type { PaletteMode } from "@mui/material";
+import { createTheme } from "@mui/material/styles";
 import "./theme.types"; // Import type augmentations
 
 /**
@@ -101,7 +101,6 @@ const baseThemeConfig = {
 			styleOverrides: {
 				root: {
 					borderRadius: "32px",
-					backgroundColor: "#FFFFFF",
 					boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.06)", // Soft Depth shadow
 					transition: "all 0.2s ease-in-out",
 					border: "1px solid rgba(0, 0, 0, 0.05)",
@@ -153,9 +152,9 @@ export const createAppTheme = (mode: PaletteMode = "light") => {
 				? {
 						// Light mode: "Airy Compliance" - premium wellness aesthetic
 						primary: {
-							main: "#1A1C2E", // Deep Navy for primary buttons
-							light: "#2D3047",
-							dark: "#0F1117",
+							main: "#0f6499", // Vivid, intense blue tone
+							light: "#365FFD", // Brighter, punchy blue
+							dark: "#102265",  // Deeper, rich blue
 							contrastText: "#ffffff",
 						},
 						secondary: {
@@ -172,7 +171,7 @@ export const createAppTheme = (mode: PaletteMode = "light") => {
 							contrastText: "#fff",
 						},
 						error: {
-							main: "#FEE2E2", // Soft "Muted Salmon" for overdue/missed (background)
+							main: "#EB5757", // Deeper muted red for overdue/missed (background)
 							light: "#FEF2F2",
 							dark: "#FECACA",
 							lighter: "rgba(254, 226, 226, 0.08)",
@@ -223,7 +222,7 @@ export const createAppTheme = (mode: PaletteMode = "light") => {
 							contrastText: "#fff",
 						},
 						error: {
-							main: "#7F1D1D", // Dark red for dark mode
+							main: "#ff2146", // Even darker red for dark mode
 							light: "#991B1B",
 							dark: "#450A0A",
 							lighter: "rgba(127, 29, 29, 0.12)",
