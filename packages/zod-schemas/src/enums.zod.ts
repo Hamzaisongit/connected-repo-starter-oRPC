@@ -6,14 +6,14 @@ export type ApiProductRequestStaus = z.infer<typeof apiProductRequestStatusZod>;
 
 export const API_PRODUCTS = [
   {
-    apiRoute: "adherence-logs",
-    name: "Log Supplement Adherence",
-    sku: "adherence_log_create_100_30days",
+    apiRoute: "intake-logs",
+    name: "Log Supplement Intake",
+    sku: "intake_log_create_100_30days",
     unit_size: 100,
     validity_days: 30,
   }
 ]as const;
-export const apiProductSkuEnum = API_PRODUCTS.map(product => product.sku) as ["adherence_log_create_100_30days"];
+export const apiProductSkuEnum = API_PRODUCTS.map(product => product.sku) as ["intake_log_create_100_30days"];
 export const apiProductSkuZod = z.enum(apiProductSkuEnum);
 export type ApiProductSku = z.infer<typeof apiProductSkuZod>;
 
@@ -29,9 +29,9 @@ export const THEME_SETTING_ENUM = ["dark", "light", "system"] as const;
 export const themeSettingZod = z.enum(THEME_SETTING_ENUM);
 export type ThemeSetting = z.infer<typeof themeSettingZod>;
 
-export const USER_ADHERENCE_STATUS_ENUM = ["Taken on-time", "Taken late", "Missed", "Skipped"] as const;
-export const userAdherenceStatusZod = z.enum(USER_ADHERENCE_STATUS_ENUM);
-export type UserAdherenceStatus = z.infer<typeof userAdherenceStatusZod>;
+export const USER_INTAKE_STATUS_ENUM = ["Taken on-time", "Taken late", "Missed", "Skipped"] as const;
+export const userIntakeStatusZod = z.enum(USER_INTAKE_STATUS_ENUM);
+export type UserIntakeStatus = z.infer<typeof userIntakeStatusZod>;
 
 export const WEBHOOK_STATUS_ENUM = ["Pending", "Sent", "Failed"] as const;
 export const webhookStatusZod = z.enum(WEBHOOK_STATUS_ENUM);

@@ -1,4 +1,4 @@
-import { API_PRODUCT_REQUEST_STATUS_ENUM, API_REQUEST_METHOD_ENUM, apiProductSkuEnum, THEME_SETTING_ENUM, USER_ADHERENCE_STATUS_ENUM, WEBHOOK_STATUS_ENUM } from "@connected-repo/zod-schemas/enums.zod";
+import { API_PRODUCT_REQUEST_STATUS_ENUM, API_REQUEST_METHOD_ENUM, apiProductSkuEnum, THEME_SETTING_ENUM, USER_INTAKE_STATUS_ENUM, WEBHOOK_STATUS_ENUM } from "@connected-repo/zod-schemas/enums.zod";
 import { createBaseTable } from "orchid-orm";
 import { ulid } from "ulid";
 
@@ -15,7 +15,7 @@ export const BaseTable = createBaseTable({
     themeSettingEnum: () => t.enum("theme_setting_enum", THEME_SETTING_ENUM),
     timestampNumber: () => t.timestamp().asNumber(),
     ulid: () => t.string(26).default(() => ulid()),
-    userAdherenceStatusEnum: () => t.enum("user_adherence_status_enum", USER_ADHERENCE_STATUS_ENUM),
+    userIntakeLogStatusEnum: () => t.enum("user_adherence_status_enum", USER_INTAKE_STATUS_ENUM),
     webhookStatusEnum: () => t.enum("webhook_status_enum", WEBHOOK_STATUS_ENUM),
 
 		timestamps: () => ({

@@ -115,3 +115,6 @@ export const zPhoneNumber = z
 export const zLatitude = zString.regex(/^(\+|-)?(?:90(?:(?:\.0{1,6})?)|(?:[0-9]|[1-8][0-9])(?:(?:\.[0-9]{1,6})?))$/);
 export const zLongitude = zString
 	.regex(/^(\+|-)?(?:180(?:(?:\.0{1,6})?)|(?:[0-9]|[1-9][0-9]|1[0-7][0-9])(?:(?:\.[0-9]{1,6})?))$/);
+
+/* Timezone Types */
+export const zTimezone = zString;

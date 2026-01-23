@@ -41,7 +41,8 @@ export const createUserAndLogin = async (userInput: Partial<UserCreateInput> = {
     body: {
       ...fixture,
       password,
-      image: fixture.image ?? undefined
+      image: fixture.image ?? undefined,
+      timezone: "Etc/UTC"
     },
   });
 

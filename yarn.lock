@@ -7184,11 +7184,6 @@ yocto-queue@^0.1.0:
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
 
-zod-timezone-validation@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/zod-timezone-validation/-/zod-timezone-validation-1.0.5.tgz#ef77225eec47d7739b1a42c1a1fc20e581055bc9"
-  integrity sha512-AoTZLxjO4zq0FnwKGyqHstxEnk8ZtSbeCQjEO4OwxDqBfLXmWschi89urCHTPoFS6jo9Nj6J0DF8rs+NM+lVyw==
-
 zod@^4.1.11, zod@^4.1.12:
   version "4.3.5"
   resolved "https://registry.yarnpkg.com/zod/-/zod-4.3.5.tgz#aeb269a6f9fc259b1212c348c7c5432aaa474d2a"

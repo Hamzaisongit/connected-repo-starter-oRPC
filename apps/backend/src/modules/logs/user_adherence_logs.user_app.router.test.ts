@@ -1,20 +1,20 @@
 import { db } from '@backend/db/db';
-import { userAdherenceLogsRouter } from '@backend/modules/logs/user_adherence_logs.user_app.router';
+import { userIntakeLogsRouter } from '@backend/modules/logs/user_adherence_logs.user_app.router';
 import { defaultContext } from '@backend/test/setup';
-import { createUserAdherenceLogFixture } from '@connected-repo/zod-schemas/user_adherence_log.fixture';
+import { createUserIntakeLogFixture } from '@connected-repo/zod-schemas/user_adherence_log.fixture';
 import { createUserStackFixture } from '@connected-repo/zod-schemas/user_stack.fixture';
 import { createRouterClient, type RouterClient } from '@orpc/server';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 describe('User Adherence Logs Endpoints', () => {
-	let defaultClient: RouterClient<typeof userAdherenceLogsRouter>;
-	const unauthClient = createRouterClient(userAdherenceLogsRouter);
+	let defaultClient: RouterClient<typeof userIntakeLogsRouter>;
+	const unauthClient = createRouterClient(userIntakeLogsRouter);
 
 	const dummyStack = createUserStackFixture();
-	let dummyLog: ReturnType<typeof createUserAdherenceLogFixture>;
+	let dummyLog: ReturnType<typeof createUserIntakeLogFixture>;
 
 	beforeEach(async () => {
-		defaultClient = createRouterClient(userAdherenceLogsRouter, {
+		defaultClient = createRouterClient(userIntakeLogsRouter, {
 			context: defaultContext,
 		});
 		// Create a stack first for the supplementId
@@ -22,7 +22,7 @@ describe('User Adherence Logs Endpoints', () => {
 			...dummyStack,
 			userId: defaultContext?.user.id,
 		});
-		dummyLog = createUserAdherenceLogFixture({ supplementId: stack.id });
+		dummyLog = createUserIntakeLogFixture({ supplementId: stack.id });
 	});
 
 	describe('getAll', () => {

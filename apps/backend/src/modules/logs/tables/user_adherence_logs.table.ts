@@ -3,7 +3,7 @@ import type { Db } from "@backend/db/db";
 import { UserStackTable } from "@backend/modules/user_stacks/tables/user_stacks.table";
 import { UserTable } from "@backend/modules/users/tables/users.table";
 
-export class UserAdherenceLogTable extends BaseTable {
+export class UserIntakeLogTable extends BaseTable {
   readonly table = "user_adherence_logs";
 
   columns = this.setColumns((t) => ({
@@ -17,10 +17,10 @@ export class UserAdherenceLogTable extends BaseTable {
       onUpdate: "RESTRICT"
     }),
     reason: t.string().nullable(),
-    status: t.userAdherenceStatusEnum(),
+    status: t.userIntakeLogStatusEnum(),
     scheduledFor: t.timestampNumber(),
     actualAt: t.timestampNumber(),
-    timeZoneOffset: t.smallint(),
+    logTimezone: t.string().default("Etc/UTC"),
     ...t.timestamps(),
   }));
 

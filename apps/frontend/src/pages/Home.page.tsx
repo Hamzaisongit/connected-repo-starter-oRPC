@@ -32,7 +32,7 @@ const HomePage = () => {
 	);
 
 	// Quick log mutation
-	const logMutation = useMutation(orpc.userAdherenceLogs.create.mutationOptions());
+	const logMutation = useMutation(orpc.userIntakeLogs.create.mutationOptions());
 
 	const handleLogTaken = async (supplementId: string, scheduledTime: string) => {
 		try {
@@ -47,7 +47,7 @@ const HomePage = () => {
 				scheduledFor: Math.floor(scheduledDate.getTime()),
 				status: "Taken on-time",
 				actualAt: Math.floor(Date.now()),
-				timeZoneOffset: new Date().getTimezoneOffset(),
+				logTimezone: user?.timezone || "Etc/UTC",
 			});
 
 			// Invalidate queries to refresh the data
@@ -60,7 +60,7 @@ const HomePage = () => {
 	};
 
 	// Delete mutation for reverting logs
-	const deleteMutation = useMutation(orpc.userAdherenceLogs.delete.mutationOptions());
+	const deleteMutation = useMutation(orpc.userIntakeLogs.delete.mutationOptions());
 
   const handleRevert = async (supplementId: string, reminderTime: string) => {
 		try {
@@ -75,7 +75,11 @@ const HomePage = () => {
 			}
 
 			// Delete the adherence log
-			await deleteMutation.mutateAsync({ id: supplement.todayIntakeLog.id });
+			await deleteMutation.mutateAsync({ 
+				id: supplement.todayIntakeLog.id, 
+				logTimezone: supplement.todayIntakeLog.logTimezone,
+				scheduledFor: supplement.todayIntakeLog.scheduledFor 
+			});
 
 			// Invalidate queries to refresh the data
 			queryClient.invalidateQueries({ queryKey: orpc.userStacks.getTodaysPlan.queryKey() });
@@ -99,6 +103,10 @@ const HomePage = () => {
 	const getCurrentStreak = () => {
 		return userStats?.currentStreak || 0;
 	};
+
+	const hasSupplements = todaysPlan && todaysPlan.supplements.length > 0;
+	const takenCount = todaysPlan?.takenCount || 0;
+	const totalCount = todaysPlan?.totalCount || 0;
 
 	const getFlavorText = () => {
 		const streak = getCurrentStreak();
@@ -153,10 +161,6 @@ const HomePage = () => {
       </Container>
     );
   }
-
-	const hasSupplements = todaysPlan && todaysPlan.supplements.length > 0;
-	const takenCount = todaysPlan?.takenCount || 0;
-	const totalCount = todaysPlan?.totalCount || 0;
 
 	return (
 		<Box sx={{

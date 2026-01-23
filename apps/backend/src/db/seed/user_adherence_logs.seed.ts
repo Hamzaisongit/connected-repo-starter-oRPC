@@ -1,9 +1,9 @@
 import { db } from "@backend/db/db";
 
-export async function seedUserAdherenceLogs(userId: string, stacks: any[]) {
+export async function seedUserIntakeLogs(userId: string, stacks: any[]) {
 	console.info("Seeding user adherence logs...");
 
-	await db.userAdherenceLogs.where({ userId }).delete();
+	await db.userIntakeLogs.where({ userId }).delete();
 
 	const logs = [];
 	const now = Date.now();
@@ -20,12 +20,12 @@ export async function seedUserAdherenceLogs(userId: string, stacks: any[]) {
 			status,
 			scheduledFor,
 			actualAt,
-			timeZoneOffset: -300, // example offset
+			logTimezone: "Etc/UTC"
 		});
 	}
 
 	for (const log of logs) {
-		await db.userAdherenceLogs.create(log);
+		await db.userIntakeLogs.create(log);
 	}
 
 	console.info(`✓ Seeded ${logs.length} user adherence logs`);

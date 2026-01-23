@@ -1,5 +1,6 @@
 import { db } from "@backend/db/db";
 import { rpcProtectedProcedure } from "@backend/procedures/protected.procedure";
+
 import {
 	dailyComplianceGetByDateRangeZod,
 	dailyComplianceGetByIdZod,
@@ -46,43 +47,56 @@ const getByDateRange = rpcProtectedProcedure
 		const dailyCompliances = await db.dailyCompliances
 			.select("*")
 			.where({ userId: queryUserId })
-			.where({ date: { gte: new Date(startDate) } })
-			.where({ date: { lte: new Date(endDate) } })
+			.where({
+				date: {
+					gte: startDate,
+					lte: endDate
+				}
+			})
 			.order({ date: "DESC" });
+
+		return dailyCompliances;
+	});
+
+// Get last 7 daily compliances (most recent)
+const getLast7 = rpcProtectedProcedure
+	.output(z.array(dailyComplianceSelectAllZod))
+	.handler(async ({ context: { user } }) => {
+		const dailyCompliances = await db.dailyCompliances
+			.select("*")
+			.where({ userId: user.id })
+			.order({ date: "DESC" })
+			.limit(7);
 
 		return dailyCompliances;
 	});
 
 // Get daily compliance for a specific date
 const getByDate = rpcProtectedProcedure
-	.input(z.object({ date: z.number().int() }))
+	.input(z.object({ date: z.iso.date() }))
 	.output(dailyComplianceSelectAllZod.nullable())
 	.handler(async ({ input: { date }, context: { user } }) => {
-		// Get the start and end of the day for the given timestamp
-		const dayStart = new Date(date);
-		dayStart.setHours(0, 0, 0, 0);
-		const dayEnd = new Date(date);
-		dayEnd.setHours(23, 59, 59, 999);
-
 		const dailyCompliance = await db.dailyCompliances
 			.where({ userId: user.id })
-			.where({ date: { gte: new Date(dayStart) } })
-			.where({ date: { lte: new Date(dayEnd) } })
+			.where({ date })
 			.take();
 
-		return dailyCompliance || null;
+		return dailyCompliance;
 	});
 
 // Get latest daily compliance
 const getLatest = rpcProtectedProcedure
 	.output(dailyComplianceSelectAllZod.nullable())
 	.handler(async ({ context: { user } }) => {
+
 		const latestCompliance = await db.dailyCompliances
 			.where({ userId: user.id })
-			.order({ date: "DESC" })
+			.order({
+				date: "DESC"
+			})
 			.take();
 
-		return latestCompliance || null;
+		return latestCompliance
 	});
 
 // Get compliance statistics
@@ -90,7 +104,7 @@ const getStats = rpcProtectedProcedure
 	.output(
 		z.object({
 			totalDays: z.number(),
-			averageAdherence: z.string(),
+			averageIntake: z.string(),
 			perfectDays: z.number(),
 			daysWithShieldUsed: z.number(),
 		}),
@@ -105,25 +119,25 @@ const getStats = rpcProtectedProcedure
 		if (totalDays === 0) {
 			return {
 				totalDays: 0,
-				averageAdherence: "0",
+				averageIntake: "0",
 				perfectDays: 0,
 				daysWithShieldUsed: 0,
 			};
 		}
 
-		const totalAdherence = compliances.reduce(
-			(sum, c) => sum + Number.parseFloat(c.adherencePercentage),
+		const totalIntake = compliances.reduce(
+			(sum, c) => sum + Number.parseFloat(c.intakePercentage),
 			0,
 		);
-		const averageAdherence = (totalAdherence / totalDays).toFixed(2);
+		const averageIntake = (totalIntake / totalDays).toFixed(2);
 		const perfectDays = compliances.filter(
-			(c) => Number.parseFloat(c.adherencePercentage) === 100,
+			(c) => Number.parseFloat(c.intakePercentage) === 100,
 		).length;
 		const daysWithShieldUsed = compliances.filter((c) => c.dailyShieldUsed).length;
 
 		return {
 			totalDays,
-			averageAdherence,
+			averageIntake,
 			perfectDays,
 			daysWithShieldUsed,
 		};
@@ -134,6 +148,7 @@ export const dailyCompliancesRouter = {
 	getById,
 	getByDateRange,
 	getByDate,
+	getLast7,
 	getLatest,
 	getStats,
 };

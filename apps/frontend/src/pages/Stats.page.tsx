@@ -1,16 +1,19 @@
 import { LoadingSpinner } from "@connected-repo/ui-mui/components/LoadingSpinner";
-import { Chip } from "@connected-repo/ui-mui/data-display/Chip"
+import { Chip } from "@connected-repo/ui-mui/data-display/Chip";
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Fade } from "@connected-repo/ui-mui/feedback/Fade";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { Card, CardContent } from "@connected-repo/ui-mui/layout/Card";
 import { Container } from "@connected-repo/ui-mui/layout/Container";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
+import { useSessionInfo } from "@frontend/contexts/UserContext";
 import { orpc } from "@frontend/utils/orpc.client";
+import { getBrowserTimezone } from "@frontend/utils/timezone.utils";
 import { alpha } from "@mui/material/styles";
 import { useQuery } from "@tanstack/react-query";
 
 const StatsPage = () => {
+	const { user } = useSessionInfo();
 	const { data: currentStreak, isLoading, error } = useQuery(
 		orpc.userStats.getCurrentStreak.queryOptions()
 	);
@@ -27,8 +30,8 @@ const StatsPage = () => {
 		orpc.dailyCompliances.getStats.queryOptions()
 	);
 
-	const { data: adherenceLogs } = useQuery(
-		orpc.userAdherenceLogs.getAll.queryOptions()
+	const { data: intakeLogs } = useQuery(
+		orpc.userIntakeLogs.getAll.queryOptions()
 	);
 
 	if (isLoading) {
@@ -238,7 +241,7 @@ const StatsPage = () => {
 								<Card sx={{ flex: 1, height: "100%", minWidth: 240, maxWidth: 320, width: "100%" }}>
 									<CardContent sx={{ textAlign: "center", p: 4 }}>
 										<Typography variant="h3" sx={{ fontFamily: 'serif', fontWeight: 700, color: "text.primary", mb: 1 }}>
-											{adherenceLogs?.filter(log =>
+											{intakeLogs?.filter(log =>
 												log.status === "Taken on-time" || log.status === "Taken late"
 											).length || 0}
 										</Typography>
@@ -269,7 +272,7 @@ const StatsPage = () => {
 											/>
 										</Box>
 										<Typography variant="h3" sx={{ fontFamily: 'serif', fontWeight: 700, color: "text.primary", mb: 1 }}>
-											{complianceStats?.averageAdherence || "0"}%
+											{complianceStats?.averageIntake || "0"}%
 										</Typography>
 										<Typography variant="body1" color="text.secondary" fontWeight={600}>
 											Compliance
@@ -308,7 +311,7 @@ const StatsPage = () => {
 	
 							<Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, justifyContent: "center", maxWidth: 800, mx: "auto" }}>
 								{dailyCompliances?.slice(0, 100).map((compliance) => {
-									const percentage = Number.parseFloat(compliance.adherencePercentage);
+									const percentage = Number.parseFloat(compliance.intakePercentage);
 									// Theme-aware colors
 									let bgcolor = "action.selected"; 
 									if (percentage === 100) bgcolor = "success.main";
@@ -330,7 +333,7 @@ const StatsPage = () => {
 													transform: "scale(1.2)",
 												},
 											}}
-											title={`${new Date(compliance.date).toLocaleDateString()}: ${percentage}% compliance`}
+											title={`${new Date(compliance.date).toLocaleDateString('en-US', { timeZone: user?.timezone || getBrowserTimezone() || 'Etc/UTC' })}: ${percentage}% compliance`}
 										/>
 									);
 								})}

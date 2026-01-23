@@ -1,10 +1,10 @@
 import z from "zod";
-import { zDecimal, zSmallint, zTimeEpoch, zTimestamps } from "./zod_utils.js";
+import { zDecimal, zSmallint, zTimestamps } from "./zod_utils.js";
 
 export const dailyComplianceMandatoryZod = z.object({
 	userId: z.uuid(),
-	adherencePercentage: zDecimal(5, 2, 0, 100),
-	date: zTimeEpoch,
+	intakePercentage: zDecimal(5, 2, 0, 100),
+	date: z.iso.date(),
 	dailyShieldOpeningBalance: zSmallint(0),
 	dailyShieldClosingBalance: zSmallint(0),
 	dailyShieldUsed: z.boolean(),
@@ -44,8 +44,8 @@ export type DailyComplianceGetByUserInput = z.infer<typeof dailyComplianceGetByU
 
 export const dailyComplianceGetByDateRangeZod = z.object({
 	userId: z.uuid(),
-	startDate: zTimeEpoch,
-	endDate: zTimeEpoch,
+	startDate: z.iso.date(),
+	endDate: z.iso.date(),
 });
 export type DailyComplianceGetByDateRangeInput = z.infer<typeof dailyComplianceGetByDateRangeZod>;
 

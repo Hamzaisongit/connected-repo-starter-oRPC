@@ -154,6 +154,15 @@ const userSchema = z.object({
 })
 ```
 
+**With Timezone**:
+```typescript
+import { zTimezone } from '@connected-repo/zod-schemas/zod_utils'
+
+const userSchema = z.object({
+  timezone: zTimezone.nullable(),
+})
+```
+
 **Compliance**:
 ```typescript
 import { zGSTIN, zPAN } from '@connected-repo/zod-schemas/zod_utils'

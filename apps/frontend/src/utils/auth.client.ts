@@ -1,4 +1,5 @@
  import { env } from "@frontend/configs/env.config";
+import { getBrowserTimezone } from "@frontend/utils/timezone.utils";
 import { inferAdditionalFields } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
@@ -7,8 +8,9 @@ import { createAuthClient } from "better-auth/react";
    plugins: [inferAdditionalFields({
    user: {
       timezone: {
+        defaultValue: getBrowserTimezone() || "Etc/UTC",
+        required: true,
         type: "string",
-        required: false,
       },
       themeSetting: {
         type: "string",

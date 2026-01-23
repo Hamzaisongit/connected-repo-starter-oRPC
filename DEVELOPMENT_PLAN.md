@@ -122,6 +122,7 @@ If after 60 days:
 - Synced theme setting with backend via authClient.updateUser (deviated from oRPC approach for better integration with better-auth)
 - Improved account details UI with better information hierarchy
 - Implemented theme initialization from user preferences
+- **Enhanced:** Implemented automatic timezone detection and syncing in auth loader with browser/IP fallback, profile page tooltip, and toast notifications
 
 **Supplement Logging Improvements:**
 - Added revert functionality for supplement logs via deleteMutation
@@ -527,7 +528,7 @@ If after 60 days:
 
 **5.0.5: Add New Database Enums** ✅ COMPLETED (UPDATED)
 - Initially added DAYS_OF_WEEK_ENUM, but later refactored to use flexible string arrays for days field
-- Added USER_ADHERENCE_STATUS_ENUM: ['Taken on-time', 'Taken late', 'Missed', 'Skipped']
+- Added USER_INTAKE_STATUS_ENUM: ['Taken on-time', 'Taken late', 'Missed', 'Skipped']
 - Updated base_table.ts with enum helpers (removed daysOfWeekEnum after refactoring)
 - **Deviation:** Days field changed from enum to array(t.string()) for better flexibility (multiple days per stack, custom day names)
 - **Updated Deviation:** Refactored supplement scheduling from multiple timesOfDay array to single reminderTime field per stack
@@ -735,7 +736,7 @@ If after 60 days:
 **5.1.5: Implement Event Publishing in Core Modules**
 - Update existing modules to publish events:
   - `auth` module: Publish `user.created` after successful signup
-  - `adherence-logs` module: Publish `adherence_log.created` after creation
+  - `intake-logs` module: Publish `adherence_log.created` after creation
   - `subscriptions` module: Publish `subscription.updated` on status change
 - Events published via event bus interface (database-backed for MVP)
 - Add error handling for event publishing failures
@@ -884,7 +885,7 @@ If after 60 days:
 **Issues:**
 
 **8.1.1: Create User Adherence Logs Table** ✅ COMPLETED
-- Create `user_adherence_logs` table (id, userId, supplementId, status, scheduledFor, actualAt, reason, timeZoneOffset, createdAt, updatedAt)
+- Create `user_adherence_logs` table (id, userId, supplementId, status, scheduledFor, actualAt, reason, logTimezone, createdAt, updatedAt)
 - Status enum: 'Taken on-time', 'Taken late', 'Missed', 'Skipped'
 - Index on (userId, scheduledFor) for fast queries
 - Run migration
@@ -910,11 +911,11 @@ If after 60 days:
   - Conflicts resolved correctly
 
 **8.1.3: Build Adherence Logging Endpoints** ✅ COMPLETED
-- `userAdherenceLogs.create` - Log adherence for supplement
-- `userAdherenceLogs.getAll` - Get user's adherence logs
-- `userAdherenceLogs.getById` - Get single adherence log
-- `userAdherenceLogs.update` - Update adherence log (with restrictions)
-- `userAdherenceLogs.delete` - Delete adherence log (with restrictions)
+- `userIntakeLogs.create` - Log adherence for supplement
+- `userIntakeLogs.getAll` - Get user's adherence logs
+- `userIntakeLogs.getById` - Get single adherence log
+- `userIntakeLogs.update` - Update adherence log (with restrictions)
+- `userIntakeLogs.delete` - Delete adherence log (with restrictions)
 - Batch endpoint for offline sync
 - **Acceptance Criteria:**
   - Endpoints fast (< 100ms)
@@ -957,7 +958,7 @@ If after 60 days:
 - **Enhanced Implementation:** Refactored from multiple queries + client filtering to single efficient JOIN query
 - Calculates compliance percentage and overdue counts
 - Filters supplements by today's day and time, determines status from logs
-- **Database Relations:** Added intakeLogs relation between UserStackTable and UserAdherenceLogTable
+- **Database Relations:** Added intakeLogs relation between UserStackTable and UserIntakeLogTable
 - **Performance:** Single SQL query with JOIN instead of separate queries
 - **Acceptance Criteria:**
   - Endpoint returns today's supplements with status
@@ -977,7 +978,7 @@ If after 60 days:
 **Issues:**
 
 **9.0.1: Create Daily Compliances Table** ✅ COMPLETED
-- Create `daily_compliances` table (id, userId, adherencePercentage, date, dailyShieldOpeningBalance, dailyShieldClosingBalance, dailyShieldUsed, createdAt, updatedAt)
+- Create `daily_compliances` table (id, userId, intakePercentage, date, dailyShieldOpeningBalance, dailyShieldClosingBalance, dailyShieldUsed, createdAt, updatedAt)
 - Tracks daily adherence percentage and shield mechanics
 - Run migration
 - **Acceptance Criteria:**
@@ -2113,7 +2114,7 @@ For MVP, use **pg-tbus** library for transactional event publishing:
 - `tbus_subscriptions` - Event subscriptions
 
 **Components:**
-- **Event Publishers**: Core modules (auth, adherence-logs, subscriptions) publish events using `tbus.publish()`
+- **Event Publishers**: Core modules (auth, intake-logs, subscriptions) publish events using `tbus.publish()`
 - **Event Subscribers**: Services (notifications, analytics) subscribe using `tbus.subscribe()`
 - **Outbox Relay**: pg-tbus auto-polls outbox and delivers events to subscribers
 - **Type Safety**: Zod schemas for event payload validation

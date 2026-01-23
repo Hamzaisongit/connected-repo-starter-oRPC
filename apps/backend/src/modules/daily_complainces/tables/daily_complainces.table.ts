@@ -11,8 +11,8 @@ export class DailyComplianceTable extends BaseTable {
       onDelete: "CASCADE",
       onUpdate: "RESTRICT"
     }),
-    adherencePercentage: t.decimal(),
-    date: t.timestampNumber(),
+    intakePercentage: t.decimal(),
+    date: t.date(),
     dailyShieldOpeningBalance: t.smallint(),
     dailyShieldClosingBalance: t.smallint(),
     dailyShieldUsed: t.boolean(),

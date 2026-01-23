@@ -1,9 +1,11 @@
 import { userContext } from "@frontend/contexts/UserContext";
 import { authClient } from "@frontend/utils/auth.client";
 import { logSessionEvent, logSessionException } from "@frontend/utils/session-logger.utils";
+import { detectUserTimezone } from "@frontend/utils/timezone.utils";
 import * as Sentry from "@sentry/react";
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
+import { toast } from "react-toastify";
 
 /**
  * Auth loader for protected routes
@@ -75,6 +77,44 @@ export async function authLoader({ context }: LoaderFunctionArgs) {
 				potentialLeakage: !sessionToken && localStorageKeys.some(k => k.includes('awc.session')),
 			},
 		});
+
+		// Timezone Detection and Auto-Update
+		try {
+			const detectedTimezone = await detectUserTimezone();
+			if (detectedTimezone && detectedTimezone !== session.user.timezone) {
+				toast.info(`Timezone change detected. Updating timezone to match your current location.`, {
+					position: "top-center",
+					autoClose: 1000,
+				});
+				logSessionEvent('log', 'Frontend: Timezone update initiated', {
+					userId: session.user.id,
+					currentTimezone: session.user.timezone,
+					detectedTimezone: detectedTimezone,
+				});
+
+				await authClient.updateUser({ timezone: detectedTimezone });
+
+				logSessionEvent('log', 'Frontend: Timezone updated successfully', {
+					userId: session.user.id,
+					newTimezone: detectedTimezone,
+				});
+
+				// Update the session user object with the new timezone
+				session.user.timezone = detectedTimezone;
+
+				// Show toast notification
+				toast.success(`Your timezone has been updated to match your current location`, {
+					position: "top-center",
+					autoClose: 3000,
+				});
+			}
+		} catch (timezoneError) {
+			logSessionException(timezoneError instanceof Error ? timezoneError : new Error(String(timezoneError)), {
+				error_type: 'timezone_detection_failed',
+				userId: session.user.id,
+			}, 'Timezone detection failed');
+			// Continue without failing the auth flow
+		}
 
 		const sessionInfo = {
 			hasSession: true,

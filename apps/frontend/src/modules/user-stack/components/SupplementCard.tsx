@@ -171,100 +171,108 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
 			gap: 2,
 			py: 2, // Adjusted padding for better density
 			px: 2,
-			cursor: onCardClick ? "pointer" : "default",
 			// Airy Compliance: Round borders for list items
-			borderRadius: "24px", 
+			borderRadius: "24px",
 			transition: "all 0.2s ease",
 			"&:hover": onCardClick ? {
 				backgroundColor: alpha(theme.palette.action.hover, 0.04),
 				transform: "translateY(-1px)",
 			} : {},
 		}}
-		onClick={() => onCardClick && onCardClick(supplement.id)}
 	>
-		{/* Left: Circular Thumbnail */}
+		{/* Clickable area for card navigation */}
 		<Box
 			sx={{
-				width: 48,
-				height: 48,
-				borderRadius: "50%",
-				border: "1px solid",
-				borderColor: "divider",
 				display: "flex",
 				alignItems: "center",
-				justifyContent: "center",
-				backgroundColor: stockIconData.bgColor,
-				overflow: "hidden",
-				flexShrink: 0,
+				gap: 2,
+				flex: 1,
+				minWidth: 0,
+				cursor: onCardClick ? "pointer" : "default",
 			}}
+			onClick={() => onCardClick && onCardClick(supplement.id)}
 		>
-			{supplement.imageUrl ? (
-				<img
-					src={supplement.imageUrl}
-					alt={supplement.name}
-					style={{
-						width: "100%",
-						height: "100%",
-						objectFit: "cover",
+			{/* Left: Circular Thumbnail */}
+			<Box
+				sx={{
+					width: 48,
+					height: 48,
+					borderRadius: "50%",
+					border: "1px solid",
+					borderColor: "divider",
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+					backgroundColor: stockIconData.bgColor,
+					overflow: "hidden",
+					flexShrink: 0,
+				}}
+			>
+				{supplement.imageUrl ? (
+					<img
+						src={supplement.imageUrl}
+						alt={supplement.name}
+						style={{
+							width: "100%",
+							height: "100%",
+							objectFit: "cover",
+						}}
+						onError={(e) => {
+							const target = e.target as HTMLImageElement;
+							target.style.display = "none";
+							const parent = target.parentElement;
+							if (parent) parent.innerHTML = `<span style="font-size: 1.5rem;">${stockIconData.icon}</span>`;
+						}}
+					/>
+				) : (
+					<Box sx={{ fontSize: "1.5rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
+						{stockIconData.icon}
+					</Box>
+				)}
+			</Box>
+
+			{/* Center: Info */}
+			<Box sx={{ flex: 1, minWidth: 0 }}>
+				<Typography
+					sx={{
+						fontFamily: '"Playfair Display", Georgia, serif',
+						fontWeight: 600,
+						fontSize: "1rem",
+						lineHeight: 1.3,
+						color: "text.primary",
+						mb: 0.5,
 					}}
-					onError={(e) => {
-						const target = e.target as HTMLImageElement;
-						target.style.display = "none";
-						const parent = target.parentElement;
-						if (parent) parent.innerHTML = `<span style="font-size: 1.5rem;">${stockIconData.icon}</span>`;
+				>
+					{supplement.name}
+				</Typography>
+
+				<Typography
+					sx={{
+						fontSize: "0.875rem",
+						color: "text.secondary",
+						fontWeight: 500,
+						mb: 0.5,
 					}}
-				/>
-			) : (
-				<Box sx={{ fontSize: "1.5rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
-					{stockIconData.icon}
-				</Box>
-			)}
-		</Box>
+				>
+					{supplement.dosage} {supplement.unit} • {formatTime(supplement.reminderTime)}
+				</Typography>
 
-		{/* Center: Info */}
-		<Box sx={{ flex: 1, minWidth: 0 }}>
-			<Typography
-				sx={{
-					fontFamily: '"Playfair Display", Georgia, serif',
-					fontWeight: 600,
-					fontSize: "1rem",
-					lineHeight: 1.3,
-					color: "text.primary",
-					mb: 0.5,
-				}}
-			>
-				{supplement.name}
-			</Typography>
-
-			<Typography
-				sx={{
-					fontSize: "0.875rem",
-					color: "text.secondary",
-					fontWeight: 500,
-					mb: 0.5,
-				}}
-			>
-				{supplement.dosage} {supplement.unit} • {formatTime(supplement.reminderTime)}
-			</Typography>
-
-			<Typography
-				sx={{
-					fontSize: "0.8rem",
-					color: statusInfo.color,
-					fontWeight: 600,
-				}}
-			>
-				{statusInfo.text}
-			</Typography>
+				<Typography
+					sx={{
+						fontSize: "0.8rem",
+						color: statusInfo.color,
+						fontWeight: 600,
+					}}
+				>
+					{statusInfo.text}
+				</Typography>
+			</Box>
 		</Box>
 
 		{/* Right: Circular Action Button */}
 		<Button
 			variant="outlined"
-			onClick={(e) => {
-				e.stopPropagation();
-				handleLogClick();
-			}}
+			onClick={handleLogClick}
 			disabled={isLogging || isLoading}
 			sx={{
 				minWidth: 48,
@@ -310,17 +318,6 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
 				</DialogContentText>
 			</DialogContent>
 			<DialogActions sx={{ p: 2 }}>
-				<Button 
-					onClick={handleRevertCancel} 
-					variant="text"
-					sx={{
-						color: theme.palette.secondary.contrastText,
-						backgroundColor: theme.palette.secondary.main,
-						fontWeight: 600,
-					}}
-				>
-					Cancel
-				</Button>
 				<Button
 					onClick={handleRevertConfirm}
 					disabled={isLoading}
@@ -332,6 +329,17 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
 					}}
 				>
 					{isLoading ? "Reverting..." : "Yes, Revert"}
+				</Button>
+				<Button 
+					onClick={handleRevertCancel} 
+					variant="text"
+					sx={{
+						color: theme.palette.secondary.contrastText,
+						backgroundColor: theme.palette.secondary.main,
+						fontWeight: 600,
+					}}
+				>
+					Cancel
 				</Button>
 			</DialogActions>
 		</Dialog>

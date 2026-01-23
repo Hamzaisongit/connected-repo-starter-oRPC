@@ -4,8 +4,8 @@ import { db } from "@backend/db/db";
 import { logger } from "@backend/utils/logger.utils";
 import { recordErrorOtel } from "@backend/utils/record-message.otel.utils";
 import { themeSettingZod } from "@connected-repo/zod-schemas/enums.zod";
+import { zTimezone } from "@connected-repo/zod-schemas/zod_utils";
 import { betterAuth } from "better-auth";
-import { CoercedCanonicalTimezoneSchema } from "zod-timezone-validation";
 import { orchidAdapter } from "./orchid-adapter/factory.orchid_adapter";
 
 // TODO: Instrument Better Auth with OpenTelemetry for automatic tracing
@@ -124,12 +124,13 @@ export const auth = betterAuth({
 		},
 		additionalFields: {
 			timezone: {
-				type: "string",
-				required: false,
+				defaultValue: "Etc/UTC",
 				input: true,
+				required: true,
+				type: "string",
 				validator: {
-					input: CoercedCanonicalTimezoneSchema.nullish(),
-					output: CoercedCanonicalTimezoneSchema.nullish()
+					input: zTimezone.nullish(),
+					output: zTimezone.nullish()
 				}
 			},
 			themeSetting: {

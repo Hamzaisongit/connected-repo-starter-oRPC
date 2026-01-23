@@ -1,27 +1,35 @@
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
+import { useSessionInfo } from "@frontend/contexts/UserContext";
 import { orpc } from "@frontend/utils/orpc.client";
+import { getBrowserTimezone } from "@frontend/utils/timezone.utils";
 import { useTheme } from "@mui/material/styles";
 import { useQuery } from "@tanstack/react-query";
 
 const ComplianceCalendar = () => {
-	const { data: todaysPlan } = useQuery(orpc.userStacks.getTodaysPlan.queryOptions());
 	const theme = useTheme();
+	const { user } = useSessionInfo();
 
 	// Generate a simple 7-day calendar view
 	const today = new Date();
 	const days = [];
 
-	for (let i = 6; i >= 0; i--) {
+	const { data: dailyCompliances } = useQuery(
+		orpc.dailyCompliances.getLast7.queryOptions()
+	);
+
+	for (let i = 7; i >= 1; i--) {
 		const date = new Date(today);
 		date.setDate(today.getDate() - i);
+		const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD
+		const dailyCompliance = dailyCompliances?.find(dc => dc.date === dateString);
+		const compliance = dailyCompliance ? Number.parseFloat(dailyCompliance.intakePercentage) : 0;
 		days.push({
 			date,
 			day: date.getDate(),
-			dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
-			isToday: i === 0,
-			// Mock compliance data - in real app this would come from dailyCompliances endpoint
-			compliance: i === 0 ? (todaysPlan?.compliancePercentage || 0) : Math.floor(Math.random() * 100),
+			dayName: date.toLocaleDateString('en-US', { weekday: 'short', timeZone: user?.timezone || getBrowserTimezone() || 'Etc/UTC' }),
+			isToday: false,
+			compliance,
 		});
 	}
 

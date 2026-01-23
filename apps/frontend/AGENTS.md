@@ -76,10 +76,10 @@ return (
 import { orpc } from '@/utils/orpc.client'
 
 // Query
-const { data, isLoading } = orpc.adherenceLog.getAll.useQuery()
+const { data, isLoading } = orpc.intakeLog.getAll.useQuery()
 
 // Mutation
-const createLog = orpc.adherenceLog.create.useMutation()
+const createLog = orpc.intakeLog.create.useMutation()
 await createLog.mutateAsync({ supplementId: 'uuid', status: 'Taken on-time', scheduledFor: new Date() })
 ```
 ## Visual & UX Identity System

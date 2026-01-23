@@ -1,12 +1,11 @@
 import { isProd } from "@backend/configs/env.config";
 import { openApiRouter } from "@backend/routers/open_api.router";
-import { orpcErrorParser } from "@backend/utils/errorParser";
 import { logger } from "@backend/utils/logger.utils";
 import { trace } from '@opentelemetry/api';
 import { LoggingHandlerPlugin } from "@orpc/experimental-pino";
 import { OpenAPIHandler } from "@orpc/openapi/node";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
-import { ORPCError, onError } from "@orpc/server";
+import { onError } from "@orpc/server";
 import { CORSPlugin, RequestHeadersPlugin } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 
@@ -74,18 +73,20 @@ export const openApiHandler = new OpenAPIHandler(openApiRouter, {
 		// Server-side error logging
 		onError((error) => {
 			logger.error(error, "OpenAPI error");
+			// const parsed = orpcErrorParser(error as Error);
+			// console.log({ parsed });
 		}),
 	],
   clientInterceptors: [
     // Client-side error transformation
     onError((error) => {
-      const parsed = orpcErrorParser(error as Error);
-      throw new ORPCError(parsed.code, {
-        status: parsed.httpStatus,
-        message: parsed.userFriendlyMessage,
-        data: parsed.details,
-        cause: error,
-      });
+      // const parsed = orpcErrorParser(error as Error);
+      // new ORPCError(parsed.code, {
+      //   status: parsed.httpStatus,
+      //   message: parsed.userFriendlyMessage,
+      //   data: parsed.details,
+      //   cause: error,
+      // });
     }),
   ],
 });

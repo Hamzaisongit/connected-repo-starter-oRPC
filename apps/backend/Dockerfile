@@ -93,6 +93,7 @@ USER nodejs
 
 # Set environment variables
 ENV NODE_ENV=production
+ENV TZ=Etc/UTC
 
 # Set working directory to the backend app
 WORKDIR /app/apps/backend
@@ -107,4 +108,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
       echo "$response" | grep -q '"status":"ok"' || exit 1
 
 # Run the entrypoint script which handles migration, server start, health checks, and rollback on failure
-CMD ["./entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]

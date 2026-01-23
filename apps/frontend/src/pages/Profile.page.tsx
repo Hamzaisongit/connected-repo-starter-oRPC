@@ -27,7 +27,7 @@ import type { SessionInfo } from "@frontend/contexts/UserContext";
 import { authClient } from "@frontend/utils/auth.client";
 import { orpc } from "@frontend/utils/orpc.client";
 import { logSessionEvent, logSessionException } from "@frontend/utils/session-logger.utils";
-import { alpha, useTheme } from "@mui/material/styles";
+import { alpha, Tooltip, useTheme } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -149,6 +149,7 @@ const ProfilePage = () => {
 			year: "numeric",
 			month: "long",
 			day: "numeric",
+			timeZone: user.timezone,
 		});
 	};
 
@@ -382,55 +383,60 @@ const ProfilePage = () => {
 										</Box>
 
 										{/* Timezone */}
-										<Box
-											sx={{
-												display: "flex",
-												alignItems: "center",
-												gap: 2,
-												py: 1.5,
-												px: 2,
-												mt: 1.5,
-												borderRadius: 1.5,
-												backgroundColor: alpha(theme.palette.secondary.light, 0.2),
-											}}
+										<Tooltip
+											title="Your timezone is automatically detected and synced based on your current location. Manual changes are not available at this time."
+											placement="top"
 										>
 											<Box
 												sx={{
 													display: "flex",
 													alignItems: "center",
-													justifyContent: "center",
-													width: 40,
-													height: 40,
+													gap: 2,
+													py: 1.5,
+													px: 2,
+													mt: 1.5,
 													borderRadius: 1.5,
-													backgroundColor: alpha(theme.palette.background.paper, 0.5),
+													backgroundColor: alpha(theme.palette.secondary.light, 0.2),
 												}}
 											>
-												<SettingsIcon sx={{ color: theme.palette.secondary.contrastText, fontSize: "1.25rem" }} />
-											</Box>
-											<Box sx={{ flex: 1 }}>
-												<Typography
-													variant="caption"
+												<Box
 													sx={{
-														color: theme.palette.text.secondary,
-														fontSize: "0.75rem",
-														display: "block",
-														mb: 0.25,
+														display: "flex",
+														alignItems: "center",
+														justifyContent: "center",
+														width: 40,
+														height: 40,
+														borderRadius: 1.5,
+														backgroundColor: alpha(theme.palette.background.paper, 0.5),
 													}}
 												>
-													Timezone
-												</Typography>
-												<Typography
-													variant="body2"
-													sx={{
-														color: theme.palette.text.primary,
-														fontWeight: 500,
-														fontSize: "0.95rem",
-													}}
-												>
-													{user.timezone || "Not set"}
-												</Typography>
+													<SettingsIcon sx={{ color: theme.palette.secondary.contrastText, fontSize: "1.25rem" }} />
+												</Box>
+												<Box sx={{ flex: 1 }}>
+													<Typography
+														variant="caption"
+														sx={{
+															color: theme.palette.text.secondary,
+															fontSize: "0.75rem",
+															display: "block",
+															mb: 0.25,
+														}}
+													>
+														Timezone (Auto-synced)
+													</Typography>
+													<Typography
+														variant="body2"
+														sx={{
+															color: theme.palette.text.primary,
+															fontWeight: 500,
+															fontSize: "0.95rem",
+														}}
+													>
+														{user.timezone || "Not set"}
+													</Typography>
+												</Box>
 											</Box>
-										</Box>
+										</Tooltip>
 									</Box>
 								</Stack>
 							</Paper>

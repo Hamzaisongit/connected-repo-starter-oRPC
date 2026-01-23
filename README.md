@@ -38,7 +38,7 @@ Production-ready Turborepo monorepo for building full-stack TypeScript applicati
 │   │   ├── src/
 │   │   │   ├── modules/              # Feature modules
 │   │   │   │   ├── auth/             # OAuth2 + session management
-│   │   │   │   ├── adherence-logs/   # Supplement adherence logging (oRPC + tests)
+│   │   │   │   ├── intake-logs/   # Supplement intake logging (oRPC + tests)
 │   │   │   │   ├── prompts/          # Prompt management
 │   │   │   │   ├── logs/             # API request logs
 │   │   │   │   ├── subscriptions/    # API subscriptions
@@ -219,7 +219,7 @@ yarn start
 - Type-safe APIs for frontend-backend communication
 - Zero code generation - types flow automatically
 - Routes: `/orpc/*`
-- Example: `orpc.adherenceLog.create.useMutation()`
+- Example: `orpc.intakeLog.create.useMutation()`
 
 **REST/OpenAPI for External APIs:**
 - Automatic Swagger documentation at `/api/documentation`
@@ -270,8 +270,8 @@ The monorepo achieves full type safety without code generation:
 
 ```typescript
 // oRPC usage (internal)
-const { data } = orpc.adherenceLog.getAll.useQuery();
-const create = orpc.adherenceLog.create.useMutation();
+const { data } = orpc.intakeLog.getAll.useQuery();
+const create = orpc.intakeLog.create.useMutation();
 
 // OpenAPI usage (external)
 // See interactive docs at /api/documentation

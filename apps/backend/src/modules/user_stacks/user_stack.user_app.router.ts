@@ -1,7 +1,9 @@
 import { sql } from "@backend/db/base_table";
 import { db } from "@backend/db/db";
 import { rpcProtectedProcedure } from "@backend/procedures/protected.procedure";
-import { UserAdherenceStatus } from "@connected-repo/zod-schemas/enums.zod";
+
+// All date-based calculations are performed at the database level to ensure timezone awareness.
+import type { UserIntakeStatus } from "@connected-repo/zod-schemas/enums.zod";
 import {
 	todaysPlanZod,
 	userStackCreateInputZod,
@@ -19,9 +21,11 @@ const getAll = rpcProtectedProcedure
 		const userStacks = await db.userStacks
 			.select("*")
 			.where({ userId: user.id })
-			.order({ createdAt: "DESC" });
+			.order({
+				createdAt: "DESC"
+			});
 
-		return userStacks as z.infer<typeof userStackSelectAllZod>[];
+		return userStacks;
 	});
 
 // Get user stack by ID
@@ -31,9 +35,10 @@ const getById = rpcProtectedProcedure
 	.handler(async ({ input: { id }, context: { user } }) => {
 		const userStack = await db.userStacks
 			.find(id)
-			.where({ userId: user.id });
+			.where({ userId: user.id })
+			.select("*");
 
-		return userStack as z.infer<typeof userStackSelectAllZod>;
+		return userStack;
 	});
 
 // Create user stack
@@ -46,7 +51,7 @@ const create = rpcProtectedProcedure
 			userId: user.id,
 		});
 
-		return newUserStack as z.infer<typeof userStackSelectAllZod>;
+		return newUserStack;
 	});
 
 // Update user stack
@@ -84,32 +89,26 @@ const deleteStack = rpcProtectedProcedure
 // Get today's plan with supplement status
 const getTodaysPlan = rpcProtectedProcedure
 	.output(todaysPlanZod)
-	.handler(async ({ context: { user } }) => {
-		const now = new Date();
-		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-		const tomorrow = new Date(today);
-		tomorrow.setDate(tomorrow.getDate() + 1);
-		const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-		const currentDayOfWeek = dayNames[now.getDay()];
+	.handler(async ({ context: { user: { id: userId, timezone: userTz} } }) => {
 
 		// Get all user stacks
 		const todaysSupplements = await db.userStacks
 			.select("*", {
 				todayIntakeLog: (q) => q.intakeLogs
-					.select("actualAt", "id", "status")
-					.where(sql`actual_at >= ${today} AND actual_at < ${tomorrow}`)
+					.select("actualAt", "id", "logTimezone","scheduledFor", "status")
+					.where(sql`DATE("scheduled_for" AT TIME ZONE 'UTC' AT TIME ZONE ${userTz}) = (CURRENT_TIMESTAMP AT TIME ZONE ${userTz})::date`)
 					.takeOptional()
 			})
-			.where({ userId: user.id, isActive: true })
-			.where(sql`${currentDayOfWeek} = ANY(reminder_days)`);
+			.where({ userId: userId, isActive: true })// 2. Filter stacks where today's day name exists in the reminder_days array
+      .where(sql`trim(to_char(CURRENT_TIMESTAMP AT TIME ZONE ${userTz}, 'Day')) = ANY("reminder_days")`);
 
 		
 
 		// Determine status for each supplement
 		const supplementsWithStatus = todaysSupplements.map(supplement => {
 
-			let status: UserAdherenceStatus | "pending" | "overdue";
-			const currentTime = new Date().toTimeString().slice(0, 5); // HH:MM format
+			let status: UserIntakeStatus | "pending" | "overdue";
+			const currentTime = new Date().toLocaleTimeString('en-GB', {timeZone: userTz}).slice(0, 5); // HH:MM format in user tz
 
 			if (supplement.todayIntakeLog) {
 				status = supplement.todayIntakeLog.status

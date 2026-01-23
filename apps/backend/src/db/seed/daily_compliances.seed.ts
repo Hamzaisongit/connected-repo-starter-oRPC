@@ -10,7 +10,7 @@ export async function seedDailyCompliances(userId: string) {
     const date = now - i * 24 * 60 * 60 * 1000; // days ago
     await db.dailyCompliances.create({
       userId,
-      adherencePercentage: (Math.random() * 100).toFixed(2),
+      intakePercentage: (Math.random() * 100).toFixed(2),
       date,
       dailyShieldOpeningBalance: Math.floor(Math.random() * 5),
       dailyShieldClosingBalance: Math.floor(Math.random() * 5),

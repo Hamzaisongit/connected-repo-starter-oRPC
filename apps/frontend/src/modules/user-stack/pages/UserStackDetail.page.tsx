@@ -8,12 +8,14 @@ import { Switch } from "@connected-repo/ui-mui/form/Switch";
 import { TextField } from "@connected-repo/ui-mui/form/TextField";
 import { EditIcon } from "@connected-repo/ui-mui/icons/EditIcon";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
-import { Card } from "@connected-repo/ui-mui/layout/Card"
+import { Card } from "@connected-repo/ui-mui/layout/Card";
 import { Container } from "@connected-repo/ui-mui/layout/Container";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
 import { BackButton } from "@frontend/components/BackButton";
+import { useSessionInfo } from "@frontend/contexts/UserContext";
 import { orpc } from "@frontend/utils/orpc.client";
 import { getStockIconAndColor } from "@frontend/utils/supplement.utils";
+import { getBrowserTimezone } from "@frontend/utils/timezone.utils";
 import { alpha, useTheme } from "@mui/material/styles";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -24,6 +26,7 @@ export default function UserStackDetailPage() {
 	const theme = useTheme();
 	const navigate = useNavigate();
 	const { stackId } = useParams<{ stackId: string }>();
+	const { user } = useSessionInfo();
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [confirmationText, setConfirmationText] = useState("");
 	const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -32,8 +35,8 @@ export default function UserStackDetailPage() {
 		orpc.userStacks.getById.queryOptions({ input: { id: stackId || "" } })
 	);
 
-	const { data: adherenceLogs } = useQuery(
-		orpc.userAdherenceLogs.getBySupplementId.queryOptions({ input: { supplementId: stackId || "" } })
+	const { data: intakeLogs } = useQuery(
+		orpc.userIntakeLogs.getBySupplementId.queryOptions({ input: { supplementId: stackId || "" } })
 	);
 
 	const deleteMutation = useMutation(orpc.userStacks.delete.mutationOptions());
@@ -105,7 +108,7 @@ export default function UserStackDetailPage() {
 		const date = new Date();
 		date.setDate(date.getDate() - i);
 		const dateStr = date.toDateString();
-		const log = adherenceLogs?.find(l => new Date(l.scheduledFor).toDateString() === dateStr);
+		const log = intakeLogs?.find(l => new Date(l.scheduledFor).toDateString() === dateStr);
 		days.push({ date, log });
 	}
 
@@ -333,7 +336,7 @@ return (
                         >
                             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                                 <Typography sx={{ fontWeight: 500, fontSize: "0.95rem", color: theme.palette.text.primary, minWidth: 100 }}>
-                                    {date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                                    {date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: user?.timezone || getBrowserTimezone() || 'Etc/UTC' })}
                                 </Typography>
                                 
                                 {/* Circular Status Indicator */}
@@ -360,7 +363,7 @@ return (
                                 </Box>
 
                                 <Typography variant="body2" sx={{ color: theme.palette.text.secondary, flex: 1 }}>
-                                    {log?.actualAt ? `Logged at ${new Date(log.actualAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}` : "No intake recorded"}
+                                    {log?.actualAt ? `Logged at ${new Date(log.actualAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: user?.timezone || getBrowserTimezone() || 'Etc/UTC' })}` : "No intake recorded"}
                                 </Typography>
                             </Box>
                         </motion.div>

@@ -9,7 +9,7 @@ export class UserTable extends BaseTable {
 		emailVerified: t.boolean().default(false),
 		name: t.string(),
 		image: t.string().nullable(),
-		timezone: t.string().nullable(),
+		timezone: t.string().default("Etc/UTC"),
 		themeSetting: t.themeSettingEnum().default("light"),
 		...t.timestamps(),
 	}));

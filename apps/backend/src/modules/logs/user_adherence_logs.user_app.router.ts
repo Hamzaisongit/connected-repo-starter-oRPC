@@ -1,78 +1,60 @@
 import { db } from "@backend/db/db";
+import { isDailyComplianceCreated } from "@backend/modules/daily_complainces/services/is_created.daily_compliance.service";
 import { rpcProtectedProcedure } from "@backend/procedures/protected.procedure";
 import {
-	userAdherenceLogCreateInputZod,
-	userAdherenceLogDeleteZod,
-	userAdherenceLogGetByIdZod,
-	userAdherenceLogSelectAllZod,
-	userAdherenceLogUpdateInputZod,
+	userIntakeLogCreateInputZod,
+	userIntakeLogDeleteZod,
+	userIntakeLogGetByIdZod,
+	userIntakeLogSelectAllZod,
+	userIntakeLogUpdateInputZod,
 } from "@connected-repo/zod-schemas/user_adherence_log.zod";
+import { zTimeEpoch, zTimezone } from "@connected-repo/zod-schemas/zod_utils";
 import { ORPCError } from "@orpc/server";
 import z from "zod";
 
-/**
- * Helper function to check if daily compliance has been updated for a given date
- * Returns true if the daily compliance record exists and has been modified
- */
-async function isDailyComplianceUpdated(userId: string, scheduledDate: number): Promise<boolean> {
-	// Get the start and end of the day for the given timestamp
-	const dayStart = new Date(scheduledDate);
-	dayStart.setHours(0, 0, 0, 0);
-	const dayEnd = new Date(scheduledDate);
-	dayEnd.setHours(23, 59, 59, 999);
-
-	const dailyCompliance = await db.dailyCompliances
-		.where({ userId })
-		.where({ date: { gte: new Date(dayStart) } })
-		.where({ date: { lte: new Date(dayEnd) } })
-		.takeOptional();
-
-	if (!dailyCompliance) {
-		return false;
-	}
-
-	// Check if the record has been modified after creation
-	return dailyCompliance.updatedAt > dailyCompliance.createdAt;
-}
+// All date-based calculations are performed at the database level to ensure timezone awareness.
 
 // Get all user adherence logs for the authenticated user
 const getAll = rpcProtectedProcedure
-	.output(z.array(userAdherenceLogSelectAllZod))
+	.output(z.array(userIntakeLogSelectAllZod))
 	.handler(async ({ context: { user } }) => {
-		const adherenceLogs = await db.userAdherenceLogs
+		const intakeLogs = await db.userIntakeLogs
 			.select("*")
 			.where({ userId: user.id })
-			.order({ scheduledFor: "DESC" });
+			.order({
+				actualAt: "DESC"
+			});
 
-		return adherenceLogs;
+		return intakeLogs;
 	});
 
 // Get user adherence log by ID
 const getById = rpcProtectedProcedure
-	.input(userAdherenceLogGetByIdZod)
-	.output(userAdherenceLogSelectAllZod)
+	.input(userIntakeLogGetByIdZod)
+	.output(userIntakeLogSelectAllZod)
 	.handler(async ({ input: { id }, context: { user } }) => {
-		const adherenceLog = await db.userAdherenceLogs
-			.find(id)
-			.where({ userId: user.id });
-
-		return adherenceLog;
+		return await db.userIntakeLogs
+        .find(id)
+        .where({ userId: user.id })
+        .select("*");
 	});
 
 // Get adherence logs by supplement ID
 const getBySupplementId = rpcProtectedProcedure
 	.input(z.object({ supplementId: z.uuid() }))
-	.output(z.array(userAdherenceLogSelectAllZod))
+	.output(z.array(userIntakeLogSelectAllZod))
 	.handler(async ({ input: { supplementId }, context: { user } }) => {
-		const adherenceLogs = await db.userAdherenceLogs
+		const intakeLogs = await db.userIntakeLogs
 			.select("*")
 			.where({
 				userId: user.id,
 				supplementId,
 			})
-			.order({ scheduledFor: "DESC" });
+			.order({
+				actualAt: "DESC"
+			});
 
-		return adherenceLogs;
+		return intakeLogs;
 	});
 
 // Get adherence logs by date range
@@ -83,58 +65,55 @@ const getByDateRange = rpcProtectedProcedure
 			endDate: z.number().int(),
 		}),
 	)
-	.output(z.array(userAdherenceLogSelectAllZod))
+	.output(z.array(userIntakeLogSelectAllZod))
 	.handler(async ({ input: { startDate, endDate }, context: { user } }) => {
-		const adherenceLogs = await db.userAdherenceLogs
+		const intakeLogs = await db.userIntakeLogs
 			.select("*")
-			.where({ userId: user.id })
-			.where({ scheduledFor: { gte: new Date(startDate) } })
-			.where({ scheduledFor: { lte: new Date(endDate) } })
-			.order({ scheduledFor: "DESC" });
+			.where({ 
+				userId: user.id,
+				scheduledFor: { 
+					gte: new Date(startDate),
+					lte: new Date(endDate) 
+				} 
+			})
+			.order({
+				scheduledFor: "DESC"
+			});
 
-		return adherenceLogs;
+		return intakeLogs;
 	});
 
 // Create user adherence log
 const create = rpcProtectedProcedure
-	.input(userAdherenceLogCreateInputZod)
-	.output(userAdherenceLogSelectAllZod)
+	.input(userIntakeLogCreateInputZod)
+	.output(userIntakeLogSelectAllZod)
 	.handler(async ({ input, context: { user } }) => {
-		const newAdherenceLog = await db.userAdherenceLogs.create({
+		const newIntakeLog = await db.userIntakeLogs.create({
 			...input,
 			userId: user.id,
 		});
 
-		return newAdherenceLog;
+		return newIntakeLog;
 	});
 
 // Update user adherence log
 const update = rpcProtectedProcedure
 	.input(
-		userAdherenceLogUpdateInputZod.extend({
+		userIntakeLogUpdateInputZod.extend({
 			id: z.uuid(),
+			logTimezone: zTimezone,
+			scheduledFor: zTimeEpoch,
 		}),
 	)
-	.output(userAdherenceLogSelectAllZod)
+	.output(userIntakeLogSelectAllZod)
 	.handler(async ({ input, context: { user } }) => {
-		const { id, ...updateData } = input;
-
-		// First, get the existing adherence log to check the date
-		const existingLog = await db.userAdherenceLogs
-			.find(id)
-			.where({ userId: user.id });
-
-		if (!existingLog) {
-			throw new ORPCError("NOT_FOUND", {
-				status: 404,
-				message: "Adherence log not found",
-			});
-		}
+		const { id, logTimezone, scheduledFor, ...updateData } = input;
 
 		// Check if daily compliance has been updated
-		const complianceUpdated = await isDailyComplianceUpdated(
+		const complianceUpdated = await isDailyComplianceCreated(
 			user.id,
-			existingLog.scheduledFor,
+			logTimezone,
+			input.scheduledFor,
 		);
 
 		if (complianceUpdated) {
@@ -144,35 +123,27 @@ const update = rpcProtectedProcedure
 			});
 		}
 
-		const updatedAdherenceLog = await db.userAdherenceLogs
-			.selectAll()
+		await db.userIntakeLogs
 			.find(id)
 			.where({ userId: user.id })
 			.update(updateData);
 
-		return updatedAdherenceLog;
+		const updatedIntakeLog = await db.userIntakeLogs
+			.find(id)
+			.where({ userId: user.id });
+
+		return updatedIntakeLog;
 	});
 
 // Delete user adherence log
 const deleteLog = rpcProtectedProcedure
-	.input(userAdherenceLogDeleteZod)
-	.handler(async ({ input: { id }, context: { user } }) => {
-		// First, get the existing adherence log to check the date
-		const existingLog = await db.userAdherenceLogs
-			.find(id)
-			.where({ userId: user.id });
-
-		if (!existingLog) {
-			throw new ORPCError("NOT_FOUND", {
-				status: 404,
-				message: "Adherence log not found.",
-			});
-		}
-
+	.input(userIntakeLogDeleteZod)
+	.handler(async ({ input: { id, logTimezone, scheduledFor }, context: { user } }) => {
 		// Check if daily compliance has been updated
-		const complianceUpdated = await isDailyComplianceUpdated(
+		const complianceUpdated = await isDailyComplianceCreated(
 			user.id,
-			existingLog.scheduledFor,
+			logTimezone,
+			scheduledFor,
 		);
 
 		if (complianceUpdated) {
@@ -182,7 +153,7 @@ const deleteLog = rpcProtectedProcedure
 			});
 		}
 
-		await db.userAdherenceLogs
+		await db.userIntakeLogs
 			.find(id)
 			.where({ userId: user.id })
 			.delete();
@@ -190,7 +161,7 @@ const deleteLog = rpcProtectedProcedure
 		return { success: true };
 	});
 
-export const userAdherenceLogsRouter = {
+export const userIntakeLogsRouter = {
 	getAll,
 	getById,
 	getBySupplementId,

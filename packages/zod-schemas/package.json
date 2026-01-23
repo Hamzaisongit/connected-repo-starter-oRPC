@@ -20,8 +20,7 @@
 	"license": "AGPL-3.0-only",
 	"name": "@connected-repo/zod-schemas",
 	"peerDependencies": {
-		"zod": "^4.1.12",
-		"zod-timezone-validation": "^1.0.5"
+		"zod": "^4.1.12"
 	},
 	"private": true,
 	"repository": "git@github.com:shipmyapp/connected-repo.git",
