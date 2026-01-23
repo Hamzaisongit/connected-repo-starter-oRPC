@@ -126,7 +126,7 @@ If after 60 days:
 
 **Supplement Logging Improvements:**
 - Added revert functionality for supplement logs via deleteMutation
-- Implemented optimistic UI for status updates in SupplementCard component
+- **Deviation:** Removed optimistic UI from SupplementCard component - replaced with direct status handling for simpler state management
 - Updated todaysPlan endpoint to include logId for precise revert operations
 
 **EXPLICITLY EXCLUDED FROM V1:**

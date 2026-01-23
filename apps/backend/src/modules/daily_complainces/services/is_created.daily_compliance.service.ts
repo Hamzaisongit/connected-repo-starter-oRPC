@@ -14,7 +14,7 @@ export async function isDailyComplianceCreated(
 
   const dailyComplianceExists = await db.dailyCompliances
     .where({ userId })
-    .where(sql`(to_timestamp(${scheduledDate} / 1000.0) AT TIME ZONE 'UTC' AT TIME ZONE ${logTimezone})::date = "date"`)
+    .where(sql`(to_timestamp(${scheduledDate} / 1000.0) AT TIME ZONE ${logTimezone})::date = "date"`)
     .exists();
 
   return dailyComplianceExists;

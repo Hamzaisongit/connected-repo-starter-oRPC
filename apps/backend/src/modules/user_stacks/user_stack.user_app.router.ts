@@ -96,7 +96,7 @@ const getTodaysPlan = rpcProtectedProcedure
 			.select("*", {
 				todayIntakeLog: (q) => q.intakeLogs
 					.select("actualAt", "id", "logTimezone","scheduledFor", "status")
-					.where(sql`DATE("scheduled_for" AT TIME ZONE 'UTC' AT TIME ZONE ${userTz}) = (CURRENT_TIMESTAMP AT TIME ZONE ${userTz})::date`)
+					.where(sql`("scheduled_for" AT TIME ZONE ${userTz})::date = (CURRENT_TIMESTAMP AT TIME ZONE ${userTz})::date`)
 					.takeOptional()
 			})
 			.where({ userId: userId, isActive: true })// 2. Filter stacks where today's day name exists in the reminder_days array

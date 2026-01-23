@@ -5,7 +5,7 @@ import { Box } from "@connected-repo/ui-mui/layout/Box";
 import type { TodaysPlanSupplement } from "@connected-repo/zod-schemas/user_stack.zod";
 import { getStockIconAndColor } from "@frontend/utils/supplement.utils";
 import { alpha, useTheme } from "@mui/material/styles";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface SupplementCardProps {
 	supplement: TodaysPlanSupplement;
@@ -26,18 +26,11 @@ const normalizeStatus = (status: string): "pending" | "taken" | "missed" | "over
 };
 
 export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, isLogging }: SupplementCardProps) {
-  	const theme = useTheme();
-  	const [isLoading, setIsLoading] = useState(false);
-  	const [revertDialogOpen, setRevertDialogOpen] = useState(false);
-  	// Optimistic status state - starts with prop value and updates immediately on user action
-  	const [optimisticStatus, setOptimisticStatus] = useState<"pending" | "taken" | "missed" | "overdue">(normalizeStatus(supplement.status));
+   	const theme = useTheme();
+   	const [isLoading, setIsLoading] = useState(false);
+   	const [revertDialogOpen, setRevertDialogOpen] = useState(false);
 
-  	// Sync optimistic status with actual supplement status when it changes from parent
-  	useEffect(() => {
-  		setOptimisticStatus(normalizeStatus(supplement.status));
-  	}, [supplement.status]);
-
- 	const isTaken = optimisticStatus === "taken";
+  	const isTaken = normalizeStatus(supplement.status) === "taken";
 
  	const handleLogClick = () => {
   		if (isTaken) {
@@ -49,39 +42,30 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
   		}
   	};
 
-  	const handleLogTaken = async () => {
+   	const handleLogTaken = async () => {
+    		setIsLoading(true);
+    		try {
+    			await onLogTaken(supplement.id, supplement.reminderTime);
+    		} catch (error) {
+    			throw error;
+    		} finally {
+    			setIsLoading(false);
+    		}
+    	};
+
+  	const handleRevertConfirm = async () => {
+   		if (!onRevert) return;
+
+   		setRevertDialogOpen(false);
    		setIsLoading(true);
-   		// Optimistically update the status
-   		setOptimisticStatus("taken");
-   		try {
-   			await onLogTaken(supplement.id, supplement.reminderTime);
-   		} catch (error) {
-   			// Revert optimistic update on error
-   			setOptimisticStatus(normalizeStatus(supplement.status));
-   			throw error;
-   		} finally {
+    		try {
+    			await onRevert(supplement.id, supplement.reminderTime);
+    		} catch (error) {
+    			throw error;
+    		} finally {
    			setIsLoading(false);
    		}
    	};
-
- 	const handleRevertConfirm = async () => {
-  		if (!onRevert) return;
-
-  		setRevertDialogOpen(false);
-  		setIsLoading(true);
-  		// Optimistically revert to pending status
-  		const previousStatus = optimisticStatus;
-  		setOptimisticStatus("pending");
-   		try {
-   			await onRevert(supplement.id, supplement.reminderTime);
-   		} catch (error) {
-   			// Revert optimistic update on error
-   			setOptimisticStatus(previousStatus);
-   			throw error;
-   		} finally {
-  			setIsLoading(false);
-  		}
-  	};
 
  	const handleRevertCancel = () => {
   		setRevertDialogOpen(false);
@@ -98,11 +82,15 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
 
 
 
-  // Calculate status text and color with robust date handling
-  const getStatusInfo = () => {
-  	if (isTaken) {
-  		return { text: `🌟 Taken on time!`, color: theme.palette.success.main, isWin: true };
-  	}
+   // Calculate status text and color with robust date handling
+   const getStatusInfo = () => {
+   	const intakeStatus = supplement.todayIntakeLog?.status || supplement.status;
+   	if (intakeStatus === "Taken on-time") {
+   		return { text: `🌟 Taken on time!`, color: theme.palette.success.main, isWin: true };
+   	}
+   	if (intakeStatus === "Taken late") {
+   		return { text: `⏰ Taken late`, color: theme.palette.warning.main, isWin: false };
+   	}
 
   	// Helper function to create today's date with scheduled time
   	const createScheduledDateTime = (timeString: string) => {
@@ -112,21 +100,18 @@ export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, 
   			const minutes = parseInt(parts[1] || '0', 10);
 
   			if (Number.isNaN(hours) || Number.isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-  				return null;
+  				throw new Error('Invalid time format');
   			}
 
   			const today = new Date();
   			today.setHours(hours, minutes, 0, 0);
   			return today;
   		} catch {
-  			return null;
+  			throw new Error('Invalid time format');
   		}
   	};
 
    	const scheduledDateTime = createScheduledDateTime(supplement.reminderTime);
-  	if (!scheduledDateTime) {
-  		return { text: `🕒 Check Schedule`, color: theme.palette.text.secondary, isWin: false };
-  	}
 
   	const now = new Date();
   	const isOverdue = supplement.status === "overdue";

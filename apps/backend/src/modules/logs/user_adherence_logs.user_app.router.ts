@@ -158,7 +158,7 @@ const deleteLog = rpcProtectedProcedure
 			.where({ userId: user.id })
 			.delete();
 
-		return { success: true };
+		return true;
 	});
 
 export const userIntakeLogsRouter = {

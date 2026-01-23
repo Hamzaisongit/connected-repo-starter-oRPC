@@ -10,10 +10,17 @@ import { useSessionInfo } from "@frontend/contexts/UserContext";
 import ComplianceCalendar from "@frontend/modules/user-stack/components/ComplianceCalendar";
 import { SupplementCard } from "@frontend/modules/user-stack/components/SupplementCard";
 import { orpc } from "@frontend/utils/orpc.client";
+import { detectUserTimezone } from "@frontend/utils/timezone.utils";
 import { useTheme } from "@mui/material/styles";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const HomePage = () => {
 	const navigate = useNavigate();
@@ -36,18 +43,34 @@ const HomePage = () => {
 
 	const handleLogTaken = async (supplementId: string, scheduledTime: string) => {
 		try {
-			// Convert scheduled time to today's date timestamp
-			const today = new Date();
-			const [hours, minutes] = scheduledTime.split(":");
-			const scheduledDate = new Date(today);
-			scheduledDate.setHours(parseInt(hours || "0", 10), parseInt(minutes || "0", 10), 0, 0);
+			// Calculate scheduled time in user's timezone
+			const userTimezone = user?.timezone|| await detectUserTimezone() || "Etc/UTC";
+			const today = dayjs().tz(userTimezone);
+			const [hoursStr, minutesStr] = scheduledTime.split(":");
+			const hours = parseInt(hoursStr || "0", 10);
+			const minutes = parseInt(minutesStr || "0", 10);
+			const scheduledDayjs = today.hour(hours).minute(minutes).second(0).millisecond(0);
+			const scheduledFor = scheduledDayjs.utc().valueOf();
+
+			// Determine status based on time difference (within 1 hour window)
+			const actualAt = Date.now();
+			const timeDiffMs = Math.abs(actualAt - scheduledFor);
+			const isOnTime = timeDiffMs <= 60 * 60 * 1000; // 1 hour in ms
+			const status: "Taken on-time" | "Taken late" = isOnTime ? "Taken on-time" : "Taken late";
+
+			console.log({
+				scheduledFor,
+				status,
+				actualAt,
+				userTimezone,
+			});
 
 			await logMutation.mutateAsync({
 				supplementId,
-				scheduledFor: Math.floor(scheduledDate.getTime()),
-				status: "Taken on-time",
-				actualAt: Math.floor(Date.now()),
-				logTimezone: user?.timezone || "Etc/UTC",
+				scheduledFor,
+				status,
+				actualAt,
+				logTimezone: userTimezone,
 			});
 
 			// Invalidate queries to refresh the data
@@ -74,11 +97,10 @@ const HomePage = () => {
 				return;
 			}
 
-			// Delete the adherence log
-			await deleteMutation.mutateAsync({ 
-				id: supplement.todayIntakeLog.id, 
+			await deleteMutation.mutateAsync({
+				id: supplement.todayIntakeLog.id,
 				logTimezone: supplement.todayIntakeLog.logTimezone,
-				scheduledFor: supplement.todayIntakeLog.scheduledFor 
+				scheduledFor: supplement.todayIntakeLog.scheduledFor,
 			});
 
 			// Invalidate queries to refresh the data

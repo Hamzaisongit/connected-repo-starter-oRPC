@@ -37,15 +37,11 @@ const link = new RPCLink<ClientContext>({
       if (err.name === "AbortError" || errorMessage.includes("signal is aborted")) {
         console.info("oRPC query aborted (React Strict Mode - this is normal in development)");
         return;
-      }
+      };
       
-      console.error("oRPC Error:", error);
-      
-      // Check if this is an authentication error (401 or 403)
+      // Check if this is an authentication error (401)
       const isAuthError = 
-        err.status === 401 || 
-        err.status === 403 ||
-        errorMessage.toLowerCase().includes("unauthorized") ||
+        err.status === 401 ||
         errorMessage.toLowerCase().includes("unauthenticated") ||
         errorMessage.toLowerCase().includes("authentication required");
       
@@ -66,7 +62,7 @@ const link = new RPCLink<ClientContext>({
       // For auth errors, redirect to login ONLY if we're on a protected route
       // This prevents redirecting during initial load race conditions
       if (isAuthError) {
-        
+        toast.error("Your session has expired. Please log in again.", { autoClose: 3000 });
         // Sign out and redirect to login
         try {
           await authClient.signOut({

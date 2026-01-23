@@ -1,11 +1,9 @@
 import { allowedOrigins } from '@backend/configs/allowed_origins.config';
 import { isDev, isProd, isStaging } from '@backend/configs/env.config';
 import { userAppRouter } from '@backend/routers/user_app.router';
-import { orpcErrorParser } from '@backend/utils/errorParser';
 import { logger } from '@backend/utils/logger.utils';
 import { trace } from '@opentelemetry/api';
 import { LoggingHandlerPlugin } from '@orpc/experimental-pino';
-import { ORPCError, onError } from '@orpc/server';
 import { RPCHandler } from '@orpc/server/node';
 import { CORSPlugin, RequestHeadersPlugin, SimpleCsrfProtectionHandlerPlugin, StrictGetMethodPlugin } from '@orpc/server/plugins';
 
@@ -45,20 +43,22 @@ export const userAppHandler = new RPCHandler(userAppRouter, {
       return next()
     },
     // Server-side error logging
-    onError((error) => {
-      logger.error(error, 'Server error');
-    }),
+    // Commenting this as it leads to double-logging of errors. Already handled by LoggingHandlerPlugin
+    // onError((error) => {
+      // logger.error(error, 'Server error');
+    // }),
   ],
   clientInterceptors: [
     // Client-side error transformation
-    onError((error) => {
-      const parsed = orpcErrorParser(error as Error);
-      throw new ORPCError(parsed.code, {
-        status: parsed.httpStatus,
-        message: parsed.userFriendlyMessage,
-        data: parsed.details,
-        cause: error,
-      });
-    }),
+    // Commenting this as it leads to double-logging of errors. Already handled by LoggingHandlerPlugin
+    // onError((error) => {
+    //   const parsed = orpcErrorParser(error as Error);
+    //   throw new ORPCError(parsed.code, {
+    //     status: parsed.httpStatus,
+    //     message: parsed.userFriendlyMessage,
+    //     data: parsed.details,
+    //     cause: error,
+    //   });
+    // }),
   ],
 })
