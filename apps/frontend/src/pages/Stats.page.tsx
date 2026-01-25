@@ -2,24 +2,34 @@ import { LoadingSpinner } from "@connected-repo/ui-mui/components/LoadingSpinner
 import { Chip } from "@connected-repo/ui-mui/data-display/Chip";
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Fade } from "@connected-repo/ui-mui/feedback/Fade";
+import { AddIcon } from "@connected-repo/ui-mui/icons/AddIcon";
+import { MonetizationOnIcon } from "@connected-repo/ui-mui/icons/MonetizationOnIcon";
+import { ShieldIcon } from "@connected-repo/ui-mui/icons/ShieldIcon";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { Card, CardContent } from "@connected-repo/ui-mui/layout/Card";
 import { Container } from "@connected-repo/ui-mui/layout/Container";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
+import { BuyShieldsDialog } from "@frontend/components/BuyShieldsDialog";
+import { RewardsLedgerDialog } from "@frontend/components/RewardsLedgerDialog";
 import { useSessionInfo } from "@frontend/contexts/UserContext";
 import { orpc } from "@frontend/utils/orpc.client";
 import { getBrowserTimezone } from "@frontend/utils/timezone.utils";
-import { alpha } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 const StatsPage = () => {
 	const { user } = useSessionInfo();
+	const theme = useTheme();
+	const [rewardsDialogType, setRewardsDialogType] = useState<"coins" | "shields" | null>(null);
+	const [buyShieldsDialogOpen, setBuyShieldsDialogOpen] = useState(false);
+	
 	const { data: currentStreak, isLoading, error } = useQuery(
 		orpc.userStats.getCurrentStreak.queryOptions()
 	);
 
-	const { data: longestStreak } = useQuery(
-		orpc.userStats.getLongestStreak.queryOptions()
+	const { data: userStats } = useQuery(
+		orpc.userStats.getMine.queryOptions()
 	);
 
 	const { data: dailyCompliances } = useQuery(
@@ -52,8 +62,8 @@ const StatsPage = () => {
 		);
 	}
 
-	const currentStreakValue = currentStreak?.currentStreak || 0;
-	const longestStreakValue = longestStreak?.longestStreak || 0;
+	const currentStreakValue = userStats?.currentStreak || 0;
+	const longestStreakValue = userStats?.longestStreak || 0;
 
 	return (
 		<Container maxWidth="lg" sx={{ py: { xs: 2, md: 5 }, pb: { xs: 10, md: 5 }, bgcolor: "background.default", minHeight: "100vh" }}>
@@ -69,6 +79,7 @@ const StatsPage = () => {
 								fontWeight: 700,
 								color: "text.primary",
 								mb: 0.5,
+								fontSize: { xs: "1.75rem", md: "2.125rem" },
 							}}
 						>
 							Your Progress
@@ -77,6 +88,195 @@ const StatsPage = () => {
 							Track your supplement consistency journey
 						</Typography>
 					</Box>
+
+					{/* Rewards Section */}
+					<Stack
+						direction={{ xs: "column", sm: "row" }}
+						spacing={{ xs: 2, md: 3 }}
+						sx={{ maxWidth: 600, mx: "auto", width: "100%", mb: 2 }}
+					>
+						{/* Coin Balance */}
+						<Box
+							onClick={() => {
+								setRewardsDialogType("coins");
+							}}
+							sx={{
+								display: "flex",
+								alignItems: "center",
+								gap: 2,
+								py: 1.5,
+								px: 2,
+								borderRadius: 1.5,
+								backgroundColor: alpha("#FFD700", 0.15),
+								cursor: "pointer",
+								transition: "all 0.2s ease-in-out",
+								flex: 1,
+								"&:hover": {
+									backgroundColor: alpha("#FFD700", 0.25),
+									transform: "translateY(-2px)",
+									boxShadow: theme.shadows[2],
+								},
+							}}
+						>
+							<Box
+								sx={{
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "center",
+									width: 40,
+									height: 40,
+									borderRadius: 1.5,
+									backgroundColor: alpha("#FFD700", 0.3),
+								}}
+							>
+								<MonetizationOnIcon sx={{ color: "#FFD700", fontSize: "1.5rem" }} />
+							</Box>
+							<Box sx={{ flex: 1 }}>
+								<Typography
+									variant="caption"
+									sx={{
+										color: theme.palette.text.secondary,
+										fontSize: "0.75rem",
+										display: "block",
+										mb: 0.25,
+									}}
+								>
+									Coin Balance
+								</Typography>
+								<Typography
+									variant="body2"
+									sx={{
+										color: theme.palette.text.primary,
+										fontWeight: 600,
+										fontSize: "1.1rem",
+									}}
+								>
+									{userStats?.coinsBalance.toLocaleString() ?? 0} coins
+								</Typography>
+							</Box>
+						</Box>
+
+						{/* Shield Balance with Buy Button Inside */}
+						<Box
+							sx={{
+								display: "flex",
+								alignItems: "center",
+								gap: 2,
+								py: 1.5,
+								px: 2,
+								borderRadius: 1.5,
+								backgroundColor: alpha(theme.palette.primary.main, 0.15),
+								transition: "all 0.2s ease-in-out",
+								flex: 1,
+							}}
+						>
+							<Box
+								onClick={() => {
+									setRewardsDialogType("shields");
+								}}
+								sx={{
+									display: "flex",
+									alignItems: "center",
+									gap: 2,
+									cursor: "pointer",
+									flex: 1,
+								}}
+							>
+								<Box
+									sx={{
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "center",
+										width: 40,
+										height: 40,
+										borderRadius: 1.5,
+										backgroundColor: alpha(theme.palette.primary.main, 0.3),
+									}}
+								>
+									<ShieldIcon sx={{ color: theme.palette.primary.main, fontSize: "1.5rem" }} />
+								</Box>
+								<Box sx={{ flex: 1 }}>
+									<Typography
+										variant="caption"
+										sx={{
+											color: theme.palette.text.secondary,
+											fontSize: "0.75rem",
+											display: "block",
+											mb: 0.25,
+										}}
+									>
+										Shield Balance
+									</Typography>
+									<Typography
+										variant="body2"
+										sx={{
+											color: theme.palette.text.primary,
+											fontWeight: 600,
+											fontSize: "1.1rem",
+										}}
+									>
+										{userStats?.shieldsBalance.toLocaleString() ?? 5} shields
+									</Typography>
+								</Box>
+							</Box>
+
+							{/* Beautiful Buy Button */}
+							<Box
+								onClick={(e) => {
+									e.stopPropagation();
+									setBuyShieldsDialogOpen(true);
+								}}
+								sx={{
+									display: "inline-flex",
+									alignItems: "center",
+									justifyContent: "center",
+									gap: 0.5,
+									px: 1.75,
+									py: 0.625,
+									borderRadius: 3,
+									border: `1.5px solid ${theme.palette.primary.main}`,
+									backgroundColor: alpha(theme.palette.primary.main, 0.08),
+									cursor: "pointer",
+									transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+									minWidth: 70,
+									"&:hover": {
+										backgroundColor: alpha(theme.palette.primary.main, 0.2),
+										borderColor: theme.palette.primary.light,
+										transform: "translateY(-1px) scale(1.02)",
+										boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.4)}`,
+										"& .buy-icon": {
+											transform: "rotate(90deg)",
+										},
+									},
+									"&:active": {
+										transform: "translateY(0) scale(0.98)",
+										backgroundColor: alpha(theme.palette.primary.main, 0.15),
+									},
+								}}
+							>
+								<AddIcon
+									className="buy-icon"
+									sx={{
+										fontSize: "0.95rem",
+										color: theme.palette.primary.main,
+										transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+									}}
+								/>
+								<Typography
+									variant="button"
+									sx={{
+										fontSize: "0.75rem",
+										fontWeight: 600,
+										color: theme.palette.primary.main,
+										letterSpacing: "0.03em",
+										textTransform: "uppercase",
+									}}
+								>
+									Buy
+								</Typography>
+							</Box>
+						</Box>
+					</Stack>
 	
 					{/* Momentum Cards */}
 					<Stack
@@ -179,10 +379,10 @@ const StatsPage = () => {
 										/>
 									</Box>
 	
-									{longestStreak?.longestStreakShieldsUsed && (
+									{userStats?.longestStreakShieldsUsed && (
 										<Box sx={{ position: "absolute", top: 16, right: 16 }}>
 												<Chip 
-												label={`🛡️ ${longestStreak.longestStreakShieldsUsed}`}
+												label={`🛡️ ${userStats.longestStreakShieldsUsed}`}
 												size="small"
 												sx={{ bgcolor: "success.dark", color: "white", fontWeight: 700, fontSize: "0.7rem" }}
 											/>
@@ -358,6 +558,22 @@ const StatsPage = () => {
 					)}
 				</Stack>
 			</Fade>
+
+			{/* Rewards Ledger Dialog */}
+			{rewardsDialogType 
+				? <RewardsLedgerDialog
+						open={rewardsDialogType !== null}
+						onClose={() => setRewardsDialogType(null)}
+						itemType={rewardsDialogType}
+					/>
+				: null
+			}
+
+			{/* Buy Shields Dialog */}
+			<BuyShieldsDialog
+				open={buyShieldsDialogOpen}
+				onClose={() => setBuyShieldsDialogOpen(false)}
+			/>
 		</Container>
 	);
 };

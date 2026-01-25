@@ -9,10 +9,12 @@ export class UserStatTable extends BaseTable {
       onDelete: "CASCADE",
       onUpdate: "RESTRICT"
     }),
-		currentStreak: t.integer().default(0),
-		longestStreak: t.integer().default(0),
-		currentStreakShieldsUsed: t.smallint().default(0),
-		longestStreakShieldsUsed: t.smallint().default(0),
+    currentStreak: t.integer().default(0),
+    longestStreak: t.integer().default(0),
+    currentStreakShieldsUsed: t.smallint().default(0),
+    longestStreakShieldsUsed: t.smallint().default(0),
+    coinsBalance: t.integer().default(0).check(t.sql`"coins_balance" >= 0`),
+    shieldsBalance: t.integer().default(0).check(t.sql`"shields_balance" >= 0`),
     ...t.timestamps(),
   }));
 

@@ -5,6 +5,7 @@ import { VerificationTable } from "@backend/modules/auth/tables/verification.aut
 import { DailyComplianceTable } from "@backend/modules/daily_complainces/tables/daily_complainces.table";
 import { ApiProductRequestLogsTable } from "@backend/modules/logs/tables/api_product_request_logs.table";
 import { UserIntakeLogTable } from "@backend/modules/logs/tables/user_adherence_logs.table";
+import { RewardsLedgerTable } from "@backend/modules/rewards_ledger/tables/rewards_ledger.table";
 import { SubscriptionsTable } from "@backend/modules/subscriptions/tables/subscriptions.table";
 import { WebhookCallQueueTable } from "@backend/modules/subscriptions/tables/webhookCallQueue.table";
 import { TeamTable } from "@backend/modules/teams/tables/teams.table";
@@ -25,6 +26,7 @@ export const db = orchidORM(
 		accounts: AccountTable,
 		apiProductRequestLogs: ApiProductRequestLogsTable,
 		dailyCompliances: DailyComplianceTable,
+		rewardsLedger: RewardsLedgerTable,
 		sessions: SessionTable,
 		subscriptions: SubscriptionsTable,
 		teams: TeamTable,

@@ -25,7 +25,7 @@ export const initiateWebhookCallService = async (
     });
     await db.webhookCallQueues
       .find(queueEntry.webhookCallQueueId)
-      .update({
+      .updateOrThrow({
         webhookUrl,
         status: "Sent",
         attempts: () => sql`"attempts" + 1`,
@@ -35,7 +35,7 @@ export const initiateWebhookCallService = async (
   } catch (err) {
     await db.webhookCallQueues
       .find(queueEntry.webhookCallQueueId)
-      .update({
+      .updateOrThrow({
         webhookUrl,
         status: "Failed",
         attempts: () => sql`"attempts" + 1`,

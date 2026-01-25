@@ -11,6 +11,7 @@ import { logger } from '@backend/utils/logger.utils';
 import { recordErrorOtel } from "@backend/utils/record-message.otel.utils";
 import { trace } from '@opentelemetry/api';
 import { createServer } from 'node:http';
+import { perMinuteCronJobs } from "./modules/cron_jobs/services/cron";
 
 logger.info({ isDev, isProd, isStaging, isTest }, "Environment:");
 logger.info(allowedOrigins, "Allowed Origins:");
@@ -116,6 +117,10 @@ try {
           process.send("ready"); // ✅ Let PM2 know the app is ready
         }
         logger.info({ url: env.VITE_API_URL, port: env.PORT }, "Server running");
+
+        // TODO: Move this to a separate worker process.
+        // Start the cron job
+				perMinuteCronJobs.start();
       }
     );
 

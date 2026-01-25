@@ -133,7 +133,7 @@ const getStats = rpcProtectedProcedure
 		const perfectDays = compliances.filter(
 			(c) => Number.parseFloat(c.intakePercentage) === 100,
 		).length;
-		const daysWithShieldUsed = compliances.filter((c) => c.dailyShieldUsed).length;
+		const daysWithShieldUsed = compliances.filter((c) => c.shieldsUsed).length;
 
 		return {
 			totalDays,

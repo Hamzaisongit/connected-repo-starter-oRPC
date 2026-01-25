@@ -126,7 +126,7 @@ const update = rpcProtectedProcedure
 		await db.userIntakeLogs
 			.find(id)
 			.where({ userId: user.id })
-			.update(updateData);
+			.updateOrThrow(updateData);
 
 		const updatedIntakeLog = await db.userIntakeLogs
 			.find(id)

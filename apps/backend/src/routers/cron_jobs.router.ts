@@ -1,5 +1,7 @@
 import { sql } from "@backend/db/base_table";
 import { db } from "@backend/db/db";
+import { createAllUsersDailyComplianceService, processedCronJobsOutput } from "@backend/modules/daily_complainces/services/create.daily_compliance.service";
+import { reminderUserStackService } from "@backend/modules/user_stacks/services/reminder.user_stacks.service";
 import { initiateWebhookCallService } from "@backend/modules/webhook_calls/services/initiate.webhook_calls.service";
 import { cronJobAuthProcedure } from "@backend/procedures/cron_job_auth.procedure";
 import * as z from "zod";
@@ -58,6 +60,30 @@ const processWebhookCalls = cronJobAuthProcedure
 		return { processed: totalProcessed };
 	});
 
+const reminderUserStacks = cronJobAuthProcedure
+	.route({ method: "POST", tags: ["Cron Jobs"] })
+	.output(
+		z.object({
+			success: z.boolean(),
+		})
+	)
+	.handler(async () => {
+		await reminderUserStackService();
+		return { success: true };
+	});
+
+const createDailyCompliance = cronJobAuthProcedure
+	.route({ method: "POST", tags: ["Cron Jobs"] })
+	.output(
+		processedCronJobsOutput
+	)
+	.handler(async () => {
+		const processed = await createAllUsersDailyComplianceService();
+		return processed;
+	});
+
 export const cronJobsRouter = {
 	"process-webhook-calls": processWebhookCalls,
+	"reminder-user-stacks": reminderUserStacks,
+	"create-daily-compliance": createDailyCompliance
 };

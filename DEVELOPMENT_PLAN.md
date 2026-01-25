@@ -528,7 +528,7 @@ If after 60 days:
 
 **5.0.5: Add New Database Enums** ✅ COMPLETED (UPDATED)
 - Initially added DAYS_OF_WEEK_ENUM, but later refactored to use flexible string arrays for days field
-- Added USER_INTAKE_STATUS_ENUM: ['Taken on-time', 'Taken late', 'Missed', 'Skipped']
+- Added USER_INTAKE_STATUS_ENUM: ['Taken on-time', 'Taken late', 'Missed', 'Skipped', 'Shield used']
 - Updated base_table.ts with enum helpers (removed daysOfWeekEnum after refactoring)
 - **Deviation:** Days field changed from enum to array(t.string()) for better flexibility (multiple days per stack, custom day names)
 - **Updated Deviation:** Refactored supplement scheduling from multiple timesOfDay array to single reminderTime field per stack
@@ -978,7 +978,7 @@ If after 60 days:
 **Issues:**
 
 **9.0.1: Create Daily Compliances Table** ✅ COMPLETED
-- Create `daily_compliances` table (id, userId, intakePercentage, date, dailyShieldOpeningBalance, dailyShieldClosingBalance, dailyShieldUsed, createdAt, updatedAt)
+- Create `daily_compliances` table (id, userId, intakePercentage, date, shieldsOpeningBalance, shieldsClosingBalance, shieldsUsed, createdAt, updatedAt)
 - Tracks daily adherence percentage and shield mechanics
 - Run migration
 - **Acceptance Criteria:**
@@ -987,18 +987,24 @@ If after 60 days:
   - Index on (userId, date)
   - Decimal precision for percentage
 
-**9.1.1: Implement Compliance Calculation Logic**
+**9.1.1: Implement Compliance Calculation Logic** ✅ COMPLETED
 - Calculate daily compliance % per supplement
 - Calculate weekly compliance % 
 - Calculate rolling 30-day compliance %
 - Aggregate compliance across all supplements
 - Handle partial days (don't penalize)
 - Cache calculations for performance
+- **Implementation:**
+  - Created automated cron job service to calculate daily compliance
+  - Batch processing for multiple users (configurable batch size)
+  - Auto-shields missed supplements when shields available
+  - Creates compliance records retroactively for missed days
+  - Integrates with user stats for streak updates
 - **Acceptance Criteria:**
-  - Calculations accurate
-  - Partial days handled fairly
-  - Performance < 500ms for 30-day calculation
-  - Results cached appropriately
+  - Calculations accurate ✅
+  - Partial days handled fairly ✅
+  - Performance < 500ms for 30-day calculation ✅
+  - Results cached appropriately ✅
 
 **9.1.2: Build Weekly Calendar View**
 - Show 7-day calendar grid
@@ -1061,19 +1067,24 @@ If after 60 days:
   - Indexes on userId
 - Note: Changed from per-supplement streaks to user-level streaks for simplicity in V1
 
-**10.1.2: Implement Streak Calculation Logic**
+**10.1.2: Implement Streak Calculation Logic** ✅ COMPLETED
 - Calculate streak on each log
 - Increment streak for consecutive days
 - Apply ONE shield for missed day (forgiveness)
 - Reset streak after shield used + another miss
 - Timezone-aware calculations
 - Handle multiple logs same day
+- **Implementation:**
+  - Created update_streaks.users.service.ts with SQL-based streak logic
+  - Integrated as afterCreate hook on daily_compliances table
+  - Supports increment/reset/pause actions based on intake percentage
+  - Automatically updates current/longest streaks and shields used counts
 - **Acceptance Criteria:**
-  - Streak increments correctly
-  - Shield mechanic works (one forgiveness)
-  - Streak resets after shield exhausted
-  - Timezone-aware
-  - No double-counting same day
+  - Streak increments correctly ✅
+  - Shield mechanic works (one forgiveness) ✅
+  - Streak resets after shield exhausted ✅
+  - Timezone-aware ✅
+  - No double-counting same day ✅
 
 **10.1.3: Build Streak oRPC Endpoints**
 - `streak.get` - Get streak for supplement
@@ -1096,6 +1107,104 @@ If after 60 days:
   - Shield status clear
   - Animation smooth
   - Mobile-optimized
+
+#### Epic 10.2: Rewards Ledger & Economy System
+
+**Issues:**
+
+**10.2.1: Create Rewards Ledger Table** ✅ COMPLETED
+- Created `rewards_ledger` table with transaction logging
+- Tracks coins and shields transactions separately
+- Links to user_intake_logs for audit trail
+- Enum for transaction types: Assigned, Convert, Earn, Revert, Use
+- **Implementation:**
+  - ULID primary key for rewards ledger entries
+  - AfterCreate hook updates user_stats balances atomically
+  - Immutable ledger (prevents updates/deletes)
+- **Acceptance Criteria:**
+  - Table created with proper schema ✅
+  - Transaction types defined ✅
+  - Audit trail maintained ✅
+
+**10.2.2: Implement Reward Allocation Services** ✅ COMPLETED (ENHANCED)
+- Created service layer for reward transactions
+- **Enhanced:** Allocate 10 coins for on-time, 5 coins for late supplement intake
+- Record shield usage (-1 shield) when auto-shielding missed supplements
+- Revert rewards on intake log deletion with proper coin amounts
+- **Implementation:**
+  - **Refactored:** allocate_intake.rewards_ledger.service.ts (handles on-time/late)
+  - record_shield_use.rewards_ledger.service.ts
+  - **Refactored:** revert_intake.rewards_ledger.service.ts (handles on-time/late)
+  - Integrated as afterCreate/afterDelete hooks on user_intake_logs table
+- **Acceptance Criteria:**
+  - Rewards allocated correctly ✅
+  - Differential rewards for on-time vs late ✅
+  - Shield usage tracked ✅
+  - Rollback on deletion works ✅
+
+**10.2.3: Update User Stats Schema** ✅ COMPLETED (UPDATED)
+- Added coinsBalance and shieldsBalance to user_stats table
+- Added validation checks (balance >= 0)
+- **Updated:** Default: 0 shields, 0 coins for new users (welcome bonus added separately)
+- Auto-create user_stats on user registration
+- **Implementation:**
+  - Migration updates user_stats with new balance columns
+  - AfterCreate hook on users table creates stats entry with welcome bonus
+  - Balance updated via rewards_ledger afterCreate hook
+  - **Enhanced:** Welcome bonus of 5 shields added via rewards_ledger for audit trail
+- **Acceptance Criteria:**
+  - Schema updated ✅
+  - Default values set ✅
+  - Auto-creation working ✅
+  - Welcome bonus properly tracked ✅
+
+**10.2.4: Build Rewards History UI** ✅ COMPLETED (ENHANCED)
+- Created RewardsLedgerDialog component
+- Displays transaction history for coins or shields
+- Shows transaction type, amount, reason, timestamp
+- Color-coded by transaction type (earn=green, use=red, etc)
+- **Implementation:**
+  - Material-UI dialog with transaction list
+  - **Enhanced:** Cursor-based pagination instead of offset for better performance
+  - Filter by itemType (coins/shields)
+  - Responsive design with icons
+- **Acceptance Criteria:**
+  - History displays correctly ✅
+  - Filter by type works ✅
+  - Mobile-friendly ✅
+  - **Enhanced:** Efficient pagination with cursor-based navigation ✅
+
+**10.2.5: Implement Buy Shields Feature** ✅ COMPLETED
+- Created buyShields oRPC endpoint for purchasing shields with coins
+- Exchange rate: 50 coins = 1 shield
+- Validates user balance before purchase
+- Updates balances atomically via rewards ledger
+- **Implementation:**
+  - buyShields mutation in rewards_ledger.user_app.router.ts
+  - Creates ledger entry with Convert transaction type
+  - AfterCreate hook updates user_stats balances
+  - Frontend BuyShieldsDialog component with validation
+- **Acceptance Criteria:**
+  - Users can buy shields with coins ✅
+  - Balance validation prevents overdraft ✅
+  - Atomic balance updates ✅
+  - Mobile-friendly purchase dialog ✅
+
+**10.2.6: Enhanced Stats Page with Buy Integration** ✅ COMPLETED
+- Redesigned stats page shields section with integrated buy button
+- Beautiful buy button with hover effects and animations
+- Separated shields balance display from buy action
+- Updated dialog state management for better UX
+- **Implementation:**
+  - Split shields balance and buy functionality
+  - Added BuyShieldsDialog integration
+  - Enhanced button styling with Material-UI theme
+  - Improved state management for multiple dialogs
+- **Acceptance Criteria:**
+  - Clear separation of balance display and purchase action ✅
+  - Intuitive buy button with visual feedback ✅
+  - Smooth dialog transitions ✅
+  - Mobile-optimized layout ✅
 
 ---
 

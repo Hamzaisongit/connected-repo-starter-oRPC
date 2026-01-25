@@ -1,16 +1,49 @@
 import { BaseTable } from "@backend/db/base_table";
+import { Db } from "@backend/db/db";
+import { DailyComplianceTable } from "@backend/modules/daily_complainces/tables/daily_complainces.table";
+import { UserStatTable } from "@backend/modules/users/tables/user_stats.table";
 
 export class UserTable extends BaseTable {
 	readonly table = "users";
 
-	columns = this.setColumns((t) => ({
-		id: t.uuid().primaryKey().default(t.sql`gen_random_uuid()`),
-		email: t.string().unique(),
-		emailVerified: t.boolean().default(false),
-		name: t.string(),
-		image: t.string().nullable(),
-		timezone: t.string().default("Etc/UTC"),
-		themeSetting: t.themeSettingEnum().default("light"),
-		...t.timestamps(),
-	}));
+  columns = this.setColumns((t) => ({
+    id: t.uuid().primaryKey().default(t.sql`gen_random_uuid()`),
+    email: t.string().unique(),
+    emailVerified: t.boolean().default(false),
+    name: t.string(),
+    image: t.string().nullable(),
+    timezone: t.string().default("Etc/UTC"),
+    themeSetting: t.themeSettingEnum().default("light"),
+    ...t.timestamps(),
+  }));
+
+  relations = {
+    dailyCompliances: this.hasMany(() => DailyComplianceTable, {
+      columns: ["id"],
+      references: ["userId"]
+    }),
+    userStats: this.hasOne(() => UserStatTable, {
+      columns: ["id"],
+      references: ["userId"]
+    })
+  };
+
+  init(orm: Db) {
+    this.afterCreate(["id"], async (users) => {
+      await Promise.all(users.map(user => 
+        orm.userStats.create({
+          userId: user.id,
+        })
+      ));
+      await Promise.all(users.map(user => 
+        orm.rewardsLedger.create({
+          userId: user.id,
+          amountShields: 5,
+          amountCoins: 0,
+          reason: "Welcome bonus.",
+          transactionType: "Assigned",
+        })
+      ));
+    });
+  };
 }

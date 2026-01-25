@@ -25,11 +25,15 @@ export const DAYS_OF_WEEK_ENUM = ["Sunday", "Monday", "Tuesday", "Wednesday", "T
 export const daysOfWeekZod = z.enum(DAYS_OF_WEEK_ENUM);
 export type DaysOfWeek = z.infer<typeof daysOfWeekZod>;
 
+export const REWARDS_TRANSACTION_TYPE = ["Assigned", "Convert", "Earn", "Revert", "Use"] as const;
+export const rewardsTransactionTypeZod = z.enum(REWARDS_TRANSACTION_TYPE);
+export type RewardsTransactionType = z.infer<typeof rewardsTransactionTypeZod>;
+
 export const THEME_SETTING_ENUM = ["dark", "light", "system"] as const;
 export const themeSettingZod = z.enum(THEME_SETTING_ENUM);
 export type ThemeSetting = z.infer<typeof themeSettingZod>;
 
-export const USER_INTAKE_STATUS_ENUM = ["Taken on-time", "Taken late", "Missed", "Skipped"] as const;
+export const USER_INTAKE_STATUS_ENUM = ["Taken on-time", "Taken late", "Missed", "Skipped", "Shield used"] as const;
 export const userIntakeStatusZod = z.enum(USER_INTAKE_STATUS_ENUM);
 export type UserIntakeStatus = z.infer<typeof userIntakeStatusZod>;
 

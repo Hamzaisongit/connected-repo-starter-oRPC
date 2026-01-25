@@ -1,9 +1,7 @@
-import { sql } from "@backend/db/base_table";
 import { db } from "@backend/db/db";
+import { daysPlanUserStacksService } from "@backend/modules/user_stacks/services/days_plan.user_stacks.services";
 import { rpcProtectedProcedure } from "@backend/procedures/protected.procedure";
-
-// All date-based calculations are performed at the database level to ensure timezone awareness.
-import type { UserIntakeStatus } from "@connected-repo/zod-schemas/enums.zod";
+import { dayJsTz } from "@backend/utils/dayjs.utils";
 import {
 	todaysPlanZod,
 	userStackCreateInputZod,
@@ -68,7 +66,7 @@ const update = rpcProtectedProcedure
 			.selectAll()
 			.find(id)
 			.where({ userId: user.id })
-			.update(updateData);
+			.updateOrThrow(updateData);
 
 		return updatedUserStack;
 	});
@@ -90,53 +88,11 @@ const deleteStack = rpcProtectedProcedure
 const getTodaysPlan = rpcProtectedProcedure
 	.output(todaysPlanZod)
 	.handler(async ({ context: { user: { id: userId, timezone: userTz} } }) => {
-
-		// Get all user stacks
-		const todaysSupplements = await db.userStacks
-			.select("*", {
-				todayIntakeLog: (q) => q.intakeLogs
-					.select("actualAt", "id", "logTimezone","scheduledFor", "status")
-					.where(sql`("scheduled_for" AT TIME ZONE ${userTz})::date = (CURRENT_TIMESTAMP AT TIME ZONE ${userTz})::date`)
-					.takeOptional()
-			})
-			.where({ userId: userId, isActive: true })// 2. Filter stacks where today's day name exists in the reminder_days array
-      .where(sql`trim(to_char(CURRENT_TIMESTAMP AT TIME ZONE ${userTz}, 'Day')) = ANY("reminder_days")`);
-
-		
-
-		// Determine status for each supplement
-		const supplementsWithStatus = todaysSupplements.map(supplement => {
-
-			let status: UserIntakeStatus | "pending" | "overdue";
-			const currentTime = new Date().toLocaleTimeString('en-GB', {timeZone: userTz}).slice(0, 5); // HH:MM format in user tz
-
-			if (supplement.todayIntakeLog) {
-				status = supplement.todayIntakeLog.status
-			} else if (currentTime > supplement.reminderTime) {
-				status = "overdue";
-			} else {
-				status = "pending";
-			}
-
-			return {
-				...supplement,
-				status,
-			};
-		});
-
-		// Calculate stats
-		const totalCount = supplementsWithStatus.length;
-		const takenCount = supplementsWithStatus.filter(s => s.todayIntakeLog).length;
-		const overdueCount = supplementsWithStatus.filter(s => s.status === "overdue" || s.status === "Missed").length;
-		const compliancePercentage = totalCount > 0 ? Math.round((takenCount / totalCount) * 100) : 0;
-
-		return {
-			supplements: supplementsWithStatus,
-			totalCount,
-			takenCount,
-			overdueCount,
-			compliancePercentage,
-		};
+		return await daysPlanUserStacksService({
+			planDate: dayJsTz(userTz).format('YYYY-MM-DD'),
+			userId,
+			userTz: userTz || 'UTC',
+		})
 	});
 
 export const userStackRouter = {

@@ -15,7 +15,7 @@ const updateProfile = rpcProtectedProcedure
 	.output(userSelectAllZod)
 	.handler(async ({ input, context: { user } }) => {
 		// Update user in database
-		const updatedUser = await db.users.find(user.id).selectAll().update(input);
+		const updatedUser = await db.users.find(user.id).selectAll().updateOrThrow(input);
 		return updatedUser;
 	});
 

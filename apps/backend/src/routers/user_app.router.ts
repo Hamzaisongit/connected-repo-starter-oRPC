@@ -1,5 +1,6 @@
 import { dailyCompliancesRouter } from '@backend/modules/daily_complainces/daily_compliances.user_app.router'
 import { userIntakeLogsRouter } from '@backend/modules/logs/user_adherence_logs.user_app.router'
+import { rewardsLedgerRouter } from '@backend/modules/rewards_ledger/rewards_ledger.user_app.router'
 import { userStackRouter } from '@backend/modules/user_stacks/user_stack.user_app.router'
 import { userStatsRouter } from '@backend/modules/users/user_stats.user_app.router'
 import { ProfileRouter } from '@backend/modules/users/users.user_app.router'
@@ -28,6 +29,7 @@ export const userAppRouter = {
 	userIntakeLogs: userIntakeLogsRouter,
 	dailyCompliances: dailyCompliancesRouter,
 	userStats: userStatsRouter,
+	rewardsLedger: rewardsLedgerRouter,
 };
 
 export type UserAppRouter = RouterClient<typeof userAppRouter>;

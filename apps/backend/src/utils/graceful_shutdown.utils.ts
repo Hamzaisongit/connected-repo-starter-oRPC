@@ -1,7 +1,8 @@
-import type { IncomingMessage, Server, ServerResponse } from "node:http";
+import { perMinuteCronJobs } from "@backend/modules/cron_jobs/services/cron";
 import { otelNodeSdk } from "@backend/otel.sdk";
 import { logger } from "@backend/utils/logger.utils";
 import { recordErrorOtel } from "@backend/utils/record-message.otel.utils";
+import type { IncomingMessage, Server, ServerResponse } from "node:http";
 
 export const handleServerClose = (server: Server<typeof IncomingMessage, typeof ServerResponse>) => {
   const gracefulShutdown = async (signal: string) => {
@@ -9,6 +10,10 @@ export const handleServerClose = (server: Server<typeof IncomingMessage, typeof 
 
       await otelNodeSdk.shutdown().catch((error) => {
         logger.error('Error shutting down Sentry SDK', error);
+      });
+
+      await Promise.resolve(perMinuteCronJobs.stop()).catch((error) => {
+        logger.error("Error stopping supplement reminder cron job", error);
       });
 
       // Stop accepting new connections
