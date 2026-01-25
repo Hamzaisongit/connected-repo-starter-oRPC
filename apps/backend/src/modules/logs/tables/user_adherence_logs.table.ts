@@ -25,7 +25,15 @@ export class UserIntakeLogTable extends BaseTable {
     actualAt: t.timestampNumber(),
     logTimezone: t.string().default("Etc/UTC"),
     ...t.timestamps(),
-  }));
+  }),
+  (t) => t.index([
+    "supplementId",
+    {
+      column: "scheduledFor",
+      order: "DESC"
+    }
+  ])
+);
 
   relations = {
     user: this.belongsTo(() => UserTable, {

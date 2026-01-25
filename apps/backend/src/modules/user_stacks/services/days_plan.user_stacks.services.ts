@@ -20,20 +20,25 @@ export const daysPlanUserStacksService = async ({
 				.select("actualAt", "id", "logTimezone", "scheduledFor", "status", {
 					scheduledForTz: sql`("scheduled_for" AT TIME ZONE ${userTz})`
 				})
-				.where(sql`("scheduled_for" AT TIME ZONE ${userTz})::date = ${planDate}`)
+				// .where(sql`("scheduled_for" AT TIME ZONE ${userTz})::date = ${planDate}::date`)
+				// Better (allows index usage):
+				.where(sql`
+					"scheduled_for" AT TIME ZONE ${userTz} >= ${planDate}::timestamp 
+					AND "scheduled_for" AT TIME ZONE ${userTz} < (${planDate}::timestamp + interval '1 day')
+				`)
 				.takeOptional()
 		})
 		.where({ 
 			userId: userId, 
 			OR:[
-				{ NOT: { "todayIntakeLog.scheduledFor": null } },
+				{ NOT: { "todayIntakeLog.scheduledFor": null } }, // Has a log today even if in active stack
 				{ isActive: true }
 			] })
 		// Filter stacks where today's day name exists in the reminder_days array
-		.where(sql`trim(to_char(${planDate} AT TIME ZONE ${userTz}, 'Day')) = ANY("reminder_days")`)
+		.where(sql`to_char(${planDate}::date, 'FMDay') = ANY("reminder_days")`)
 		.log();
 
-	console.log({ todaysSupplements });
+	console.log(todaysSupplements.map(s => s.todayIntakeLog));
 
 	// Determine status for each supplement
 	const supplementsWithStatus = todaysSupplements.map(supplement => {
