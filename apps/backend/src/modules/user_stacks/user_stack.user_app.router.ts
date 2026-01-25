@@ -88,6 +88,7 @@ const deleteStack = rpcProtectedProcedure
 const getTodaysPlan = rpcProtectedProcedure
 	.output(todaysPlanZod)
 	.handler(async ({ context: { user: { id: userId, timezone: userTz} } }) => {
+		console.log({ userTz })
 		return await daysPlanUserStacksService({
 			planDate: dayJsTz(userTz).format('YYYY-MM-DD'),
 			userId,
