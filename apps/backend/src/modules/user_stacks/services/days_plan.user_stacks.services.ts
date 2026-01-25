@@ -1,7 +1,7 @@
 import { sql } from "@backend/db/base_table";
 import { db } from "@backend/db/db";
+import { dayJsTz } from "@backend/utils/dayjs.utils";
 import { UserIntakeStatus } from "@connected-repo/zod-schemas/enums.zod";
-import dayjs from "dayjs";
 
 export const daysPlanUserStacksService = async ({
   planDate,
@@ -35,7 +35,7 @@ export const daysPlanUserStacksService = async ({
 		const supplementsWithStatus = todaysSupplements.map(supplement => {
 
 			let status: UserIntakeStatus | "pending" | "overdue";
-			const currentTime = dayjs(userTz).format("HH:mm"); // HH:MM format in user tz
+			const currentTime = dayJsTz(userTz).format("HH:mm"); // HH:MM format in user tz
 
 			if (supplement.todayIntakeLog) {
 				status = supplement.todayIntakeLog.status

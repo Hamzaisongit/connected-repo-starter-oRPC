@@ -3,7 +3,6 @@ import { db } from "@backend/db/db";
 import { daysPlanUserStacksService } from "@backend/modules/user_stacks/services/days_plan.user_stacks.services";
 import { dayJsTz } from "@backend/utils/dayjs.utils";
 import { dailyComplianceSelectAllZod } from "@connected-repo/zod-schemas/daily_compliance.zod";
-import dayjs from "dayjs";
 import z from "zod";
 
 // Configurable batch size
@@ -46,26 +45,27 @@ export const createAllUsersDailyComplianceService = async () => {
     
     await Promise.all(batch.map(async (user) => {
       const userTz = user.timezone || 'UTC';
-      const yesterday = dayjs().tz(userTz).subtract(1, 'day').format('YYYY-MM-DD');
+      const todayDate = dayJsTz(userTz);
       
       let dateForNewLog = user.latest 
-        ? dayjs(user.latest.date).add(1, 'day') 
-        : dayjs(user.createdAt).tz(userTz).startOf('day');
+        ? dayJsTz(userTz, user.latest.date).add(1, 'day')
+        : dayJsTz(userTz, user.createdAt);
+
 
       processed[user.id] = [];
 
       let shieldsBalance = user.userStats.shieldsBalance;
+      const dateStrForNewLog = dateForNewLog.format("YYYY-MM-DD");
       // 2. Catch up loop: Process every missing day until yesterday
-      while (dateForNewLog.isBefore(dayjs(yesterday).add(1, 'day'))) {
-        const dateStr = dateForNewLog.format('YYYY-MM-DD');
+      while (dateForNewLog.isBefore(todayDate, 'day')) {
         const result = await createComplianceForDate(
-          dateStr,
+          dateStrForNewLog,
           shieldsBalance,
           user.id,
           userTz
         );
         shieldsBalance = typeof result === 'object' ? result.shieldsClosingBalance : shieldsBalance;
-        processed[user.id]!.push({ [dateStr]: result });
+        processed[user.id]!.push({ [dateStrForNewLog]: result });
         
         dateForNewLog = dateForNewLog.add(1, 'day');
       }

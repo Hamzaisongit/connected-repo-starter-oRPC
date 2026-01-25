@@ -129,6 +129,11 @@ If after 60 days:
 - **Deviation:** Removed optimistic UI from SupplementCard component - replaced with direct status handling for simpler state management
 - Updated todaysPlan endpoint to include logId for precise revert operations
 
+**Timezone Handling Improvements:**
+- Enhanced dayJsTz utility to support optional date parameter with ConfigType
+- Replaced direct dayjs imports with centralized dayJsTz utility for consistency
+- Improved timezone-aware date handling in daily compliance and user stacks services
+
 **EXPLICITLY EXCLUDED FROM V1:**
 - ❌ Leagues, points, challenges
 - ❌ Social features, buddies
