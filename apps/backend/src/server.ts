@@ -1,5 +1,6 @@
 import "./otel.sdk";
 
+import { createServer } from 'node:http';
 import { allowedOrigins } from '@backend/configs/allowed_origins.config';
 import { env, isDev, isProd, isStaging, isTest } from '@backend/configs/env.config';
 import { betterAuthHandler } from '@backend/request_handlers/better_auth.handler';
@@ -10,8 +11,8 @@ import { handleServerClose } from '@backend/utils/graceful_shutdown.utils';
 import { logger } from '@backend/utils/logger.utils';
 import { recordErrorOtel } from "@backend/utils/record-message.otel.utils";
 import { trace } from '@opentelemetry/api';
-import { createServer } from 'node:http';
 import { perMinuteCronJobs } from "./modules/cron_jobs/services/cron";
+import { startEventBus } from "./modules/events/events.utils";
 
 logger.info({ isDev, isProd, isStaging, isTest }, "Environment:");
 logger.info(allowedOrigins, "Allowed Origins:");
@@ -117,12 +118,14 @@ try {
           process.send("ready"); // ✅ Let PM2 know the app is ready
         }
         logger.info({ url: env.VITE_API_URL, port: env.PORT }, "Server running");
-
-        // TODO: Move this to a separate worker process.
-        // Start the cron job
-				perMinuteCronJobs.start();
       }
     );
+
+    // TODO: Move this to a separate worker process.
+    // Start the cron job and event-bus
+    startEventBus().then(()=>{
+      perMinuteCronJobs.start();
+    })
 
   handleServerClose(server)
 } catch (err) {

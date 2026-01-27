@@ -1,8 +1,8 @@
+import fs from "node:fs";
+import path from "node:path";
 import { NODE_ENV_ZOD } from "@connected-repo/zod-schemas/node_env";
 import { zString } from "@connected-repo/zod-schemas/zod_utils";
 import dotenv from "dotenv";
-import fs from "node:fs";
-import path from "node:path";
 import { z } from "zod";
 
 // Load environment variables based on NODE_ENV
@@ -62,6 +62,8 @@ const envSchema = z.object({
 	VITE_SENTRY_ENV: zString.optional(),
 	VITE_API_URL: z.url(),
 	WEBAPP_URL: z.url(),
+	SUPRSEND_API_KEY: zString.min(1, "Suprsend API key is required"),
+	SUPRSEND_API_SECRET: zString.min(1, "Suprsend API secret is required"),
 });
 
 // ----------------------------------------
