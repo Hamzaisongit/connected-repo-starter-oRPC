@@ -43,7 +43,7 @@ export const reminderUserStackService = async () => {
                         'instructions', "user_stacks"."instructions"
 				))
 			`})
-		.group('userId','reminderTime','user.email','user.name','user.pushNotificationPreference','user.emailNotificationPreference')
+		.group('userId','reminderTime', "email", "emailNotificationPreference", "name", "pushNotificationPreference")
 
     let tasksSent = 0;
 
