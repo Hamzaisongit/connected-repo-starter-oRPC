@@ -43,7 +43,8 @@ export const reminderUserStackService = async () => {
                         'instructions', "user_stacks"."instructions"
 				))
 			`})
-		.group('userId','reminderTime', "email", "emailNotificationPreference", "name", "pushNotificationPreference")
+		// @ts-ignore
+		.group('userId','reminderTime', "email", "emailNotificationPreference", "user.name", "pushNotificationPreference")
 
     let tasksSent = 0;
 

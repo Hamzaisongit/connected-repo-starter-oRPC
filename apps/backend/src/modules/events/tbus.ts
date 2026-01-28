@@ -5,11 +5,11 @@ const SERVICE_NAME = "heliocoach-backend";
 
 export const tbus = createTBus(SERVICE_NAME, {
 	db: {
-		host: env.DB_HOST ?? "localhost",
-		port: Number(env.DB_PORT ?? 5432),
-		user: env.DB_USER ?? "postgres",
-		password: env.DB_PASSWORD ?? "postgres",
-		database: env.DB_NAME ?? "heliocoach_db",
+		host: env.DB_HOST,
+		port: Number(env.DB_PORT),
+		user: env.DB_USER,
+		password: env.DB_PASSWORD,
+		database: env.DB_NAME,
 	},
 	schema: "public"
 });

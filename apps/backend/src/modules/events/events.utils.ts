@@ -11,9 +11,12 @@ import { tbus } from "./tbus";
  * Adapter for running pg-tbus queries within an Orchid ORM transaction context
  */
 export const orchidToTbusQueryAdapter = (queryCtx: Query) => {
-	return ({ text, values }: { text: string, values?: any[] }) => {
-		return queryCtx.q.adapter.query(text, values);
-	}
+	return async <T = any>(
+		props: { text: string; values: any[]; name?: string }
+	): Promise<{ rows: T[]; rowCount: number }> => {
+		const result = await queryCtx.q.adapter.query(props.text, props.values);
+		return { rows: result.rows as T[], rowCount: result.rowCount };
+	};
 };
 
 /**
