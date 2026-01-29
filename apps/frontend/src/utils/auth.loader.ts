@@ -42,7 +42,7 @@ export async function authLoader({ context }: LoaderFunctionArgs) {
 				cookieTokenPrefix: sessionToken?.substring(0, 8) || 'NONE',
 			});
 
-			throw redirect("/auth/login");
+			throw redirect("/auth");
 		}
 
 		// CRITICAL: Validate that session token from authClient matches cookie
@@ -138,6 +138,6 @@ export async function authLoader({ context }: LoaderFunctionArgs) {
 		logSessionException(error instanceof Error ? error : new Error(String(error)), {
 			error_type: 'auth_loader_error',
 		}, 'Auth loader error');
-		throw redirect("/auth/login");
+		throw redirect("/auth");
 	}
 }

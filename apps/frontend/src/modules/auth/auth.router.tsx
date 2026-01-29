@@ -1,10 +1,12 @@
 import { LoginPage } from "@frontend/modules/auth/pages/Login.page";
-import { Navigate, Route, Routes, useSearchParams } from "react-router";
+import { LandingPage } from "@frontend/modules/auth/pages/Landing.page";
+import { OnboardingPage } from "@frontend/modules/auth/pages/Onboarding.page";
+import { Route, Routes, useSearchParams, Navigate } from "react-router";
 
 const AuthErrorRedirect = () => {
 	const [searchParams] = useSearchParams();
 	const error = searchParams.get("error");
-	
+
 	// Redirect to login page with error parameter
 	return <Navigate to={`/auth/login?error=${error || "unknown_error"}`} replace />;
 };
@@ -13,7 +15,8 @@ const AuthRouter = () => {
 	return (
 		<Routes>
 			<Route path="/">
-				<Route index element={<Navigate to="/auth/login" />} />
+				<Route index element={<LandingPage />} />
+				<Route path="onboarding" element={<OnboardingPage />} />
 				<Route path="login" element={<LoginPage />} />
 				<Route path="error" element={<AuthErrorRedirect />} />
 			</Route>

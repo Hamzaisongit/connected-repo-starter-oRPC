@@ -443,7 +443,7 @@ const ProfilePage = () => {
 						</motion.div>
 
 						{/* Settings Section */}
-						<Box sx={{ maxWidth: 500, mx: "auto", width: "100%" }}>
+						<Box sx={{ maxWidth: 600, mx: "auto", width: "100%" }}>
 							<motion.div
 								initial={{ opacity: 0, y: 20 }}
 								animate={{ opacity: 1, y: 0 }}

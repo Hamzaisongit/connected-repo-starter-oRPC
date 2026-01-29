@@ -45,10 +45,6 @@ const routerObjectWithNavbar: ReactRouterWithNavbar[] = [
 				path: "auth/*",
 				Component: lazy(() => import("@frontend/modules/auth/auth.router")),
 			},
-			{
-				path: "welcome",
-				Component: lazy(() => import("@frontend/pages/Welcome.page")),
-			},
 			// Authenticated routes with AppLayout
 			{
 				element: <AppLayout />,

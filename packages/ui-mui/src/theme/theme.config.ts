@@ -17,6 +17,7 @@ const baseThemeConfig = {
 	typography: {
 		// Body text: Sans-serif for legibility
 		fontFamily: [
+			"Lato",
 			"-apple-system",
 			"BlinkMacSystemFont",
 			'"Segoe UI"',

@@ -74,7 +74,7 @@ export function CreateUserStackForm() {
 				dosage: "1",
 				unit: "mg",
 				customUnit: "",
-				reminderDays: [],
+				reminderDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
 				reminderTime: "08:00:00",
 				imageUrl: undefined,
 			},

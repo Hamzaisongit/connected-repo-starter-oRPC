@@ -311,13 +311,16 @@ export function SupplementCard({ supplement, onRevert, onCardClick }: Supplement
 			onClick={handleLogClick}
 			disabled={isLogging || isLoading}
 			sx={{
+				aspectRatio: "1 / 1",
 				minWidth: 48,
 				width: 48,
 				height: 48,
+				minHeight: 48,
 				borderRadius: "50%", // Full circle
 				fontSize: "1.4rem",
 				fontWeight: 600,
 				p: 0,
+				lineHeight: 1,
 				// Dynamic Theme Styling
 				borderColor: isTaken ? theme.palette.success.main : theme.palette.text.secondary,
 				backgroundColor: isTaken ? theme.palette.success.main : "transparent",

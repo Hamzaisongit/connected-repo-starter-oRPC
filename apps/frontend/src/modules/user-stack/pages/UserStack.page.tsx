@@ -102,10 +102,13 @@ export default function UserStackPage() {
 	if (!userStacks || userStacks.length === 0) {
 		return (
 			<Container maxWidth="lg" sx={{ py: 4 }}>
-				<UserStackEmptyState />
+				<UserStackEmptyState variant="all" />
 			</Container>
 		);
 	}
+
+	// Show filtered empty state when there are stacks but none match the current filter
+	const showFilteredEmptyState = filteredStacks.length === 0 && userStacks.length > 0;
 
     return (
         <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 }, pb: 12, minHeight: "100vh", position: "relative", overflow: "hidden" }}>
@@ -182,7 +185,13 @@ export default function UserStackPage() {
                 </ToggleButtonGroup>
             </Box>
 
+            {/* Filtered Empty State */}
+            {showFilteredEmptyState && (
+                <UserStackEmptyState variant={statusFilter} />
+            )}
+
             {/* Uniform Stack Gallery */}
+            {!showFilteredEmptyState && (
             <Box
                 sx={{
                     display: "grid",
@@ -342,6 +351,7 @@ export default function UserStackPage() {
                     );
                 })}
             </Box>
+            )}
 
             {/* Floating Action Button */}
             <motion.div

@@ -1,10 +1,15 @@
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
+import { Dialog, DialogContent, DialogTitle } from "@connected-repo/ui-mui/feedback/Dialog";
+import { Button } from "@connected-repo/ui-mui/form/Button";
 import { PhotoCameraIcon } from "@connected-repo/ui-mui/icons/PhotoCameraIcon";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { alpha, useTheme } from "@mui/material/styles";
+import { useState } from "react";
 
 export function PhotoAssistCard() {
 	const theme = useTheme();
+	const [dialogOpen, setDialogOpen] = useState(false);
+
 	return (
 		<Box
 			sx={{
@@ -16,6 +21,7 @@ export function PhotoAssistCard() {
 			}}
 		>
 			<Box
+				onClick={() => setDialogOpen(true)}
 				sx={{
 					display: "flex",
 					alignItems: "center",
@@ -52,6 +58,33 @@ export function PhotoAssistCard() {
 				</Box>
 				<Typography sx={{ color: theme.palette.text.secondary, fontSize: "1.15rem" }}>›</Typography>
 			</Box>
+
+			<Dialog
+				open={dialogOpen}
+				onClose={() => setDialogOpen(false)}
+				slotProps={{
+					paper: {
+						sx: {
+							borderRadius: 1,
+							minWidth: 280,
+						},
+					},
+				}}
+			>
+				<DialogTitle sx={{ textAlign: "center", pt: 3 }}>Coming Soon</DialogTitle>
+				<DialogContent sx={{ textAlign: "center", pb: 3 }}>
+					<Typography sx={{ color: theme.palette.text.secondary, mb: 2 }}>
+						Photo Assist feature is currently under development. Stay tuned!
+					</Typography>
+					<Button
+						variant="contained"
+						onClick={() => setDialogOpen(false)}
+						sx={{ minWidth: 100 }}
+					>
+						OK
+					</Button>
+				</DialogContent>
+			</Dialog>
 		</Box>
 	);
 }
