@@ -5,7 +5,7 @@ export TZ=Etc/UTC
 
 # 2. Idempotent Migrations
 echo "Applying migrations..."
-node dist/db/db_script.js up force
+node dist/db/db_script.js up
 if [ $? -ne 0 ]; then
   echo "Migration failed. Stopping startup."
   exit 1
