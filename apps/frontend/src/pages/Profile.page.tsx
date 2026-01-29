@@ -61,7 +61,7 @@ const ProfilePage = () => {
 
 	const handleDeleteAccount = () => {
 		// TODO: Implement account deletion API call
-		console.log("Account deletion requested");
+		console.info("Account deletion requested");
 		setDeleteDialogOpen(false);
 		setDeleteConfirmText("");
 		// After deletion, redirect to login

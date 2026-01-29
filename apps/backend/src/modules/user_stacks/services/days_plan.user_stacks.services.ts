@@ -12,7 +12,6 @@ export const daysPlanUserStacksService = async ({
   userId: string;
   userTz: string;
 }) => {
-	console.log({ planDate, userTz });
   // Get all user stacks
 	const todaysSupplements = await db.userStacks
 		.select("*", {
@@ -36,9 +35,9 @@ export const daysPlanUserStacksService = async ({
 			] })
 		// Filter stacks where today's day name exists in the reminder_days array
 		.where(sql`to_char(${planDate}::date, 'FMDay') = ANY("reminder_days")`)
-		.log();
-
-	console.log(todaysSupplements.map(s => s.todayIntakeLog));
+		.order({
+			reminderTime: "ASC",
+		});
 
 	// Determine status for each supplement
 	const supplementsWithStatus = todaysSupplements.map(supplement => {

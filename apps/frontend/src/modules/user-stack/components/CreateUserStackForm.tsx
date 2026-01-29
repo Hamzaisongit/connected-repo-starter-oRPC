@@ -1,5 +1,5 @@
-import { useRhfForm } from "@connected-repo/ui-mui/rhf-form/useRhfForm";
 import { Snackbar } from "@connected-repo/ui-mui/feedback/Snackbar";
+import { useRhfForm } from "@connected-repo/ui-mui/rhf-form/useRhfForm";
 import type { DaysOfWeek } from "@connected-repo/zod-schemas/enums.zod";
 import type { UserStackCreateInput } from "@connected-repo/zod-schemas/user_stack.zod";
 import { orpcFetch } from "@frontend/utils/orpc.client";
@@ -55,7 +55,6 @@ export function CreateUserStackForm() {
 				reminderDays: data.reminderDays as DaysOfWeek[],
 				imageUrl: data.imageUrl || null,
 			};
-			console.log({submitData});
 			const newStack = await orpcFetch.userStacks.create(submitData);
 			setShowToast(true);
 			setTimeout(() => {

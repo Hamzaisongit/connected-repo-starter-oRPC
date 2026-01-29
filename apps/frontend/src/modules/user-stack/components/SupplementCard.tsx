@@ -3,16 +3,25 @@ import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } 
 import { Button } from "@connected-repo/ui-mui/form/Button";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import type { TodaysPlanSupplement } from "@connected-repo/zod-schemas/user_stack.zod";
+import { useSessionInfo } from "@frontend/contexts/UserContext";
+import { orpc } from "@frontend/utils/orpc.client";
+import { queryClient } from "@frontend/utils/queryClient";
 import { getStockIconAndColor } from "@frontend/utils/supplement.utils";
+import { detectUserTimezone } from "@frontend/utils/timezone.utils";
 import { alpha, useTheme } from "@mui/material/styles";
+import { useMutation } from "@tanstack/react-query";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { useState } from "react";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 interface SupplementCardProps {
 	supplement: TodaysPlanSupplement;
-	onLogTaken: (supplementId: string, reminderTime: string) => Promise<void>;
 	onRevert?: (supplementId: string, reminderTime: string) => Promise<void>;
 	onCardClick?: (supplementId: string) => void;
-	isLogging?: boolean;
 }
 
 // Status config is now handled directly in the component
@@ -25,10 +34,52 @@ const normalizeStatus = (status: string): "pending" | "taken" | "missed" | "over
 	return "pending"; // fallback
 };
 
-export function SupplementCard({ supplement, onLogTaken, onRevert, onCardClick, isLogging }: SupplementCardProps) {
-   	const theme = useTheme();
-   	const [isLoading, setIsLoading] = useState(false);
-   	const [revertDialogOpen, setRevertDialogOpen] = useState(false);
+export function SupplementCard({ supplement, onRevert, onCardClick }: SupplementCardProps) {
+	const theme = useTheme();
+	const [isLoading, setIsLoading] = useState(false);
+	const [revertDialogOpen, setRevertDialogOpen] = useState(false);
+	const { user } = useSessionInfo();
+
+		// Quick log mutation
+	const logMutation = useMutation(orpc.userIntakeLogs.create.mutationOptions());
+
+	const isLogging = logMutation.isPending;
+
+
+
+	const onLogTaken = async (supplementId: string, scheduledTime: string) => {
+		try {
+			// Calculate scheduled time in user's timezone
+			const userTimezone = user?.timezone|| await detectUserTimezone() || "Etc/UTC";
+			const today = dayjs().tz(userTimezone);
+			const [hoursStr, minutesStr] = scheduledTime.split(":");
+			const hours = parseInt(hoursStr || "0", 10);
+			const minutes = parseInt(minutesStr || "0", 10);
+			const scheduledDayjs = today.hour(hours).minute(minutes).second(0).millisecond(0);
+			const scheduledFor = scheduledDayjs.utc().valueOf();
+
+			// Determine status based on time difference (within 1 hour window)
+			const actualAt = Date.now();
+			const timeDiffMs = Math.abs(actualAt - scheduledFor);
+			const isOnTime = timeDiffMs <= 60 * 60 * 1000; // 1 hour in ms
+			const status: "Taken on-time" | "Taken late" = isOnTime ? "Taken on-time" : "Taken late";
+
+			await logMutation.mutateAsync({
+				supplementId,
+				scheduledFor,
+				status,
+				actualAt,
+				logTimezone: userTimezone,
+			});
+
+			// Invalidate queries to refresh the data
+			queryClient.invalidateQueries({ queryKey: orpc.userStacks.getTodaysPlan.queryKey() });
+			queryClient.invalidateQueries({ queryKey: orpc.userStats.getMine.queryKey() });
+		} catch (error) {
+			console.error("Failed to log adherence:", error);
+			console.error("Failed to log. Please try again.");
+		}
+	};
 
   	const isTaken = normalizeStatus(supplement.status) === "taken";
 
