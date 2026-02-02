@@ -7,14 +7,13 @@ import { ToggleButton } from "@connected-repo/ui-mui/form/ToggleButton";
 import { ToggleButtonGroup } from "@connected-repo/ui-mui/form/ToggleButtonGroup";
 import { AddIcon } from "@connected-repo/ui-mui/icons/AddIcon";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
-import { Card } from "@connected-repo/ui-mui/layout/Card"
+import { Card } from "@connected-repo/ui-mui/layout/Card";
 import { Container } from "@connected-repo/ui-mui/layout/Container";
 import { NotificationPermissionDialog } from "@frontend/components/NotificationPermissionDialog";
 import { env } from "@frontend/configs/env.config";
 import type { SessionInfo } from "@frontend/contexts/UserContext";
-import { useSuprSend } from "@frontend/hooks/useSuprsend";
+import { useSuprSend } from "@frontend/hooks/useSuprSend";
 import { UserStackEmptyState } from "@frontend/modules/user-stack/components/UserStackEmptyState";
-import { enablePushNotifications } from "@frontend/utils/notifications.utils";
 import { orpc } from "@frontend/utils/orpc.client";
 import { getStockIconAndColor } from "@frontend/utils/supplement.utils";
 import { alpha, useTheme } from "@mui/material/styles";
@@ -22,7 +21,7 @@ import { SuprSendProvider } from "@suprsend/react-core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { useLoaderData, useNavigate, useOutletContext, useSearchParams } from "react-router";
+import { useNavigate, useOutletContext, useSearchParams } from "react-router";
 
 type StatusFilter = "all" | "active" | "inactive";
 

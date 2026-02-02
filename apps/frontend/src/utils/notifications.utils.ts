@@ -1,4 +1,4 @@
-import { PreferenceOptions, type SuprSend } from "@suprsend/react-core";
+import { type ApiResponse, PreferenceOptions, type SuprSend } from "@suprsend/react-core";
 import { toast } from "react-toastify";
 
 /**
@@ -14,7 +14,10 @@ import { toast } from "react-toastify";
  * @param suprSendClient - The initialized SuprSend instance used to manage push preferences.
  * @throws Error if browser permissions are blocked or enabling notifications fails.
  */
-export const enablePushNotifications = async (suprSendClient: SuprSend) => {
+export const enablePushNotifications = async (
+    getPreferences: () => Promise<ApiResponse | undefined>,
+    suprSendClient: SuprSend,
+) => {
     const isWebPushRegistered = await suprSendClient.webpush.pushSubscribed()
     const browserLevelPermission = suprSendClient.webpush.notificationPermission();
     
@@ -33,7 +36,7 @@ export const enablePushNotifications = async (suprSendClient: SuprSend) => {
                 }
                 //call getPreference() first to avoid race condition of whether 
                 //webpush channel is available or not for the current user instance
-                return suprSendClient.user.preferences.getPreferences()
+                return getPreferences()
                     .then(() => suprSendClient.user.preferences.updateChannelPreferenceInCategory(
                             "webpush",
                             PreferenceOptions.OPT_IN,

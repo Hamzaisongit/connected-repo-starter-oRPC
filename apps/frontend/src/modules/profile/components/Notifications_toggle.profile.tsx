@@ -1,7 +1,7 @@
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { env } from "@frontend/configs/env.config";
-import { useSuprSend } from "@frontend/hooks/useSuprsend";
+import { useSuprSend } from "@frontend/hooks/useSuprSend";
 import { enablePushNotifications } from "@frontend/utils/notifications.utils";
 import { orpc, orpcFetch } from "@frontend/utils/orpc.client";
 import { queryClient } from "@frontend/utils/queryClient";
@@ -14,7 +14,7 @@ import { toast } from "react-toastify";
 
 const NotificationPreferencesPanel = ({ userId }: { userId: string }) => {
   const theme = useTheme();
-	const { suprSendClient } = useSuprSend(userId);
+	const { getPreferences, suprSendClient } = useSuprSend(userId);
 
 	// -- Data loading error state using TanStack's useQuery (orpc.profile.getProfile) --
 	const { data: profileData } = useQuery(
@@ -28,7 +28,7 @@ const NotificationPreferencesPanel = ({ userId }: { userId: string }) => {
       try {
           // 1. Update SuprSend
           if (newStatus) {
-          	await enablePushNotifications(suprSendClient)
+          	await enablePushNotifications(getPreferences, suprSendClient)
           } else {
           	// User is switching OFF push notifications
           	const result =

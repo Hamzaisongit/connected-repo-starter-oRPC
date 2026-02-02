@@ -2,7 +2,7 @@ import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Snackbar } from "@connected-repo/ui-mui/feedback/Snackbar";
 import { Button } from "@connected-repo/ui-mui/form/Button";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
-import { useSuprSend } from "@frontend/hooks/useSuprsend";
+import { useSuprSend } from "@frontend/hooks/useSuprSend";
 import { enablePushNotifications } from "@frontend/utils/notifications.utils";
 import { orpcFetch } from "@frontend/utils/orpc.client";
 import { useTheme } from "@mui/material/styles";
@@ -19,12 +19,12 @@ export function NotificationPermissionDialog({
 	show,
 	setShow
 }: NotificationPermissionDialogProps) {
-    const { suprSendClient } = useSuprSend(userId)
+    const { getPreferences, suprSendClient } = useSuprSend(userId)
 	const theme = useTheme();
 
 	const handleEnable = async () => {
 		try {
-			await enablePushNotifications(suprSendClient)
+			await enablePushNotifications(getPreferences, suprSendClient)
 			orpcFetch.profile.updateProfile({ pushNotificationPreference: true })
 		} catch (error) {
 			console.error("Failed to register push notifications:", error);

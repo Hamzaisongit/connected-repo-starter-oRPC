@@ -7,12 +7,14 @@ export const useSuprSend = (userId: string) => {
     const userPref = useRef<ApiResponse | undefined>(undefined);
     const suprSendUserToken = useRef<string | undefined>(undefined);
 
-    const getUserToken = () => orpcFetch.notifications.signSuprSendUserToken().then(({ token }) => {
-        suprSendUserToken.current = token;
-        return token;
-    });
+    const getUserToken = () => 
+        orpcFetch.notifications.signSuprSendUserToken()
+            .then(({ token }) => {
+                suprSendUserToken.current = token;
+                return token;
+            });
 
-    const getPreference = async () => {
+    const getPreferences = async () => {
         if(suprSendClient.isIdentified(true)) {
 		    const pref = await suprSendClient.user.preferences.getPreferences();
             userPref.current = pref;
@@ -36,12 +38,12 @@ export const useSuprSend = (userId: string) => {
     };
 
     useEffect(() => {
-        getPreference();
+        getPreferences();
     })
 
     return {
         suprSendClient,
-        getPreference,
+        getPreferences,
         userPref
     }
 }

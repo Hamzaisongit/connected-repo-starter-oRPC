@@ -31,9 +31,12 @@ function App() {
 		<LocalizationProvider dateAdapter={AdapterDayjs}>
 			<ThemeContextProvider>
 				<Suspense fallback={<LoadingSpinner text="Loading..." />}>
-					<ErrorBoundary fallback={<ErrorFallback />} beforeCapture={(scope) => {
-			scope.setTag("level", "top-level");
-			}}>
+					<ErrorBoundary 
+						fallback={<ErrorFallback />} 
+						beforeCapture={(scope) => {
+							scope.setTag("level", "top-level");
+						}}
+					>
 						<OfflineFallback>
 							<RouterProvider router={router} />
 						</OfflineFallback>
