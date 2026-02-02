@@ -123,6 +123,8 @@ If after 60 days:
 - Improved account details UI with better information hierarchy
 - Implemented theme initialization from user preferences
 - **Enhanced:** Implemented automatic timezone detection and syncing in auth loader with browser/IP fallback, profile page tooltip, and toast notifications
+- **Refactored:** Extracted notifications toggle functionality into reusable NotificationsToggle component
+- **Fixed:** Moved profile page to modules/profile/ structure, updated service worker path to "./sw.js"
 
 **Supplement Logging Improvements:**
 - Added revert functionality for supplement logs via deleteMutation

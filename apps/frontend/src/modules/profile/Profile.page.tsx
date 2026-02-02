@@ -24,6 +24,7 @@ import { Paper } from "@connected-repo/ui-mui/layout/Paper";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
 import { useThemeMode } from "@connected-repo/ui-mui/theme/ThemeContext";
 import type { SessionInfo } from "@frontend/contexts/UserContext";
+import { NotificationsToggle } from "@frontend/modules/profile/components/Notifications_toggle.profile";
 import { authClient } from "@frontend/utils/auth.client";
 import { orpc } from "@frontend/utils/orpc.client";
 import { logSessionEvent, logSessionException } from "@frontend/utils/session-logger.utils";
@@ -47,6 +48,14 @@ const ProfilePage = () => {
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
+	if (!user) {
+		return (
+			<Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+				<LoadingSpinner text="Loading profile..." />
+			</Box>
+		);
+	}
+
 	const handleLogout = () => {
 		authClient
 			.signOut()
@@ -69,7 +78,6 @@ const ProfilePage = () => {
 	};
 
 	const handleThemeChange = async () => {
-		if (!user?.id) return;
 		let newMode: "light" | "dark" | "system";
 		if (mode === "light") {
 			newMode = "dark";
@@ -133,14 +141,6 @@ const ProfilePage = () => {
 			bgColor: alpha(theme.palette.background.paper, 0.5),
 		};
 	};
-
-	if (!user) {
-		return (
-			<Box sx={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-				<LoadingSpinner text="Loading profile..." />
-			</Box>
-		);
-	}
 
 	// Format dates
 	const formatDate = (timestamp: number | undefined) => {
@@ -462,6 +462,9 @@ const ProfilePage = () => {
 								</Typography>
 
 								<Stack spacing={2}>
+									<NotificationsToggle 
+										userId={user.id}
+									/>
 									{/* Theme Toggle - Clickable Box */}
 									<Box
 										onClick={handleThemeChange}

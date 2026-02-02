@@ -9,14 +9,20 @@ import { AddIcon } from "@connected-repo/ui-mui/icons/AddIcon";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { Card } from "@connected-repo/ui-mui/layout/Card"
 import { Container } from "@connected-repo/ui-mui/layout/Container";
+import { NotificationPermissionDialog } from "@frontend/components/NotificationPermissionDialog";
+import { env } from "@frontend/configs/env.config";
+import type { SessionInfo } from "@frontend/contexts/UserContext";
+import { useSuprSend } from "@frontend/hooks/useSuprsend";
 import { UserStackEmptyState } from "@frontend/modules/user-stack/components/UserStackEmptyState";
+import { enablePushNotifications } from "@frontend/utils/notifications.utils";
 import { orpc } from "@frontend/utils/orpc.client";
 import { getStockIconAndColor } from "@frontend/utils/supplement.utils";
 import { alpha, useTheme } from "@mui/material/styles";
+import { SuprSendProvider } from "@suprsend/react-core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useLoaderData, useNavigate, useOutletContext, useSearchParams } from "react-router";
 
 type StatusFilter = "all" | "active" | "inactive";
 
@@ -30,14 +36,18 @@ const formatDaysShort = (days: string | string[]) => {
 };
 
 
-
-export default function UserStackPage() {
+function UserStackPage() {
 	const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
 	const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 	const highlightedStackId = searchParams.get("highlight");
 
 	const theme = useTheme();
+
+    const userSessionInfo = useOutletContext<SessionInfo>();
+    
+    const [showNotificationPermissionDialog, setShowNotificationPermissionDialog] = useState<boolean>(false)
+    const {suprSendClient} = useSuprSend(userSessionInfo.user.id)
 
 	const queryClient = useQueryClient();
 	const { data: userStacks, isLoading, error } = useQuery(orpc.userStacks.getAll.queryOptions());
@@ -54,6 +64,17 @@ export default function UserStackPage() {
 			}
 		}
 	}, [highlightedStackId, userStacks]);
+
+    useEffect(()=>{
+        if(userStacks && userStacks.length === 1){
+            suprSendClient.webpush.pushSubscribed()
+                .then((subscribed) => {
+                    //don't show dialog if webpush is already subscribed/registered 
+                    if (subscribed) return;
+                    setShowNotificationPermissionDialog(true)
+                })
+        }
+    }, [userStacks, suprSendClient])
 
 	const updateStackMutation = useMutation(orpc.userStacks.update.mutationOptions());
 
@@ -384,6 +405,24 @@ export default function UserStackPage() {
                     <AddIcon sx={{ fontSize: 28 }} />
                 </Button>
             </motion.div>
+
+            {/* Dialog to ask early users for notification permission */}
+            <NotificationPermissionDialog 
+                userId={userSessionInfo.user.id}
+                show={showNotificationPermissionDialog}
+                setShow={setShowNotificationPermissionDialog}
+            >
+            </NotificationPermissionDialog>
         </Container>
     );
 }
+
+export default () => (
+	<SuprSendProvider
+		publicApiKey={env.VITE_SUPRSEND_PUBLIC_API_KEY}
+		vapidKey={env.VITE_SUPRSEND_PUBLIC_VAPID_KEY}
+		swFileName={import.meta.env.DEV ? "./dev-sw.js?dev-sw" : "./sw.js"}
+	>
+		<UserStackPage />
+	</SuprSendProvider>
+);

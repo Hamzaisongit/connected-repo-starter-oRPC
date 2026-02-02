@@ -6,7 +6,8 @@ import { userSelectAllZod, userUpdateInputZod } from "@connected-repo/zod-schema
 const getProfile = rpcProtectedProcedure
 	.output(userSelectAllZod)
 	.handler(async ({ context: { user } }) => {
-		return user
+		const dbUser = await db.users.find(user.id).selectAll();
+		return dbUser;
 	});
 
 // Update user profile - requires authentication

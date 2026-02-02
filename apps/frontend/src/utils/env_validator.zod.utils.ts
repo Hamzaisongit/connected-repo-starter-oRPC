@@ -12,4 +12,6 @@ export const envSchemaZod = object({
 	VITE_SENTRY_RELEASE: string().optional(),
 	VITE_SENTRY_ORG: string().optional(),
 	VITE_SENTRY_PROJECT: string().optional(),
+	VITE_SUPRSEND_PUBLIC_API_KEY: string().min(1, "SuprSend Public API Key is required"),
+	VITE_SUPRSEND_PUBLIC_VAPID_KEY: string().min(1, "SuprSend Public VAPID Key is required"),
 });

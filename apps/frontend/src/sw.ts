@@ -1,5 +1,10 @@
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
 import { NavigationRoute, registerRoute } from 'workbox-routing'
+import { env } from './configs/env.config';
+
+importScripts('https://cdn.jsdelivr.net/npm/@suprsend/web-sdk@4.0.0/public/serviceworker.min.js');
+// @ts-ignore
+initSuprSend(env.VITE_SUPRSEND_PUBLIC_API_KEY); // replace publicApiKey with your value
 
 declare const self: ServiceWorkerGlobalScope;
 

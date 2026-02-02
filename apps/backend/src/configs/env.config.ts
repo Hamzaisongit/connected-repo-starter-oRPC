@@ -64,6 +64,7 @@ const envSchema = z.object({
 	WEBAPP_URL: z.url(),
 	SUPRSEND_API_KEY: zString.min(1, "Suprsend API key is required"),
 	SUPRSEND_API_SECRET: zString.min(1, "Suprsend API secret is required"),
+	SUPRSEND_SIGNING_BASE_64: zString.min(1, "Suprsend signing key (base64) is required"),
 });
 
 // ----------------------------------------

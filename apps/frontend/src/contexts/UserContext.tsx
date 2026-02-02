@@ -3,7 +3,7 @@ import { createContext, useOutletContext } from "react-router";
 
 export interface SessionInfo {
 	hasSession: boolean;
-	user: UserSelectAll | null;
+	user: UserSelectAll;
 	isRegistered: boolean;
 }
 

@@ -32,8 +32,8 @@ function App() {
 			<ThemeContextProvider>
 				<Suspense fallback={<LoadingSpinner text="Loading..." />}>
 					<ErrorBoundary fallback={<ErrorFallback />} beforeCapture={(scope) => {
-	          scope.setTag("level", "top-level");
-	        }}>
+			scope.setTag("level", "top-level");
+			}}>
 						<OfflineFallback>
 							<RouterProvider router={router} />
 						</OfflineFallback>
