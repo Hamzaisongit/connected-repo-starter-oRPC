@@ -14,6 +14,7 @@ import { env } from "@frontend/configs/env.config";
 import type { SessionInfo } from "@frontend/contexts/UserContext";
 import { useSuprSend } from "@frontend/hooks/useSuprSend";
 import { UserStackEmptyState } from "@frontend/modules/user-stack/components/UserStackEmptyState";
+import { enablePushNotifications } from "@frontend/utils/notifications.utils";
 import { orpc } from "@frontend/utils/orpc.client";
 import { getStockIconAndColor } from "@frontend/utils/supplement.utils";
 import { alpha, useTheme } from "@mui/material/styles";
@@ -42,7 +43,7 @@ function UserStackPage() {
 	const highlightedStackId = searchParams.get("highlight");
 
 	const theme = useTheme();
-
+    
     const userSessionInfo = useOutletContext<SessionInfo>();
     
     const [showNotificationPermissionDialog, setShowNotificationPermissionDialog] = useState<boolean>(false)

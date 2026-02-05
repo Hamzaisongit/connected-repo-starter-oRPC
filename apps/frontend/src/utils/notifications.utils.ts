@@ -2,17 +2,18 @@ import { type ApiResponse, PreferenceOptions, type SuprSend } from "@suprsend/re
 import { toast } from "react-toastify";
 
 /**
- * Enables web push notifications for the current user using the SuprSend client.
- * 
- * Checks the current browser permission status for notifications.
- * - If denied, informs the user notifications are blocked and throws an error.
- * - If default (not decided), requests browser permission and subscribes user on success.
- * - If granted, ensures the user's notification preference is set to OPT_IN for "reminders".
- * 
- * Displays toast messages for user feedback in cases of error or permission issues.
- * 
- * @param suprSendClient - The initialized SuprSend instance used to manage push preferences.
- * @throws Error if browser permissions are blocked or enabling notifications fails.
+ * Attempts to enable web push notifications for the user via the SuprSend client.
+ *
+ * - Checks current browser notification permission:
+ *    - If "denied": shows info toast and throws an error.
+ *    - If permission is not "denied": attempts registration.
+ *       - On success: fetches preferences and sets "webpush" to OPT_IN for "reminders".
+ *       - On failure: shows error toast and throws with error message.
+ *
+ * - Provides toast-based user feedback for both blocking and failure cases.
+ *
+ * @param suprSendClient The initialized SuprSend client instance.
+ * @throws Error if permissions are blocked or push setup fails.
  */
 export const enablePushNotifications = async (
     getPreferences: () => Promise<ApiResponse | undefined>,
@@ -26,7 +27,7 @@ export const enablePushNotifications = async (
             "Notifications are blocked for this app. Please re-enable notifications in your browser site settings."
         );
         throw new Error("Notification Permission for this site is Blocked at Browser level");
-    } else if (browserLevelPermission === "default" || (browserLevelPermission === "granted" && !isWebPushRegistered)) {
+    } else {
         // User hasn't yet made a decision, so request permission and register
         const registrationResult = await suprSendClient.webpush
             .registerPush()
@@ -51,20 +52,5 @@ export const enablePushNotifications = async (
             );
             throw new Error(registrationResult.error?.message);
         }
-    } else if (browserLevelPermission === "granted" || isWebPushRegistered) {
-        // Notifications already allowed, just update preference
-        const updateResult =
-            await suprSendClient.user.preferences.updateChannelPreferenceInCategory(
-                "webpush",
-                PreferenceOptions.OPT_IN,
-                "reminders"
-            );
-
-        if (updateResult.status !== "success") {
-            toast.error(
-                "Something went wrong while enabling push notifications!"
-            );
-            throw new Error(updateResult.error?.message);
-        }
-    }
+    } 
 }

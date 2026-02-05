@@ -3,40 +3,61 @@ import { Box } from "@connected-repo/ui-mui/layout/Box";
 import { env } from "@frontend/configs/env.config";
 import { useSuprSend } from "@frontend/hooks/useSuprSend";
 import { enablePushNotifications } from "@frontend/utils/notifications.utils";
-import { orpc, orpcFetch } from "@frontend/utils/orpc.client";
 import { queryClient } from "@frontend/utils/queryClient";
 import { EmailRounded, NotificationsActive } from "@mui/icons-material";
 import { alpha, useTheme } from "@mui/material";
 import Switch from "@mui/material/Switch";
-import { PreferenceOptions, SuprSendProvider } from "@suprsend/react-core";
+import { type ApiResponse, type Category, type CategoryChannel, PreferenceOptions, type Section, SuprSendProvider } from "@suprsend/react-core";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 const NotificationPreferencesPanel = ({ userId }: { userId: string }) => {
   const theme = useTheme();
 	const { getPreferences, suprSendClient } = useSuprSend(userId);
+  const [isWebPushSubscribed, setIsWebPushSubscribed] = useState<boolean>(false)
 
-	// -- Data loading error state using TanStack's useQuery (orpc.profile.getProfile) --
-	const { data: profileData } = useQuery(
-		orpc.profile.getProfile.queryOptions(),
-	);
+  useEffect(()=>{
+    suprSendClient.webpush.pushSubscribed()
+      .then(isPushSubscribed => setIsWebPushSubscribed(isPushSubscribed))
+  },[suprSendClient])
+
+  //Fetch Preferences using TanStack Query + SuprSend SDK
+  const { data: userPrefData, isLoading: isUserPrefLoading, error: userPrefError } = useQuery({
+    queryKey: ["suprsend-preferences"],
+    queryFn: async () => {
+      const resp = await suprSendClient.user.preferences.getPreferences();
+      
+      if (resp.status === "error"){
+        toast.error("Failed to fetch!")
+        throw new Error(resp.error?.message);
+      }
+
+      return resp.body
+    },
+  });
+
+  //Derive the Email Status (OPT_IN vs OPT_OUT)
+  //TODO: make it readable
+  const isEmailEnabled = userPrefData?.sections
+    ?.flatMap((section: Section) => section.subcategories || [])
+      .find((sub: Category) => sub.category === "reminders")
+      ?.channels?.find((ch: CategoryChannel) => ch.channel === "email")
+        ?.preference === PreferenceOptions.OPT_IN;
+
 
   const handlePushNotificationToggle = async (event: React.ChangeEvent<HTMLInputElement>) => {
       console.log("toggled push...")
       const newStatus = event.target.checked;
 
       try {
-          // 1. Update SuprSend
+          // Update SuprSend
           if (newStatus) {
           	await enablePushNotifications(getPreferences, suprSendClient)
+            setIsWebPushSubscribed(true)
           } else {
-          	// User is switching OFF push notifications
-          	const result =
-          		await suprSendClient.user.preferences.updateChannelPreferenceInCategory(
-          			"webpush",
-          			PreferenceOptions.OPT_OUT,
-          			"reminders"
-          		);
+
+            const result = (await suprSendClient.webpush.removePushSubscription()) as ApiResponse
 
           	if (result.status !== "success") {
           		console.log("Preference update result:", result);
@@ -44,72 +65,46 @@ const NotificationPreferencesPanel = ({ userId }: { userId: string }) => {
           			"Something went wrong while disabling push notifications!"
           		);
           	}
+
+            // Get the current PushSubscription instance and unsubscribe it
+            await navigator.serviceWorker.ready
+            .then((reg) => reg.pushManager.getSubscription()
+              .then((pushSubscription) => pushSubscription?.unsubscribe()
+              )
+            );
+
+            setIsWebPushSubscribed(false)
           }
-
-          // 2. Update database
-          await orpcFetch.profile.updateProfile({
-            ...profileData,
-          	pushNotificationPreference: newStatus
-          });
-
-          await queryClient.invalidateQueries({
-          	queryKey: orpc.profile.getProfile.queryKey()
-          });
       } catch (error) {
           console.error("Failed to toggle notifications:", error);
       }
   };
 
   const emailNotificationToggle = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("toggled email...")
+    console.log("toggled email...");
     const newStatus = event.target.checked;
+    const preferenceOption = newStatus ? PreferenceOptions.OPT_IN : PreferenceOptions.OPT_OUT;
 
     try {
-        // 1. Update SuprSend
-        if (newStatus) {
-          const result = await suprSendClient.user.preferences.updateChannelPreferenceInCategory(
-            "email",
-            PreferenceOptions.OPT_IN,
-            "reminders"
-          )
+      // 1. Call SuprSend SDK
+      const result = await suprSendClient.user.preferences.updateChannelPreferenceInCategory(
+        "email",
+        preferenceOption,
+        "reminders"
+      );
 
-          if (result.status !== "success") {
-            console.log("Enable email result:", result);
-            return toast.error(
-              "Something went wrong while enabling email notifications!"
-            );
-          }
-        } else {
-          // User is switching OFF email notifications
-          const result =
-            await suprSendClient.user.preferences.updateChannelPreferenceInCategory(
-              "email",
-              PreferenceOptions.OPT_OUT,
-              "reminders"
-            );
+      if (result.status !== "success") {
+        console.log("Email update failed:", result);
+        return toast.error("Failed to update email preferences");
+      }
 
-          if (result.status !== "success") {
-            console.log("Preference update result:", result);
-            return toast.error(
-              "Something went wrong while disabling email notifications!"
-            );
-          }
-        }
+      await queryClient.setQueryData(["suprsend-preferences"], result.body)
 
-        // 2. Update database
-        await orpcFetch.profile.updateProfile({
-            ...profileData,
-            emailNotificationPreference: newStatus
-        });
-
-        queryClient.invalidateQueries({ 
-          queryKey: orpc.profile.getProfile.queryKey() 
-        });
-        
     } catch (error) {
-        console.error("Failed to toggle notifications:", error);
+      console.error("Failed to toggle notifications:", error);
+      toast.error("Something went wrong");
     }
-  }
+  };
   
   return (
     <>
@@ -162,7 +157,7 @@ const NotificationPreferencesPanel = ({ userId }: { userId: string }) => {
           </Typography>
         </Box>
         <Switch
-            checked={Boolean(profileData?.pushNotificationPreference)}
+            checked={isWebPushSubscribed}
             onChange={ handlePushNotificationToggle }
             // disabled={profileLoading || notificationMutation.isPending}
             color="success"
@@ -221,9 +216,9 @@ const NotificationPreferencesPanel = ({ userId }: { userId: string }) => {
           </Typography>
         </Box>
         <Switch
-            checked={Boolean(profileData?.emailNotificationPreference)}
+            checked={Boolean(isEmailEnabled)}
             onChange={emailNotificationToggle}
-            // disabled={profileLoading || notificationMutation.isPending}
+            disabled={isUserPrefLoading}
             color="success"
             slotProps={{ input: { "aria-label": "Enable email notifications" } }}
         />

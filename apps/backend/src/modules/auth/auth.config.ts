@@ -143,18 +143,6 @@ export const auth = betterAuth({
 					output: themeSettingZod
 				}
 			},
-			emailNotificationPreference: {
-				type: "boolean",
-				required: true,
-				defaultValue: true,
-				input: true
-			},
-			pushNotificationPreference: {
-				type: "boolean",
-				required: true,
-				defaultValue: false,
-				input: true
-			},
 		},
 		modelName: "users",
 	},

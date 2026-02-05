@@ -8,10 +8,6 @@ export const reminderUserStackService = async () => {
     logger.info("Starting supplement reminder cron job...");
 
 	const stacksDueForReminder = await db.userStacks.join("user")
-		.whereOneOf(
-			{ "user.emailNotificationPreference": true },
-			{ "user.pushNotificationPreference": true }
-		)
 		.where({ 
 			isActive: true
 		})
@@ -32,7 +28,7 @@ export const reminderUserStackService = async () => {
 				}
 			})
 		)
-		.select('userId','reminderTime','user.email','user.name','user.pushNotificationPreference','user.emailNotificationPreference',{
+		.select('userId','reminderTime','user.email','user.name',{
 			// This 'sql' block creates the array of supplement objects with needed columns
 			supplements: sql<Array<{ name: string, dosage: number, unit: string, instructions: string[] }>>`
 				json_agg(
@@ -44,7 +40,7 @@ export const reminderUserStackService = async () => {
 				))
 			`})
 		// @ts-ignore
-		.group('userId','reminderTime', "email", "emailNotificationPreference", "user.name", "pushNotificationPreference")
+		.group('userId', 'reminderTime', "email", "user.name")
 
     let tasksSent = 0;
 

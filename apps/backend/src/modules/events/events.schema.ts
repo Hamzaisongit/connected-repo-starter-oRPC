@@ -16,8 +16,6 @@ export const userStackReminderTaskDef = defineTask({
 		userId: Type.String({ format: "uuid" }),
 		email: Type.String({ format: 'email' }),
 		name: Type.String(),
-		pushNotificationPreference: Type.Boolean(),
-		emailNotificationPreference: Type.Boolean(),
 		supplements: Type.Array(Type.Object({
 			name: Type.String(),
 			dosage: Type.Number(),

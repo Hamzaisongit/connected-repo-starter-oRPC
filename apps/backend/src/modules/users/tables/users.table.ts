@@ -14,8 +14,6 @@ export class UserTable extends BaseTable {
     email: t.string().unique(),
     emailVerified: t.boolean().default(false),
     name: t.string(),
-	emailNotificationPreference: t.boolean().default(true),
-	pushNotificationPreference: t.boolean().default(true),
     image: t.string().nullable(),
     timezone: t.string().default("Etc/UTC"),
     themeSetting: t.themeSettingEnum().default("light"),

@@ -4,7 +4,6 @@ import { Button } from "@connected-repo/ui-mui/form/Button";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
 import { useSuprSend } from "@frontend/hooks/useSuprSend";
 import { enablePushNotifications } from "@frontend/utils/notifications.utils";
-import { orpcFetch } from "@frontend/utils/orpc.client";
 import { useTheme } from "@mui/material/styles";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -25,7 +24,6 @@ export function NotificationPermissionDialog({
 	const handleEnable = async () => {
 		try {
 			await enablePushNotifications(getPreferences, suprSendClient)
-			orpcFetch.profile.updateProfile({ pushNotificationPreference: true })
 		} catch (error) {
 			console.error("Failed to register push notifications:", error);
 		}
