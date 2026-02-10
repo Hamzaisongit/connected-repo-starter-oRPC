@@ -24,7 +24,7 @@ import { Paper } from "@connected-repo/ui-mui/layout/Paper";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
 import { useThemeMode } from "@connected-repo/ui-mui/theme/ThemeContext";
 import type { SessionInfo } from "@frontend/contexts/UserContext";
-import { NotificationsToggle } from "@frontend/modules/profile/components/Notifications_toggle.profile";
+import { NotificationsToggle } from "@frontend/components/profile/Notifications_toggle.profile";
 import { authClient } from "@frontend/utils/auth.client";
 import { orpc } from "@frontend/utils/orpc.client";
 import { logSessionEvent, logSessionException } from "@frontend/utils/session-logger.utils";

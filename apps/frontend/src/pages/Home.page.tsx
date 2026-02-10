@@ -2,13 +2,14 @@ import { LoadingSpinner } from "@connected-repo/ui-mui/components/LoadingSpinner
 import { Typography } from "@connected-repo/ui-mui/data-display/Typography";
 import { Button } from "@connected-repo/ui-mui/form/Button";
 import { Box } from "@connected-repo/ui-mui/layout/Box";
-import { Card } from "@connected-repo/ui-mui/layout/Card";
 import { Container } from "@connected-repo/ui-mui/layout/Container";
 import { Paper } from "@connected-repo/ui-mui/layout/Paper";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
+import ComplianceCalendar from "@frontend/components/home/ComplianceCalendar";
+import DailyProgressBar from "@frontend/components/home/DailyProgressBar";
+import Hero from "@frontend/components/home/Hero";
+import { SupplementCard } from "@frontend/components/home/SupplementCard";
 import { useSessionInfo } from "@frontend/contexts/UserContext";
-import ComplianceCalendar from "@frontend/modules/user-stack/components/ComplianceCalendar";
-import { SupplementCard } from "@frontend/modules/user-stack/components/SupplementCard";
 import { orpc } from "@frontend/utils/orpc.client";
 import { useTheme } from "@mui/material/styles";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -142,93 +143,79 @@ const HomePage = () => {
 			<Container maxWidth="sm">
 				
 				{/* Profile & Progress Hero */}
-				<Card sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
-					<Typography variant="h5" sx={{ fontFamily: 'serif', fontWeight: 600, textAlign: "center", mb: 1 }}>
-						{getGreeting()}, {user?.name?.split(" ")[0] || "there"}!
-						<Typography component="span" sx={{ fontSize: "0.8em" }}>
-							👋
-						</Typography>
-					</Typography>
-	
-					<Typography variant="body1" color="text.secondary" sx={{ textAlign: "center", mb: 3 }}>
-						{getFlavorText()}
-					</Typography>
-	
-					{hasSupplements && (
-						<Box sx={{ maxWidth: 300, mx: "auto" }}>
-							<Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
-								<Typography variant="caption" color="text.secondary">Today's Progress</Typography>
-								<Typography variant="caption" fontWeight={600} color="text.primary">{takenCount} of {totalCount}</Typography>
-							</Box>
-							{/* Progress Track */}
-							<Box sx={{ width: "100%", height: 8, bgcolor: "action.selected", borderRadius: 4, overflow: "hidden" }}>
-								{/* Progress Indicator */}
-								<Box sx={{
-									width: `${totalCount > 0 ? (takenCount / totalCount) * 100 : 0}%`,
-									height: "100%",
-									bgcolor: "primary.main",
-									borderRadius: 4,
-									transition: "width 0.3s ease",
-								}} />
-							</Box>
-						</Box>
-					)}
-				</Card>
-	
-				{/* Calendar Section */}
-				<Card sx={{ p: 2, mb: 3 }}>
-					<ComplianceCalendar />
-				</Card>
+				<Box sx={{ display: "flex", flexDirection: "column", gap: 1, p: { xs: 0, sm: 3 }, mb: 3 }}>
+					<Hero 
+						userName={user?.name} 
+						greeting={getGreeting()} 
+						flavorText={getFlavorText()}
+					/>
+						{hasSupplements && (
+							<DailyProgressBar totalCount={totalCount} takenCount={takenCount} />
+						)}
+
+						<ComplianceCalendar todaysTakenCount={takenCount} todaysTotalCount={totalCount}/>
+				</Box>
 	
 				{/* Supplements Section */}
-				{hasSupplements ? (
-					<>
-						{takenCount === totalCount && totalCount > 0 && (
-							<Box sx={{ textAlign: "center", py: 2, mb: 2 }}>
-								<Typography variant="h6" color="success.main" fontWeight={700}>
-									🎉 All done for today!
+				<Box sx={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: 1 }}>
+					{hasSupplements ? (
+						<>
+								<Typography 
+									variant="overline" 
+									sx={{ 
+										color: "text.secondary", 
+										fontWeight: 700,
+										letterSpacing: 1.2,
+										textAlign: "center"
+									}}
+								>
+									Today's Supplements
 								</Typography>
-								<Typography variant="body2" color="text.secondary">
-									Great job maintaining your streak. See you tomorrow!
-								</Typography>
-							</Box>
-						)}
-	
-						<Card sx={{ p: 0 }}>
-							<Stack spacing={0} divider={<Box sx={{ height: 1, bgcolor: "divider" }} />}>
-								{todaysPlan.supplements.map((supplement) => (
-									<SupplementCard
-										key={`${supplement.id}-${supplement.reminderTime}`}
-										supplement={supplement}
-										onRevert={handleRevert}
-										onCardClick={handleCardClick}
-									/>
-								))}
-							</Stack>
-						</Card>
-					</>
-				) : (
-					/* Empty State */
-					<Box sx={{ textAlign: "center", py: 8 }}>
-						<Typography sx={{ fontSize: "4rem", mb: 2, opacity: 0.5 }}>💊</Typography>
-						<Typography variant="h5" sx={{ fontFamily: 'serif', fontWeight: 600, mb: 2 }}>
-							Start your stack
-						</Typography>
-						<Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-							Build healthy habits by adding your first supplement
-						</Typography>
-						
-						<motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
-							<Button
-								variant="contained"
-								size="large"
-								onClick={() => navigate("/user-stack/new")}
-							>
-								Add Supplement
-							</Button>
-						</motion.div>
-					</Box>
-				)}
+							{takenCount === totalCount && totalCount > 0 && (
+								<Box sx={{ textAlign: "center", py: 2, mb: 2 }}>
+									<Typography variant="h6" color="success.main" fontWeight={700}>
+										🎉 All done for today!
+									</Typography>
+									<Typography variant="body2" color="text.secondary">
+										Great job maintaining your streak. See you tomorrow!
+									</Typography>
+								</Box>
+							)}
+
+								<Stack spacing={0.5} divider={<Box sx={{ height: 1, bgcolor: "divider" }} />}>
+									{todaysPlan.supplements.map((supplement) => (
+										<SupplementCard
+											key={`${supplement.id}-${supplement.reminderTime}`}
+											supplement={supplement}
+											onRevert={handleRevert}
+											onCardClick={handleCardClick}
+										/>
+									))}
+								</Stack>
+						</>
+					) : (
+						/* Empty State */
+						<Box sx={{ textAlign: "center", py: 8 }}>
+							<Typography sx={{ fontSize: "4rem", mb: 2, opacity: 0.5 }}>💊</Typography>
+							<Typography variant="h5" sx={{ fontFamily: 'serif', fontWeight: 600, mb: 2 }}>
+								Start your stack
+							</Typography>
+							<Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+								Build healthy habits by adding your first supplement
+							</Typography>
+							
+							<motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }}>
+								<Button
+									variant="contained"
+									size="large"
+									onClick={() => navigate("/user-stack/new")}
+								>
+									Add Supplement
+								</Button>
+							</motion.div>
+						</Box>
+					)}	
+				</Box>
 			</Container>
 		</Box>
 	);

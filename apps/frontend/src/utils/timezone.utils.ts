@@ -1,3 +1,7 @@
+import dayjs, { ConfigType } from "dayjs";
+import timezone from "dayjs/plugin/timezone.js";
+import utc from "dayjs/plugin/utc.js";
+
 /**
  * Fetches timezone from IP-based geolocation API with optional retry
  */
@@ -60,3 +64,17 @@ export async function detectUserTimezone(): Promise<string | null> {
 	// Fallback: IP-based geolocation via ipapi.co
 	return await fetchTimezoneFromIP(1); // Retry once
 }
+
+
+/**
+ * Initialize Day.js with UTC and Timezone plugins
+ */
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+/**
+ * Returns a Day.js object localized to a specific timezone
+ */
+export const dayJsTz = (tz: string, date?: ConfigType) => {
+	return dayjs.tz(date, tz);
+};
