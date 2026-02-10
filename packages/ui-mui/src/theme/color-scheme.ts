@@ -29,7 +29,7 @@ export const lightPalette: PaletteOptions = {
 		contrastText: "#991B1B", // Dark red text for contrast
 	},
 	warning: {
-		main: "#FEF3C7",
+		main: "#af962fff",
 		light: "#FEF9E7",
 		dark: "#FDE68A",
 		contrastText: "#92400E",
@@ -41,7 +41,7 @@ export const lightPalette: PaletteOptions = {
 		contrastText: "#075985",
 	},
 	background: {
-		default: "#d2dae2ff", // Light gradient base
+		default: "#e8ecefff", // Light gradient base
 		paper: "#FFFFFF", // Solid white for card backgrounds
 	},
 	text: {

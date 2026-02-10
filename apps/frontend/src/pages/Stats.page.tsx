@@ -10,12 +10,14 @@ import { Card, CardContent } from "@connected-repo/ui-mui/layout/Card";
 import { Container } from "@connected-repo/ui-mui/layout/Container";
 import { Stack } from "@connected-repo/ui-mui/layout/Stack";
 import { BuyShieldsDialog } from "@frontend/components/BuyShieldsDialog";
+import { CircularProgress } from "@connected-repo/ui-mui/feedback/CircularProgress";
 import { RewardsLedgerDialog } from "@frontend/components/RewardsLedgerDialog";
 import { useSessionInfo } from "@frontend/contexts/UserContext";
 import { orpc } from "@frontend/utils/orpc.client";
-import { getBrowserTimezone } from "@frontend/utils/timezone.utils";
+import { dayJsTz, getBrowserTimezone } from "@frontend/utils/timezone.utils";
 import { alpha, useTheme } from "@mui/material/styles";
 import { useQuery } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import { useState } from "react";
 
 const StatsPage = () => {
@@ -23,6 +25,9 @@ const StatsPage = () => {
 	const theme = useTheme();
 	const [rewardsDialogType, setRewardsDialogType] = useState<"coins" | "shields" | null>(null);
 	const [buyShieldsDialogOpen, setBuyShieldsDialogOpen] = useState(false);
+
+	const userTimezone = user?.timezone || getBrowserTimezone() || "Etc/UTC";
+	const userToday = dayJsTz(userTimezone).startOf("day");
 	
 	const { data: currentStreak, isLoading, error } = useQuery(
 		orpc.userStats.getCurrentStreak.queryOptions()
@@ -75,16 +80,17 @@ const StatsPage = () => {
 							variant="h4"
 							component="h1"
 							sx={{
-								fontFamily: 'serif',
-								fontWeight: 700,
+								fontFamily: '"Playfair Display", serif',
+								fontWeight: 800,
 								color: "text.primary",
-								mb: 0.5,
-								fontSize: { xs: "1.75rem", md: "2.125rem" },
+								mb: 1,
+								fontSize: { xs: "1.75rem", md: "2.5rem" },
+								letterSpacing: "-0.02em"
 							}}
 						>
 							Your Progress
 						</Typography>
-						<Typography variant="body2" color="text.secondary">
+						<Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
 							Track your supplement consistency journey
 						</Typography>
 					</Box>
@@ -106,15 +112,16 @@ const StatsPage = () => {
 								gap: 2,
 								py: 1.5,
 								px: 2,
-								borderRadius: 1.5,
-								backgroundColor: alpha("#FFD700", 0.15),
+								borderRadius: "24px",
+								backgroundColor: alpha(theme.palette.warning.main, 0.12),
 								cursor: "pointer",
-								transition: "all 0.2s ease-in-out",
+								transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
 								flex: 1,
+								border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`,
 								"&:hover": {
-									backgroundColor: alpha("#FFD700", 0.25),
-									transform: "translateY(-2px)",
-									boxShadow: theme.shadows[2],
+									backgroundColor: alpha(theme.palette.warning.main, 0.2),
+									transform: "translateY(-4px)",
+									boxShadow: `0 12px 24px ${alpha(theme.palette.warning.main, 0.15)}`,
 								},
 							}}
 						>
@@ -126,10 +133,10 @@ const StatsPage = () => {
 									width: 40,
 									height: 40,
 									borderRadius: 1.5,
-									backgroundColor: alpha("#FFD700", 0.3),
+									backgroundColor: alpha(theme.palette.warning.main, 0.2),
 								}}
 							>
-								<MonetizationOnIcon sx={{ color: "#FFD700", fontSize: "1.5rem" }} />
+								<MonetizationOnIcon sx={{ color: theme.palette.warning.main, fontSize: "1.5rem" }} />
 							</Box>
 							<Box sx={{ flex: 1 }}>
 								<Typography
@@ -164,10 +171,11 @@ const StatsPage = () => {
 								gap: 2,
 								py: 1.5,
 								px: 2,
-								borderRadius: 1.5,
-								backgroundColor: alpha(theme.palette.primary.main, 0.15),
-								transition: "all 0.2s ease-in-out",
+								borderRadius: "24px",
+								backgroundColor: alpha(theme.palette.primary.main, 0.12),
+								transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
 								flex: 1,
+								border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
 							}}
 						>
 							<Box
@@ -314,7 +322,7 @@ const StatsPage = () => {
 											<Chip 
 												label={`🛡️ ${currentStreak.currentStreakShieldsUsed}`}
 												size="small"
-												sx={{ bgcolor: "success.dark", color: "white", fontWeight: 700, fontSize: "0.7rem" }}
+												sx={{ bgcolor: "success.main", color: "success.contrastText", fontWeight: 700, fontSize: "0.7rem" }}
 											/>
 										</Box>
 									)}
@@ -330,9 +338,9 @@ const StatsPage = () => {
 									<Typography
 										variant="h2"
 										sx={{
-											fontFamily: 'serif',
-											fontWeight: 700,
-											color: currentStreakValue > 0 ? "warning.dark" : "text.primary",
+											fontFamily: '"Playfair Display", serif',
+											fontWeight: 800,
+											color: currentStreakValue > 0 ? "warning.contrastText" : "text.primary",
 											mb: 0.5,
 											fontSize: { xs: "2.5rem", md: "3rem" },
 										}}
@@ -384,7 +392,7 @@ const StatsPage = () => {
 												<Chip 
 												label={`🛡️ ${userStats.longestStreakShieldsUsed}`}
 												size="small"
-												sx={{ bgcolor: "success.dark", color: "white", fontWeight: 700, fontSize: "0.7rem" }}
+												sx={{ bgcolor: "success.main", color: "success.contrastText", fontWeight: 700, fontSize: "0.7rem" }}
 											/>
 										</Box>
 									)}
@@ -396,8 +404,8 @@ const StatsPage = () => {
 									<Typography
 										variant="h2"
 										sx={{
-											fontFamily: 'serif',
-											fontWeight: 700,
+											fontFamily: '"Playfair Display", serif',
+											fontWeight: 800,
 											color: longestStreakValue > 0 ? "success.dark" : "text.primary",
 											mb: 0.5,
 											fontSize: { xs: "2.5rem", md: "3rem" },
@@ -425,69 +433,82 @@ const StatsPage = () => {
 					{/* Deep Dive Stats */}
 					<Fade in timeout={700}>
 						<Box sx={{ maxWidth: 1200, mx: "auto", mt: 8 }}>
-							<Typography variant="h4" component="h2" sx={{ fontFamily: 'serif', fontWeight: 700, color: "text.primary", textAlign: "center", mb: 1 }}>
+							<Typography variant="h4" component="h2" sx={{ fontFamily: '"Playfair Display", serif', fontWeight: 800, color: "text.primary", textAlign: "center", mb: 1 }}>
 								Deep Dive
 							</Typography>
-							<Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", mb: 4 }}>
+							<Typography variant="body1" color="text.secondary" sx={{ textAlign: "center", mb: 4, fontWeight: 500 }}>
 								Detailed insights into your progress
 							</Typography>
 	
 							<Stack
 								direction={{ xs: "column", md: "row" }}
-								spacing={4}
-								sx={{ justifyContent: "center", alignItems: "center" }}
+								spacing={3}
+								sx={{ justifyContent: "center", alignItems: "stretch" }}
 							>
 								{/* Total Intake */}
-								<Card sx={{ flex: 1, height: "100%", minWidth: 240, maxWidth: 320, width: "100%" }}>
+								<Card sx={{ flex: 1, boxShadow: "0px 12px 32px rgba(0, 0, 0, 0.03)", border: "1px solid", borderColor: alpha(theme.palette.divider, 0.05) }}>
 									<CardContent sx={{ textAlign: "center", p: 4 }}>
-										<Typography variant="h3" sx={{ fontFamily: 'serif', fontWeight: 700, color: "text.primary", mb: 1 }}>
+										<Box sx={{ fontSize: "2.5rem", mb: 2 }}>📦</Box>
+										<Typography variant="h3" sx={{ fontFamily: '"Playfair Display", serif', fontWeight: 800, color: "primary.main", mb: 1 }}>
 											{intakeLogs?.filter(log =>
 												log.status === "Taken on-time" || log.status === "Taken late"
 											).length || 0}
 										</Typography>
-										<Typography variant="body1" color="text.secondary" fontWeight={600}>
+										<Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", fontSize: "0.75rem" }}>
 											Total Intake
 										</Typography>
 									</CardContent>
 								</Card>
 	
 								{/* Compliance % */}
-								<Card sx={{ flex: 1, height: "100%", minWidth: 240, maxWidth: 320, width: "100%" }}>
-									<CardContent sx={{ textAlign: "center", p: 4, pt: 5 }}>
-										<Box sx={{ mb: 3 }}>
-											<Box
-												sx={{
-													width: 100,
-													height: 100,
-													borderRadius: "50%",
-													border: (theme) => `6px solid ${alpha(theme.palette.success.main, 0.2)}`,
-													borderTop: (theme) => `6px solid ${theme.palette.success.main}`,
-													margin: "0 auto",
-													animation: "spin 2s linear infinite",
-													"@keyframes spin": {
-														"0%": { transform: "rotate(0deg)" },
-														"100%": { transform: "rotate(360deg)" },
-													},
+								<Card sx={{ 
+									flex: 1, 
+									boxShadow: "0px 12px 32px rgba(0, 0, 0, 0.03)", 
+									border: "1px solid", 
+									borderColor: alpha(theme.palette.success.main, 0.1),
+									bgcolor: "background.paper"
+								}}>
+									<CardContent sx={{ textAlign: "center", p: 4 }}>
+										<Box sx={{ position: "relative", display: "inline-flex", mb: 2 }}>
+											<CircularProgress
+												variant="determinate"
+												value={100}
+												size={80}
+												thickness={4}
+												sx={{ color: alpha(theme.palette.success.main, 0.1) }}
+											/>
+											<CircularProgress
+												variant="determinate"
+												value={Number(complianceStats?.averageIntake || 0)}
+												size={80}
+												thickness={4}
+												sx={{ 
+													color: theme.palette.success.main,
+													position: "absolute",
+													left: 0,
+													[`& .MuiCircularProgress-circle`]: { strokeLinecap: "round" }
 												}}
 											/>
+											<Box sx={{ top: 0, left: 0, bottom: 0, right: 0, position: "absolute", display: "flex", alignItems: "center", justifyContent: "center" }}>
+												<Typography variant="h6" component="div" sx={{ fontWeight: 800, color: "success.main" }}>
+													{complianceStats?.averageIntake || "0"}%
+												</Typography>
+											</Box>
 										</Box>
-										<Typography variant="h3" sx={{ fontFamily: 'serif', fontWeight: 700, color: "text.primary", mb: 1 }}>
-											{complianceStats?.averageIntake || "0"}%
-										</Typography>
-										<Typography variant="body1" color="text.secondary" fontWeight={600}>
-											Compliance
+										<Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", fontSize: "0.75rem" }}>
+											Compliance Rate
 										</Typography>
 									</CardContent>
 								</Card>
 	
 								{/* Perfect Days */}
-								<Card sx={{ flex: 1, height: "100%", minWidth: 240, maxWidth: 320, width: "100%" }}>
+								<Card sx={{ flex: 1, boxShadow: "0px 12px 32px rgba(0, 0, 0, 0.03)", border: "1px solid", borderColor: alpha(theme.palette.divider, 0.05) }}>
 									<CardContent sx={{ textAlign: "center", p: 4 }}>
-										<Box sx={{ fontSize: "3rem", mb: 3 }}>👑</Box>
-										<Typography variant="h3" sx={{ fontFamily: 'serif', fontWeight: 700, color: "text.primary", mb: 1 }}>
+										<Box sx={{ fontSize: "2.5rem", mb: 2 }}>✨</Box>
+										<Typography variant="h3" sx={{ fontFamily: '"Playfair Display", serif', fontWeight: 800, color: "text.primary", mb: 1 }}>
 											{complianceStats?.perfectDays || 0}
 										</Typography>
-										<Typography variant="body1" color="text.secondary" fontWeight={600}>
+										<Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", fontSize: "0.75rem" }}>
 											Perfect Days
 										</Typography>
 									</CardContent>
@@ -509,31 +530,34 @@ const StatsPage = () => {
 								</Typography>
 							</Box>
 	
-							<Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, justifyContent: "center", maxWidth: 800, mx: "auto" }}>
+							<Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, justifyContent: "center", maxWidth: 800, mx: "auto" }}>
 								{dailyCompliances?.slice(0, 100).map((compliance) => {
 									const percentage = Number.parseFloat(compliance.intakePercentage);
 									// Theme-aware colors
-									let bgcolor = "action.selected"; 
-									if (percentage === 100) bgcolor = "success.main";
-									else if (percentage > 0) bgcolor = "success.light";
-									else if (percentage === 0) bgcolor = "error.light";
+									let bgcolor = alpha(theme.palette.divider, 0.1); 
+									if (percentage === 100) bgcolor = theme.palette.success.main;
+									else if (percentage >= 80) bgcolor = alpha(theme.palette.success.main, 0.6);
+									else if (percentage >= 50) bgcolor = alpha(theme.palette.success.main, 0.3);
+									else if (percentage > 0) bgcolor = alpha(theme.palette.success.main, 0.15);
+									else if (percentage === 0 && compliance.date !== userToday.format("YYYY-MM-DD")) bgcolor = alpha(theme.palette.error.light, 0.2);
 	
 									return (
 										<Box
 											key={compliance.id}
 											sx={{
-												width: 12,
-												height: 12,
-												borderRadius: 1,
+												width: 14,
+												height: 14,
+												borderRadius: "3px",
 												bgcolor: bgcolor,
 												cursor: "pointer",
-												transition: "all 0.2s",
+												transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
 												"&:hover": {
 													opacity: 0.8,
-													transform: "scale(1.2)",
+													transform: "scale(1.25)",
+													boxShadow: `0 4px 8px ${alpha(theme.palette.common.black, 0.1)}`,
 												},
 											}}
-											title={`${new Date(compliance.date).toLocaleDateString('en-US', { timeZone: user?.timezone || getBrowserTimezone() || 'Etc/UTC' })}: ${percentage}% compliance`}
+											title={`${dayjs(compliance.date).format("MMM D, YYYY")}: ${percentage}% compliance`}
 										/>
 									);
 								})}
