@@ -160,19 +160,22 @@ const HomePage = () => {
 				<Box sx={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: 1 }}>
 					{hasSupplements ? (
 						<>
-								<Typography 
-									variant="overline" 
-									sx={{ 
-										color: "text.secondary", 
-										fontWeight: 700,
-										letterSpacing: 1.2,
-										textAlign: "center"
-									}}
-								>
-									Today's Supplements
-								</Typography>
+							{takenCount !== totalCount && totalCount > 0 && (
+								<Box sx={{textAlign: "center"}}>
+									<Typography 
+										variant="overline" 
+										sx={{ 
+											color: "text.secondary", 
+											fontWeight: 700,
+											letterSpacing: 1.2
+										}}
+									>
+										Today's Supplements
+									</Typography>
+								</Box>
+							)}
 							{takenCount === totalCount && totalCount > 0 && (
-								<Box sx={{ textAlign: "center", py: 2, mb: 2 }}>
+								<Box sx={{ textAlign: "center"}}>
 									<Typography variant="h6" color="success.main" fontWeight={700}>
 										🎉 All done for today!
 									</Typography>
