@@ -23,7 +23,7 @@ export const useSuprSend = (userId: string) => {
 
         const userToken = suprSendUserToken.current ?? await getUserToken();
 		
-		suprSendClient.identify(userId, userToken,
+		return suprSendClient.identify(userId, userToken,
             {
                 refreshUserToken: getUserToken
             }

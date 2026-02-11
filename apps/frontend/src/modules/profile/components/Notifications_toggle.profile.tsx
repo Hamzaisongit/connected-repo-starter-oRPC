@@ -26,7 +26,7 @@ const NotificationPreferencesPanel = ({ userId }: { userId: string }) => {
   const { data: userPrefData, isLoading: isUserPrefLoading, error: userPrefError } = useQuery({
     queryKey: ["suprsend-preferences"],
     queryFn: async () => {
-      const resp = await suprSendClient.user.preferences.getPreferences();
+      const resp = await getPreferences();
       
       if (resp.status === "error"){
         toast.error("Failed to fetch!")
