@@ -1,6 +1,9 @@
 {
 	"author": "Balkrishna Agarwal <krishna@shipmyapp.in>",
 	"dependencies": {
+		"@capacitor/android": "^8.1.0",
+		"@capacitor/core": "^8.1.0",
+		"@capacitor/ios": "^8.1.0",
 		"@connected-repo/ui-mui": "*",
 		"@connected-repo/zod-schemas": "*",
 		"@emotion/react": "^11.14.0",
@@ -26,6 +29,7 @@
 		"zustand": "^5.0.9"
 	},
 	"devDependencies": {
+		"@capacitor/cli": "^8.1.0",
 		"@connected-repo/typescript-config": "*",
 		"@playwright/test": "^1.57.0",
 		"@sentry/vite-plugin": "^4.6.1",
