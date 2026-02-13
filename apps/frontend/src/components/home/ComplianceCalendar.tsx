@@ -81,7 +81,6 @@ const ComplianceCalendar = ({todaysTakenCount, todaysTotalCount}: ComplianceCale
   return (
  		<Box sx={{ 
 			display: "flex", 
-			gap: 1, 
 			justifyContent: "space-between", 
 			alignItems: "center", 
 			backgroundColor: "background.paper", 
