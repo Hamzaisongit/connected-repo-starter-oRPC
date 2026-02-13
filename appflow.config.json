@@ -1,0 +1,12 @@
+{
+    "apps": [
+        {
+            "androidPath": "android",
+            "appId": "com.heliocoach.app",
+            "dependencyInstallCommand": "yarn install",
+            "iosPath": "ios/App",
+            "root": "apps/frontend",
+            "webBuildCommand": "yarn build"
+        }
+    ]
+}
