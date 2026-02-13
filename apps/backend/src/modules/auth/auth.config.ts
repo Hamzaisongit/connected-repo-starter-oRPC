@@ -122,6 +122,9 @@ export const auth = betterAuth({
 		changeEmail: {
 			enabled: false, // Disable email changes for simplicity
 		},
+		deleteUser: {
+			enabled: true
+		},
 		additionalFields: {
 			timezone: {
 				defaultValue: "Etc/UTC",

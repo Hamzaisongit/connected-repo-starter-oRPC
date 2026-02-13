@@ -68,13 +68,15 @@ const ProfilePage = () => {
 			});
 	};
 
-	const handleDeleteAccount = () => {
-		// TODO: Implement account deletion API call
+	const handleDeleteAccount = async () => {
 		console.info("Account deletion requested");
+
+        const res = await authClient.deleteUser()
+		
 		setDeleteDialogOpen(false);
 		setDeleteConfirmText("");
 		// After deletion, redirect to login
-		// navigate("/auth/login");
+		navigate("/auth/login");
 	};
 
 	const handleThemeChange = async () => {
