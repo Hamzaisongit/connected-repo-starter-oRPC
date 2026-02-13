@@ -3,10 +3,10 @@
         {
             "androidPath": "android",
             "appId": "066710f7",
-            "dependencyInstallCommand": "yarn install",
+            "dependencyInstallCommand": "cd ../.. && yarn install",
             "iosPath": "ios/App",
             "root": "apps/frontend",
-            "webBuildCommand": "yarn build"
+            "webBuildCommand": "cd ../.. && yarn build"
         }
     ]
 }
